@@ -29,7 +29,7 @@ functional-typescript/
 ### Via skills.sh
 
 ```bash
-skill install functional-typescript
+npx skills add https://github.com/mshindi-labs/agent-skills --skill functional-typescript
 ```
 
 ### Manual
