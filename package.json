@@ -1,6 +1,6 @@
 {
   "name": "agent-skills",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A monorepo of agent skills for AI coding assistants",
   "private": true,
   "scripts": {
