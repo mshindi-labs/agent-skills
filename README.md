@@ -38,7 +38,7 @@ skills/
 ## Installation
 
 ```bash
-npx skills add <your-github-username>/agent-skills
+npx skills add https://github.com/mshindi-labs/agent-skills/skills/<skill>
 ```
 
 Or manually copy a skill directory into your agent's skills folder.
