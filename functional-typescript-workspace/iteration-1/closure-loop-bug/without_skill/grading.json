@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Correctly explains the var hoisting / shared closure pitfall (all closures share the same 'i' variable)",
+      "passed": true,
+      "evidence": "Lines 6-18: explains var is function-scoped, one i shared across iterations, value is 5 when handlers run"
+    },
+    {
+      "text": "Offers fix using let instead of var",
+      "passed": true,
+      "evidence": "Lines 24-38: 'Fix 1: Use let instead of var' with code example"
+    },
+    {
+      "text": "Offers a more functional solution using Array.from or map instead of the imperative loop",
+      "passed": true,
+      "evidence": "Lines 61-74: 'Fix 3' uses Array.from({ length: 5 }, ...) and [0,1,2,3,4].map(...)"
+    },
+    {
+      "text": "The functional solution avoids mutation (no push)",
+      "passed": true,
+      "evidence": "Array.from and .map examples create the array directly without push"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

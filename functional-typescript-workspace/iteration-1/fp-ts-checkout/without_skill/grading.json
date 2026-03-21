@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Uses TaskEither (TE.TaskEither or TE.tryCatch) for async operations",
+      "passed": true,
+      "evidence": "Lines 65, 80, 95: fetchUserTE, fetchCartTE, chargePaymentMethodTE all use TE.tryCatch"
+    },
+    {
+      "text": "Uses pipe() to compose the steps sequentially",
+      "passed": true,
+      "evidence": "Line 126: checkout function uses pipe(TE.Do, TE.bind(...), ...) throughout"
+    },
+    {
+      "text": "Uses TE.chain or Do notation (TE.bind) to sequence dependent steps",
+      "passed": true,
+      "evidence": "Lines 131-149: TE.Do + TE.bind used for user, cart, payment steps"
+    },
+    {
+      "text": "Uses TE.filterOrElse or similar to validate the non-empty cart",
+      "passed": true,
+      "evidence": "Lines 136-139: `TE.filterOrElse(({ cart }) => cart.items.length > 0, (): CheckoutError => ({ code: 'EMPTY_CART' }))`"
+    },
+    {
+      "text": "Defines a typed error type (discriminated union or similar) rather than generic Error",
+      "passed": true,
+      "evidence": "Lines 44-50: CheckoutError discriminated union with readonly code tags"
+    },
+    {
+      "text": "Uses TE.fold or similar to handle the final result",
+      "passed": true,
+      "evidence": "Lines 166-189: TE.fold at the HTTP handler edge with exhaustive switch on err.code"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

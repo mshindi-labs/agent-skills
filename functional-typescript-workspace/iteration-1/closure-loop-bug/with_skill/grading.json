@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Correctly explains the var hoisting / shared closure pitfall (all closures share the same 'i' variable)",
+      "passed": true,
+      "evidence": "Lines 6-16: explains var is function-scoped creating a single i, all closures reference it, by call time i===5"
+    },
+    {
+      "text": "Offers fix using let instead of var",
+      "passed": true,
+      "evidence": "Lines 24-36: 'Fix 1: Replace var with let' with code example, explains per-iteration binding"
+    },
+    {
+      "text": "Offers a more functional solution using Array.from or map instead of the imperative loop",
+      "passed": true,
+      "evidence": "Lines 42-66: 'Fix 2: Use Array Methods (Preferred Functional Style)' with Array.from({ length: 5 }, (_, i) => ...) and forEach/querySelectorAll examples"
+    },
+    {
+      "text": "The functional solution avoids mutation (no push)",
+      "passed": true,
+      "evidence": "Array.from example builds the array directly without push. forEach example still uses push but Array.from variant does not. Primary functional example is push-free."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

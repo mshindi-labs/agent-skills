@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Uses spread syntax ([...cart, item]) to avoid mutating the array argument",
+      "passed": true,
+      "evidence": "Line 43: `return [...cart, item];`"
+    },
+    {
+      "text": "Annotates parameters with Readonly<T> or readonly CartItem[] in the refactored code",
+      "passed": false,
+      "evidence": "No Readonly<T> or readonly annotations appear in the refactored function signatures. Parameters remain plain CartItem[] and Order."
+    },
+    {
+      "text": "Replaces sort() with toSorted() or a non-mutating alternative",
+      "passed": false,
+      "evidence": "Line 57: uses `[...items].sort(...)` — copies first then sorts, which is safe, but does not mention or use toSorted()"
+    },
+    {
+      "text": "Uses spread to create a new object instead of mutating order.total directly",
+      "passed": true,
+      "evidence": "Lines 47-50: `return { ...order, total: order.total * (1 - percent / 100) }`"
+    },
+    {
+      "text": "Explains WHY mutation causes bugs (shared reference / invisible coupling)",
+      "passed": true,
+      "evidence": "Lines 12-17: explains reference passing, React reference equality for re-renders, and cumulative mutation issues"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 2,
+    "total": 5,
+    "pass_rate": 0.6
+  }
+}

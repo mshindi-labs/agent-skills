@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "closure-loop-bug",
+  "prompt": "I have this TypeScript code that registers click handlers for buttons, but they all show the same number (always 5):\n\n```typescript\nconst handlers = []\nfor (var i = 0; i < 5; i++) {\n  handlers.push(function() {\n    console.log('Button', i)\n  })\n}\n// All handlers log \"Button 5\"\n```\n\nWhat's happening and how do I fix it? I want each handler to log its own index.",
+  "assertions": [
+    "Correctly explains the var hoisting / shared closure pitfall (all closures share the same 'i' variable)",
+    "Offers fix using let instead of var",
+    "Offers a more functional solution using Array.from or map instead of the imperative loop",
+    "The functional solution avoids mutation (no push)"
+  ]
+}

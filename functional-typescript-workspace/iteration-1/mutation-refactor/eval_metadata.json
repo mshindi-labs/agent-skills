@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "mutation-refactor",
+  "prompt": "I'm getting weird bugs in our React app whenever we call this function. The cart sometimes gets corrupted when multiple components call it:\n\n```typescript\nfunction addItem(cart: CartItem[], item: CartItem): CartItem[] {\n  cart.push(item)\n  return cart\n}\n\nfunction applyDiscount(order: Order, percent: number): Order {\n  order.total = order.total * (1 - percent / 100)\n  return order\n}\n\nfunction sortByPrice(items: CartItem[]): CartItem[] {\n  return items.sort((a, b) => a.price - b.price)\n}\n```\n\nCan you explain what's wrong and refactor this to be safe?",
+  "assertions": [
+    "Uses spread syntax ([...cart, item]) to avoid mutating the array argument",
+    "Annotates parameters with Readonly<T> or readonly CartItem[] in the refactored code",
+    "Replaces sort() with toSorted() or a non-mutating alternative",
+    "Uses spread to create a new object instead of mutating order.total directly",
+    "Explains WHY mutation causes bugs (shared reference / invisible coupling)"
+  ]
+}

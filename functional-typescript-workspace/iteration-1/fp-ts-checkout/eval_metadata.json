@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "fp-ts-checkout",
+  "prompt": "Our codebase uses fp-ts. I need to write a checkout function that:\n1. Fetches the user by ID\n2. Fetches their cart\n3. Validates the cart is non-empty\n4. Charges their saved payment method\n5. Returns a receipt or a typed error\n\nRight now I'm using async/await with try-catch but it's getting messy. Can you show me the fp-ts way?",
+  "assertions": [
+    "Uses TaskEither (TE.TaskEither or TE.tryCatch) for async operations",
+    "Uses pipe() to compose the steps sequentially",
+    "Uses TE.chain or Do notation (TE.bind) to sequence dependent steps",
+    "Uses TE.filterOrElse or similar to validate the non-empty cart",
+    "Defines a typed error type (discriminated union or similar) rather than generic Error",
+    "Uses TE.fold or similar to handle the final result"
+  ]
+}
