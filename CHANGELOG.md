@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/mshindi-labs/agent-skills/compare/v1.1.0...v1.1.1) (2026-04-09)
+
+### Code Refactoring
+
+- **commands:** organize agent workflows under commands/claude and commands/cursor ([b05275c](https://github.com/mshindi-labs/agent-skills/commit/b05275cb339c954cf49aba22323c23e9d482583c))
+
 ## [1.1.0](https://github.com/mshindi-labs/agent-skills/compare/v1.0.0...v1.1.0) (2026-03-21)
 
 ### Features
