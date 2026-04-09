@@ -9,6 +9,7 @@ If the user specifies a tag range, branch range, commit range, or release versio
 ## Step 1 — Determine the release scope
 
 Identify exactly which changes belong in the notes:
+
 - from the last tag to `HEAD`
 - from one tag to another
 - from one branch to another
@@ -47,6 +48,7 @@ Review the actual files when commit messages are too vague to support accurate n
 ## Step 3 — Categorize by user impact
 
 Transform the raw change set into meaningful sections such as:
+
 - new features
 - bug fixes
 - performance improvements
@@ -65,6 +67,7 @@ Do not let the notes become a commit dump.
 ## Step 4 — Call out special release risks
 
 Explicitly identify anything that needs attention:
+
 - breaking changes
 - migrations or schema changes
 - new environment variables
@@ -80,6 +83,7 @@ If no such items exist, say so rather than leaving it ambiguous.
 ## Step 5 — Draft notes for the intended audience
 
 Tailor the notes to the audience the user seems to want:
+
 - end users
 - internal engineering team
 - release managers
@@ -88,6 +92,7 @@ Tailor the notes to the audience the user seems to want:
 Default to an engineering-friendly audience unless the user asks otherwise.
 
 Write in plain language:
+
 - explain the outcome
 - avoid file names unless they help
 - avoid low-value internal churn unless it affects release risk
@@ -97,6 +102,7 @@ Write in plain language:
 ## Step 6 — Produce two levels of detail
 
 Prepare:
+
 - a short summary version
 - a fuller structured version
 
@@ -124,6 +130,7 @@ If the release is large, group changes under clear headings.
 ## Step 7 — Be explicit about uncertainty
 
 If commit messages or code do not make intent clear:
+
 - say which items were inferred from diffs
 - flag areas that may need human confirmation
 - avoid overstating certainty

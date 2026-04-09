@@ -21,6 +21,7 @@ git diff --stat origin/main...HEAD
 ```
 
 Record:
+
 - `CURRENT_BRANCH`
 - whether there are uncommitted local changes
 - whether the branch tracks an upstream
@@ -28,6 +29,7 @@ Record:
 - whether there are commits on `HEAD` that are not in `origin/main`
 
 Stop and ask the user if:
+
 - `CURRENT_BRANCH` is `main`
 - the worktree includes suspicious unrelated changes
 - the branch is behind its upstream and needs a pull/rebase decision
@@ -47,6 +49,7 @@ gh pr list --head <CURRENT_BRANCH> --base main --state open
 ```
 
 Rules:
+
 - If `origin/main` cannot be resolved, stop and report it
 - If the merge simulation shows conflicts, stop and report that the branch is not merge-ready
 - If an open PR from `CURRENT_BRANCH` to `main` already exists, do not create a duplicate; return that PR instead
@@ -58,6 +61,7 @@ Rules:
 Read the actual changes, not just filenames.
 
 Pay special attention to:
+
 - secrets such as `.env`, `.env.*`, keys, credentials, or tokens
 - generated artifacts such as `dist/`, `coverage/`, `build/`, `*.map`
 - lockfile-only churn without a matching dependency manifest change
@@ -105,6 +109,7 @@ EOF
 ```
 
 Rules:
+
 - keep the first line within 100 characters
 - explain why in the body when useful
 - use `BREAKING CHANGE:` in the footer when applicable
@@ -112,6 +117,7 @@ Rules:
 - do not use `--no-verify` unless the user explicitly asks for it
 
 If hooks auto-fix files:
+
 - inspect what changed
 - re-stage only the intended files
 - retry safely
@@ -137,6 +143,7 @@ git push origin <CURRENT_BRANCH>
 ```
 
 Rules:
+
 - never force push unless the user explicitly asks
 - if push is rejected, stop and explain why
 - if auth or permissions fail, report that clearly
@@ -156,11 +163,13 @@ Common locations:
 ```
 
 If a template exists:
+
 - preserve its sections
 - fill only what can be supported by the diff, commit history, and test evidence
 - do not invent issue numbers, test results, screenshots, or deployment steps
 
 For this repository, prefer the detected template with sections like:
+
 - `Summary`
 - `Changes Made`
 - `Related Issue(s)`
@@ -179,6 +188,7 @@ For this repository, prefer the detected template with sections like:
 Use `gh` to create a PR from `CURRENT_BRANCH` to `main`.
 
 Title rules:
+
 - use the strongest summary of the whole branch
 - if there is one main commit, the title can closely mirror that subject
 - if there are multiple commits, summarize the branch instead of copying only the latest commit
@@ -197,6 +207,7 @@ EOF
 ```
 
 Before running it:
+
 - ensure the branch is pushed
 - ensure there is no existing open PR for the same head/base pair
 - ensure the PR body reflects the repository template if one exists
@@ -208,6 +219,7 @@ Capture the resulting PR URL.
 ## Step 9 — Report back
 
 Show the user:
+
 - the PR URL
 - the head branch and base branch
 - whether a new commit was created, and the commit message if so
@@ -216,6 +228,7 @@ Show the user:
 - any risks or missing verification that reviewers should know
 
 If anything fails, stop and report the exact blocker:
+
 - merge conflict risk
 - hook failure
 - push rejection

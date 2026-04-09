@@ -11,6 +11,7 @@ If the user specifies a branch, commit, PR, range, or file list, scope the revie
 Determine what should be reviewed before reading diffs.
 
 If the user gave a scope, normalize it into one of:
+
 - working tree
 - staged changes
 - a commit SHA
@@ -51,6 +52,7 @@ git log --oneline <base>..<head>
 ```
 
 Rules:
+
 - Review the actual diff, not just file names
 - If the diff is huge, start with `--stat` and high-risk files first
 - If the change set contains generated files, focus review on the source-of-truth files
@@ -60,6 +62,7 @@ Rules:
 ## Step 3 — Understand the changed surface area
 
 Categorize what changed so you can focus attention effectively:
+
 - application logic
 - API or contract changes
 - database or schema changes
@@ -70,6 +73,7 @@ Categorize what changed so you can focus attention effectively:
 - dependency updates
 
 Look for files that deserve extra scrutiny:
+
 - auth, billing, payments, persistence, migrations, queues, background jobs
 - public API contracts, DTOs, schemas, serializers
 - concurrency-sensitive or caching code
@@ -81,6 +85,7 @@ Look for files that deserve extra scrutiny:
 ## Step 4 — Review for high-severity issues first
 
 Search for the highest-risk classes of problems before anything else:
+
 - bugs that can break the primary flow
 - missing null/undefined handling
 - incorrect edge-case behavior
@@ -93,6 +98,7 @@ Search for the highest-risk classes of problems before anything else:
 - broken backward compatibility for APIs, events, configs, or CLI flags
 
 Ask:
+
 - What can fail in production?
 - What changed behavior without corresponding validation?
 - What paths are now untested?
@@ -103,6 +109,7 @@ Ask:
 ## Step 5 — Check tests and verification evidence
 
 Inspect whether the change is verified well enough:
+
 - Were relevant tests added or updated?
 - Do tests actually cover the changed behavior?
 - Is there a mismatch between risk and testing depth?
@@ -119,6 +126,7 @@ If verification is weak, call it out explicitly as a finding or risk.
 Your response must start with findings, ordered by severity.
 
 For each finding include:
+
 - severity: high, medium, or low
 - the impacted file or code area
 - what the issue is
@@ -133,6 +141,7 @@ Use this structure:
 ```
 
 Rules:
+
 - Prefer fewer strong findings over many weak nits
 - If something is uncertain, state the assumption clearly
 - Separate bugs from style opinions
@@ -145,6 +154,7 @@ If you find no significant issues, say so explicitly and then note residual risk
 ## Step 7 — End with concise secondary sections
 
 After findings, optionally include:
+
 - open questions or assumptions
 - residual risks
 - brief change summary

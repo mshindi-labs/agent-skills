@@ -9,6 +9,7 @@ If the user provides an error, stack trace, failing endpoint, failing test, or r
 ## Step 1 — Define the bug precisely
 
 Before investigating, restate the issue in concrete terms:
+
 - expected behavior
 - actual behavior
 - environment where it happens
@@ -18,6 +19,7 @@ Before investigating, restate the issue in concrete terms:
 If any of those are missing and they are necessary to debug, ask the user before proceeding.
 
 Do not accept vague goals such as:
+
 - "this is broken"
 - "the app fails sometimes"
 - "fix auth"
@@ -29,6 +31,7 @@ Convert them into a specific failure statement first.
 ## Step 2 — Gather evidence before forming conclusions
 
 Inspect the relevant code and available runtime evidence:
+
 - stack traces
 - logs
 - failing tests
@@ -36,6 +39,7 @@ Inspect the relevant code and available runtime evidence:
 - configuration and environment assumptions
 
 Search for:
+
 - the thrown error string
 - related function names
 - related config keys
@@ -44,6 +48,7 @@ Search for:
 If you can reproduce the issue safely, do that before proposing a fix.
 
 Rules:
+
 - Prefer the narrowest reproduction path first
 - Do not change code just to "see if it works"
 - Distinguish between symptom location and root cause location
@@ -53,6 +58,7 @@ Rules:
 ## Step 3 — Trace the failing path end to end
 
 Map the path from input to failure:
+
 - entry point
 - validation
 - business logic
@@ -60,6 +66,7 @@ Map the path from input to failure:
 - output formatting or return path
 
 For each step, ask:
+
 - What assumptions does this layer make?
 - What inputs can violate those assumptions?
 - What changed recently?
@@ -74,6 +81,7 @@ If the issue spans multiple layers, identify which layer actually owns the bug.
 Generate 1 to 3 plausible hypotheses, then rank them by likelihood and blast radius.
 
 Each hypothesis should state:
+
 - what is probably wrong
 - what evidence supports it
 - what evidence would disprove it
@@ -87,6 +95,7 @@ If you have no strong hypothesis yet, keep investigating instead of guessing.
 ## Step 5 — Validate the most likely hypothesis
 
 Validate using the smallest reliable method available:
+
 - inspect the relevant code path
 - compare expected and actual values
 - run the smallest failing test
@@ -96,6 +105,7 @@ Validate using the smallest reliable method available:
 Avoid broad, expensive, or destructive checks unless necessary.
 
 Stop if:
+
 - the evidence contradicts the current hypothesis
 - the issue depends on missing credentials, external systems, or inaccessible environments
 
@@ -108,17 +118,20 @@ In those cases, explain what additional evidence is needed.
 Once the root cause is likely understood, propose the smallest change that fixes it without broad refactoring.
 
 The proposed fix should include:
+
 - where the change belongs
 - why that layer is the right place
 - how it resolves the root cause
 - what regressions to watch for
 
 Prefer:
+
 - input validation over downstream crashes
 - tighter condition checks over broad catch-all logic
 - preserving existing contracts unless a contract bug is the issue
 
 Avoid:
+
 - unrelated cleanup
 - speculative refactors
 - masking the problem without explaining why
@@ -128,6 +141,7 @@ Avoid:
 ## Step 7 — Define verification
 
 Specify how to prove the fix works:
+
 - exact scenario to retest
 - smallest relevant automated test
 - edge cases worth checking

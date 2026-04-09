@@ -21,6 +21,7 @@ ls .husky 2>/dev/null || echo "no husky dir"
 ```
 
 Determine:
+
 - **Package manager**: look for `bun.lock` → bun, `yarn.lock` → yarn, `pnpm-lock.yaml` → pnpm, `package-lock.json` → npm
 - **Project type**: is `"type": "module"` in `package.json`?
 - **TypeScript**: is `typescript` in `devDependencies`?
@@ -89,12 +90,12 @@ Also make two edits to `package.json`:
 
 Run the install command for the detected package manager:
 
-| Package manager | Command |
-|-----------------|---------|
-| bun             | `bun install` |
+| Package manager | Command                          |
+| --------------- | -------------------------------- |
+| bun             | `bun install`                    |
 | yarn            | `yarn install --frozen-lockfile` |
 | pnpm            | `pnpm install --frozen-lockfile` |
-| npm             | `npm install` |
+| npm             | `npm install`                    |
 
 ---
 
@@ -103,36 +104,36 @@ Run the install command for the detected package manager:
 Create this file at the **project root**:
 
 ```ts
-import type { UserConfig } from '@commitlint/types';
+import type { UserConfig } from "@commitlint/types";
 
 const config: UserConfig = {
-  extends: ['@commitlint/config-conventional'],
+  extends: ["@commitlint/config-conventional"],
   rules: {
-    'type-enum': [
+    "type-enum": [
       2,
-      'always',
+      "always",
       [
-        'feat',
-        'fix',
-        'docs',
-        'style',
-        'refactor',
-        'test',
-        'chore',
-        'perf',
-        'ci',
-        'revert',
-        'build',
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "test",
+        "chore",
+        "perf",
+        "ci",
+        "revert",
+        "build",
       ],
     ],
-    'scope-case': [2, 'always', 'kebab-case'],
-    'subject-case': [
+    "scope-case": [2, "always", "kebab-case"],
+    "subject-case": [
       2,
-      'never',
-      ['sentence-case', 'pascal-case', 'upper-case'],
+      "never",
+      ["sentence-case", "pascal-case", "upper-case"],
     ],
-    'subject-empty': [2, 'never'],
-    'header-max-length': [2, 'always', 100],
+    "subject-empty": [2, "never"],
+    "header-max-length": [2, "always", 100],
   },
 };
 
@@ -153,20 +154,20 @@ Create the `.husky/` directory and two hook files:
 # content depends on package manager:
 ```
 
-| Package manager | pre-commit content |
-|-----------------|--------------------|
-| bun             | `bunx lint-staged` |
-| yarn            | `npx lint-staged`  |
+| Package manager | pre-commit content      |
+| --------------- | ----------------------- |
+| bun             | `bunx lint-staged`      |
+| yarn            | `npx lint-staged`       |
 | pnpm            | `pnpm exec lint-staged` |
-| npm             | `npx lint-staged`  |
+| npm             | `npx lint-staged`       |
 
 **`.husky/commit-msg`**
 
-| Package manager | commit-msg content |
-|-----------------|--------------------|
-| bun             | `bunx commitlint --edit $1` |
+| Package manager | commit-msg content                 |
+| --------------- | ---------------------------------- |
+| bun             | `bunx commitlint --edit $1`        |
 | yarn            | `npx --no -- commitlint --edit $1` |
-| pnpm            | `pnpm exec commitlint --edit $1` |
+| pnpm            | `pnpm exec commitlint --edit $1`   |
 | npm             | `npx --no -- commitlint --edit $1` |
 
 Make both files executable:
@@ -180,6 +181,7 @@ chmod +x .husky/pre-commit .husky/commit-msg
 ## Step 6 — Create `.releaserc.json`
 
 Create this file at the **project root**. This configures semantic-release to:
+
 - Analyse commits and infer the version bump
 - Generate and update `CHANGELOG.md`
 - Bump `package.json` version (without publishing to npm)
@@ -195,12 +197,12 @@ Create this file at the **project root**. This configures semantic-release to:
       {
         "preset": "conventionalcommits",
         "releaseRules": [
-          { "type": "feat",     "release": "minor" },
-          { "type": "fix",      "release": "patch" },
-          { "type": "perf",     "release": "patch" },
-          { "type": "revert",   "release": "patch" },
+          { "type": "feat", "release": "minor" },
+          { "type": "fix", "release": "patch" },
+          { "type": "perf", "release": "patch" },
+          { "type": "revert", "release": "patch" },
           { "type": "refactor", "release": "patch" },
-          { "breaking": true,   "release": "major" }
+          { "breaking": true, "release": "major" }
         ]
       }
     ],
@@ -210,21 +212,29 @@ Create this file at the **project root**. This configures semantic-release to:
         "preset": "conventionalcommits",
         "presetConfig": {
           "types": [
-            { "type": "feat",     "section": "Features" },
-            { "type": "fix",      "section": "Bug Fixes" },
-            { "type": "perf",     "section": "Performance Improvements" },
-            { "type": "revert",   "section": "Reverts" },
+            { "type": "feat", "section": "Features" },
+            { "type": "fix", "section": "Bug Fixes" },
+            { "type": "perf", "section": "Performance Improvements" },
+            { "type": "revert", "section": "Reverts" },
             { "type": "refactor", "section": "Code Refactoring" },
-            { "type": "docs",     "section": "Documentation" },
-            { "type": "test",     "section": "Tests",                 "hidden": true },
-            { "type": "chore",    "section": "Miscellaneous Chores",  "hidden": true },
-            { "type": "ci",       "section": "Continuous Integration","hidden": true }
+            { "type": "docs", "section": "Documentation" },
+            { "type": "test", "section": "Tests", "hidden": true },
+            {
+              "type": "chore",
+              "section": "Miscellaneous Chores",
+              "hidden": true
+            },
+            {
+              "type": "ci",
+              "section": "Continuous Integration",
+              "hidden": true
+            }
           ]
         }
       }
     ],
     ["@semantic-release/changelog", { "changelogFile": "CHANGELOG.md" }],
-    ["@semantic-release/npm",       { "npmPublish": false }],
+    ["@semantic-release/npm", { "npmPublish": false }],
     [
       "@semantic-release/git",
       {
@@ -239,12 +249,12 @@ Create this file at the **project root**. This configures semantic-release to:
 
 **Version bump rules summary**:
 
-| Commit type          | Release |
-|----------------------|---------|
-| `feat`               | minor   |
-| `fix`, `perf`, `revert`, `refactor` | patch |
-| `BREAKING CHANGE`    | major   |
-| `docs`, `test`, `chore`, `ci`, `style`, `build` | none |
+| Commit type                                     | Release |
+| ----------------------------------------------- | ------- |
+| `feat`                                          | minor   |
+| `fix`, `perf`, `revert`, `refactor`             | patch   |
+| `BREAKING CHANGE`                               | major   |
+| `docs`, `test`, `chore`, `ci`, `style`, `build` | none    |
 
 ---
 
@@ -281,10 +291,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Node.js          # always include Node setup
+      - name: Set up Node.js # always include Node setup
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
 
       # --- include the block below ONLY if the package manager is bun ---
       - name: Set up Bun
@@ -294,22 +304,22 @@ jobs:
       # ------------------------------------------------------------------
 
       - name: Install dependencies
-        run: <INSTALL_COMMAND>        # see table below
+        run: <INSTALL_COMMAND> # see table below
 
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: <RELEASE_COMMAND>        # see table below
+        run: <RELEASE_COMMAND> # see table below
 ```
 
 Fill in the placeholders based on the package manager:
 
-| Package manager | `<INSTALL_COMMAND>`              | `<RELEASE_COMMAND>`        |
-|-----------------|----------------------------------|----------------------------|
-| bun             | `bun install --frozen-lockfile`  | `bunx semantic-release`    |
-| yarn            | `yarn install --frozen-lockfile` | `npx semantic-release`     |
+| Package manager | `<INSTALL_COMMAND>`              | `<RELEASE_COMMAND>`          |
+| --------------- | -------------------------------- | ---------------------------- |
+| bun             | `bun install --frozen-lockfile`  | `bunx semantic-release`      |
+| yarn            | `yarn install --frozen-lockfile` | `npx semantic-release`       |
 | pnpm            | `pnpm install --frozen-lockfile` | `pnpm exec semantic-release` |
-| npm             | `npm ci`                         | `npx semantic-release`     |
+| npm             | `npm ci`                         | `npx semantic-release`       |
 
 > **Important**: the `Set up Bun` step is only needed for bun projects. Remove it for yarn/npm/pnpm — those only need the Node.js setup step.
 
@@ -337,6 +347,7 @@ npx lint-staged --help
 ```
 
 If commitlint fails to resolve the config file, check:
+
 - Is the file named correctly for the module format (`.ts` vs `.cjs`)?
 - For bun projects, does `bunx commitlint` work instead of `npx commitlint`?
 
@@ -346,14 +357,14 @@ If commitlint fails to resolve the config file, check:
 
 Summarise what was created:
 
-| File | Purpose |
-|------|---------|
-| `package.json` | Added `version`, `prepare`, `lint-staged`, and 13 new devDependencies |
-| `commitlint.config.ts` | Enforces conventional commit rules on every commit |
-| `.husky/pre-commit` | Runs lint-staged before each commit |
-| `.husky/commit-msg` | Runs commitlint on the commit message |
-| `.releaserc.json` | Drives semantic-release: changelog, version bump, draft GitHub release |
-| `.github/workflows/release.yml` | Triggers semantic-release on every push to `main` |
+| File                            | Purpose                                                                |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| `package.json`                  | Added `version`, `prepare`, `lint-staged`, and 13 new devDependencies  |
+| `commitlint.config.ts`          | Enforces conventional commit rules on every commit                     |
+| `.husky/pre-commit`             | Runs lint-staged before each commit                                    |
+| `.husky/commit-msg`             | Runs commitlint on the commit message                                  |
+| `.releaserc.json`               | Drives semantic-release: changelog, version bump, draft GitHub release |
+| `.github/workflows/release.yml` | Triggers semantic-release on every push to `main`                      |
 
 Remind the user of two things they must do before the release workflow runs:
 

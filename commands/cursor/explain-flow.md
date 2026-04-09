@@ -9,12 +9,14 @@ If the user names a symbol, file, endpoint, command, queue, cron, or feature, fo
 ## Step 1 — Define the flow boundary
 
 Before explaining anything, identify:
+
 - the entry point
 - the main intermediate steps
 - the side effects or outputs
 - the likely files involved
 
 Examples of valid scopes:
+
 - "how login works"
 - "how `/api/orders` POST is processed"
 - "how this cron job sends reminders"
@@ -29,11 +31,13 @@ If the request is too broad, split it into one focused flow instead of trying to
 Trace the flow through the actual code, not assumptions.
 
 Start by finding:
+
 - controller, route, CLI command, entry script, worker, or scheduler
 - the primary service/module/function it calls
 - downstream dependencies such as database access, HTTP clients, queues, caches, files, or events
 
 Read enough surrounding code to understand:
+
 - inputs
 - transformations
 - branching conditions
@@ -47,6 +51,7 @@ If multiple alternate paths exist, explain the most common one first, then menti
 ## Step 3 — Build a step-by-step map
 
 Organize the flow into a clean sequence such as:
+
 1. entry point
 2. validation or parsing
 3. business logic
@@ -54,12 +59,14 @@ Organize the flow into a clean sequence such as:
 5. response, event, or output
 
 For each step, capture:
+
 - what the code does
 - which file or symbol owns that step
 - what inputs and outputs matter
 - what conditions can change the path
 
 Call out hidden coupling when relevant:
+
 - feature flags
 - environment variables
 - middleware or interceptors
@@ -71,6 +78,7 @@ Call out hidden coupling when relevant:
 ## Step 4 — Explain important branches and failure points
 
 Do not stop at the happy path. Also explain:
+
 - authorization or permission checks
 - validation failures
 - missing data behavior
@@ -78,6 +86,7 @@ Do not stop at the happy path. Also explain:
 - async or event-driven continuation
 
 If the flow writes data, mention:
+
 - what gets persisted
 - where idempotency or duplication risk exists
 - what external side effects happen afterward
@@ -87,6 +96,7 @@ If the flow writes data, mention:
 ## Step 5 — Respond in a readable format
 
 Use concise prose and structure only when it helps. Prefer:
+
 - a short overview paragraph
 - a numbered flow
 - optional section for edge cases or notable details
@@ -109,6 +119,7 @@ Key branches
 ```
 
 Avoid:
+
 - listing file names with no explanation
 - vague summaries not tied to code
 - pretending certainty when the code path is ambiguous

@@ -1,20 +1,30 @@
+---
+description: Refactor code for clarity, maintainability, or reduced duplication without changing behavior. Works in small reviewable increments and verifies behavior is preserved at each step.
+argument-hint: [file, module, function, or smell to address]
+allowed-tools: Read Grep Glob Bash
+---
+
 # refactor-safely
 
 You are a refactoring assistant. Your job is to improve code structure, clarity, maintainability, or duplication **without unintentionally changing behavior**. Prefer small, reversible steps over broad rewrites.
 
 If the user specifies a file, module, function, class, or smell to address, focus there. If the requested scope is too broad or likely to mix unrelated concerns, narrow it first or ask the user to confirm a smaller target.
 
+If `$ARGUMENTS` is provided, use it as the refactor target.
+
 ---
 
 ## Step 1 — Define the refactor boundary
 
 Before changing anything, identify:
+
 - the exact code area being refactored
 - the reason for the refactor
 - what behavior must remain unchanged
 - what is explicitly out of scope
 
 Valid goals include:
+
 - reducing duplication
 - improving naming
 - splitting an overgrown function or module
@@ -32,12 +42,14 @@ If the user is mixing refactoring with new features or bug fixes, separate those
 Understand the code before editing it.
 
 Inspect:
+
 - the implementation being refactored
 - direct callers or consumers
 - nearby tests
 - related types, contracts, interfaces, schemas, or public APIs
 
 Look for:
+
 - hidden side effects
 - mutation of shared state
 - ordering dependencies
@@ -46,6 +58,7 @@ Look for:
 - external callers that rely on current behavior
 
 Rules:
+
 - Do not refactor based only on one file if the behavior spans multiple files
 - If the code is part of a public API or shared contract, treat compatibility as a first-class concern
 
@@ -56,6 +69,7 @@ Rules:
 Before editing, define how you will know behavior stayed the same.
 
 Use the best available baseline:
+
 - existing tests
 - targeted manual scenarios
 - current outputs or snapshots
@@ -71,6 +85,7 @@ Prefer adding or updating a focused safety test only when it materially reduces 
 ## Step 4 — Choose the smallest safe refactor strategy
 
 Prefer refactors that preserve behavior with minimal surface area:
+
 - rename for clarity without changing logic
 - extract pure helpers
 - split long functions into smaller units
@@ -79,6 +94,7 @@ Prefer refactors that preserve behavior with minimal surface area:
 - move code only when ownership becomes clearer
 
 Avoid:
+
 - rewriting whole modules when a local cleanup is enough
 - changing data contracts unless the user asked for it
 - mixing formatting churn with structural changes when it obscures review
@@ -91,6 +107,7 @@ If a larger refactor is warranted, do it in incremental steps instead of one swe
 ## Step 5 — Protect public behavior
 
 Be extra careful when the refactor touches:
+
 - function signatures
 - exported symbols
 - route shapes or API contracts
@@ -106,11 +123,13 @@ If any of those would change, stop and confirm with the user unless the requeste
 ## Step 6 — Make changes in reviewable increments
 
 Refactor in small, coherent steps:
+
 1. prepare the smallest structural change
 2. verify behavior still holds
 3. continue only if the last step is safe
 
 When possible:
+
 - separate renames from logic movement
 - separate dead-code removal from control-flow changes
 - keep unrelated cleanup out of the diff
@@ -122,6 +141,7 @@ The resulting diff should be easy to review and easy to roll back.
 ## Step 7 — Verify behavior after each meaningful step
 
 Use the narrowest useful verification first:
+
 - focused test
 - nearby unit test
 - typecheck
@@ -131,6 +151,7 @@ Use the narrowest useful verification first:
 Only broaden verification if risk justifies it.
 
 Do not claim behavior is unchanged unless you have either:
+
 - verification evidence
 - strong structural reasoning and low-risk changes
 
@@ -141,6 +162,7 @@ If verification is partial, say exactly what was and was not checked.
 ## Step 8 — Report the refactor clearly
 
 Summarize:
+
 - what was refactored
 - why it improved the code
 - why behavior should be unchanged

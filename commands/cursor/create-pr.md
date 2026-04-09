@@ -3,6 +3,7 @@
 **Usage**: `/create-pr to <target-branch>` — for example `/create-pr to dev`, `/create-pr to staging`, `/create-pr to main`
 
 If the user did not specify a target branch, **ask before continuing**:
+
 > "Which branch should this PR target? (for example `dev`, `staging`, or `main`)"
 
 Treat the branch name provided after `to` as `TARGET_BRANCH`.
@@ -24,12 +25,14 @@ git log --oneline --decorate -5
 ```
 
 Record:
+
 - `CURRENT_BRANCH`
 - whether there are staged changes, unstaged changes, or untracked files
 - whether `CURRENT_BRANCH` already tracks a remote branch
 - whether the branch is ahead, behind, or diverged from its upstream
 
 Stop and ask the user if:
+
 - `CURRENT_BRANCH` is empty, detached, or equals `TARGET_BRANCH`
 - the working tree contains suspicious unrelated changes
 - the branch is behind its upstream and a rebase/merge decision is needed
@@ -52,6 +55,7 @@ gh pr list --head <CURRENT_BRANCH> --base <TARGET_BRANCH> --state open
 ```
 
 Rules:
+
 - If `origin/<TARGET_BRANCH>` does not exist, stop and report it
 - If there are zero commits between `origin/<TARGET_BRANCH>` and `HEAD`, stop and tell the user there is nothing new to propose
 - If an open PR already exists for `CURRENT_BRANCH` -> `TARGET_BRANCH`, do **not** create a duplicate; return that PR instead
@@ -69,6 +73,7 @@ Before writing the PR body, check for a repository template in `.github/`, inclu
 ```
 
 If a template exists:
+
 - Read it and use it as the default structure
 - Preserve its section headings unless the repository clearly prefers a different format
 - Fill in only the sections supported by the actual diff and evidence available
@@ -90,6 +95,7 @@ git log origin/<TARGET_BRANCH>..HEAD --oneline
 ```
 
 Understand:
+
 - the full file-level diff
 - all commits included in the PR, not just the latest one
 - whether the branch mixes unrelated work that should be split first
@@ -104,6 +110,7 @@ If the branch contains multiple unrelated concerns, stop and ask the user before
 If there are uncommitted local changes, decide whether a commit is needed first.
 
 Rules:
+
 - Never stage secrets, `.env`, `.env.*`, private keys, or similar sensitive files
 - Never use `git add -A` or `git add .` unless the user explicitly confirms every changed file belongs
 - Prefer explicit staging paths
@@ -111,6 +118,7 @@ Rules:
 - If the PR requires the local changes, create a commit first using the repository commit rules
 
 When committing:
+
 - Use a proper conventional commit message if the repo enforces it
 - Prefer a HEREDOC for multi-line commit messages
 - Do not add AI attribution or `Co-authored-by`
@@ -137,6 +145,7 @@ git push origin <CURRENT_BRANCH>
 ```
 
 Rules:
+
 - Never force push unless the user explicitly asks for it
 - If the push is rejected because the remote moved, stop and report the reason
 - If authentication or permission fails, report it clearly
@@ -148,6 +157,7 @@ Rules:
 ### PR title
 
 Use the best summary of the branch:
+
 - If the PR contains one main commit, the title can closely follow that commit subject
 - If the PR contains multiple commits, summarize the overall change rather than copying only the latest commit
 - Keep the title concise and reviewer-friendly
@@ -210,6 +220,7 @@ For this repository, populate these sections when applicable:
 ```
 
 Rules:
+
 - Do not claim tests passed unless you ran them or the user explicitly confirmed them
 - Do not invent issue numbers, tickets, screenshots, migrations, or deployment steps
 - Mention risks, missing verification, or follow-up work explicitly
@@ -232,6 +243,7 @@ EOF
 ```
 
 Before running it:
+
 - Ensure there is no existing open PR for the same `head` and `base`
 - Ensure the branch has been pushed successfully
 - Ensure the body reflects the repository template if one exists
@@ -243,6 +255,7 @@ After running it, capture the PR URL.
 ## Step 9 — Report back
 
 Show the user:
+
 - the PR URL
 - the base branch and head branch
 - whether a new commit was created, and the commit message if so
@@ -250,6 +263,7 @@ Show the user:
 - major risks, missing tests, migration notes, or deployment concerns
 
 If anything blocks completion, stop and explain the exact failure:
+
 - invalid target branch
 - push rejected
 - hook failure

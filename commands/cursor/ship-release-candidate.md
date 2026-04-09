@@ -21,6 +21,7 @@ git diff --stat origin/main...HEAD
 ```
 
 Record:
+
 - `CURRENT_BRANCH`
 - whether there are uncommitted changes
 - whether the branch tracks a remote and is up to date with it
@@ -28,6 +29,7 @@ Record:
 - whether there is meaningful diff versus `origin/main`
 
 Stop and ask the user if:
+
 - `CURRENT_BRANCH` is `main`
 - there are local changes that may not belong in the release candidate
 - the branch is behind its upstream and needs a sync decision
@@ -47,6 +49,7 @@ gh pr list --head <CURRENT_BRANCH> --base main --state open
 ```
 
 Rules:
+
 - If `origin/main` cannot be resolved, stop and report it
 - If merge simulation shows conflicts, stop and report that the branch is not merge-ready
 - If an open PR already exists from `CURRENT_BRANCH` to `main`, do not create a duplicate; return that PR instead
@@ -66,19 +69,20 @@ git log origin/main..HEAD --oneline
 
 Categorize the included work into release-friendly buckets:
 
-| Category | Indicators |
-|---|---|
-| New Features | new controllers, services, endpoints, modules |
-| Bug Fixes | commits or diffs addressing defects |
-| Refactoring | internal restructuring with no intended behavior change |
-| Documentation | `*.md`, docs, comments intended for readers |
-| Tests | `*.spec.ts`, `test/`, test config |
-| Configuration / Infrastructure | workflows, Docker, environment docs, runtime config |
-| Database | `prisma/schema.prisma`, `prisma/migrations/` |
-| Dependencies | manifest or lockfile dependency updates |
-| Breaking Changes | commits with `!` or `BREAKING CHANGE:` or behavior requiring consumer action |
+| Category                       | Indicators                                                                   |
+| ------------------------------ | ---------------------------------------------------------------------------- |
+| New Features                   | new controllers, services, endpoints, modules                                |
+| Bug Fixes                      | commits or diffs addressing defects                                          |
+| Refactoring                    | internal restructuring with no intended behavior change                      |
+| Documentation                  | `*.md`, docs, comments intended for readers                                  |
+| Tests                          | `*.spec.ts`, `test/`, test config                                            |
+| Configuration / Infrastructure | workflows, Docker, environment docs, runtime config                          |
+| Database                       | `prisma/schema.prisma`, `prisma/migrations/`                                 |
+| Dependencies                   | manifest or lockfile dependency updates                                      |
+| Breaking Changes               | commits with `!` or `BREAKING CHANGE:` or behavior requiring consumer action |
 
 Call out explicitly:
+
 - migrations or schema changes
 - new environment variables
 - behavior changes that need rollout coordination
@@ -98,6 +102,7 @@ git log <last-tag>..HEAD --oneline
 ```
 
 Rules:
+
 - Any `BREAKING CHANGE:` footer or `!` in a relevant commit -> `major`
 - Otherwise any `feat` -> `minor`
 - Otherwise `fix`, `perf`, `refactor`, or `revert` -> `patch`
@@ -120,12 +125,14 @@ Common locations:
 ```
 
 If a template exists:
+
 - preserve its sections
 - adapt the release-candidate narrative to fit that structure
 - add release-specific detail in the sections where it naturally fits
 - do not invent issue numbers, test results, screenshots, deployment steps, or JIRA tickets
 
 For this repository, align the release candidate body with the detected template sections, especially:
+
 - `Summary`
 - `Changes Made`
 - `Type of Change`
@@ -154,6 +161,7 @@ The summary should describe the overall branch, not just the latest commit.
 ### Body
 
 Use the repository PR template if present, but make sure the final body still includes release-specific information such as:
+
 - branch name and base branch
 - expected version bump
 - number of commits included
@@ -166,6 +174,7 @@ Use the repository PR template if present, but make sure the final body still in
 If you need a release-specific supplement, add it in `Additional Notes` rather than replacing the repository template entirely.
 
 Rules:
+
 - Only mark checkboxes that are supported by evidence
 - Clearly label unknowns, risks, and unverified areas
 - Mention breaking changes together with migration or rollout guidance when applicable
@@ -187,6 +196,7 @@ git push origin <CURRENT_BRANCH>
 ```
 
 Rules:
+
 - never force push unless the user explicitly requests it
 - if the push is rejected, stop and report the reason
 
@@ -208,6 +218,7 @@ EOF
 ```
 
 Before running it:
+
 - ensure the branch is pushed
 - ensure there is no existing open PR for the same head/base pair
 - ensure the body reflects the repository template if one exists
@@ -219,6 +230,7 @@ Capture the PR URL.
 ## Step 9 — Report back with release-focused context
 
 Show the user:
+
 - the PR URL
 - the expected version bump and how it was inferred
 - stats from `git diff --stat origin/main...HEAD`
@@ -228,6 +240,7 @@ Show the user:
 - missing verification, CI uncertainty, or other release risks
 
 If anything looks risky, call it out explicitly. Do not silently omit:
+
 - large migrations
 - breaking changes without rollout notes
 - missing tests

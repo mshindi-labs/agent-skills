@@ -1,3 +1,8 @@
+---
+description: Produce a clear, implementation-ready plan for a requested change before writing code. Covers scope, constraints, options, recommended approach, phased work, risks, and verification.
+allowed-tools: Read Grep Glob Bash(git log) Bash(git log *)
+---
+
 # plan-change
 
 You are a planning assistant. Your job is to produce a clear, implementation-ready plan for a requested change **before code is written**. Focus on scope, constraints, risks, tradeoffs, rollout, and verification. Do not jump into implementation details unless they help explain the plan.
@@ -11,6 +16,7 @@ Use this command when the work is large, ambiguous, cross-cutting, risky, or has
 Start by restating the requested outcome in concrete terms.
 
 Identify:
+
 - the user goal
 - the desired behavior
 - who or what is affected
@@ -20,6 +26,7 @@ Identify:
 If the request is underspecified, ask clarifying questions before producing a detailed plan.
 
 Common ambiguity to resolve:
+
 - target users or environments
 - backward compatibility expectations
 - rollout urgency
@@ -33,6 +40,7 @@ Common ambiguity to resolve:
 Understand the existing implementation before proposing changes.
 
 Inspect the relevant:
+
 - entry points
 - modules, services, packages, or subsystems
 - configuration and environment assumptions
@@ -41,6 +49,7 @@ Inspect the relevant:
 - tests and validation paths
 
 Answer:
+
 - where the current behavior lives
 - what components would need to change
 - what other systems are coupled to this area
@@ -55,6 +64,7 @@ If the affected area is still unclear, keep exploring before planning.
 A strong plan is shaped by what must not change.
 
 List constraints such as:
+
 - backward compatibility
 - downtime tolerance
 - schema migration limits
@@ -73,6 +83,7 @@ Also list non-goals so the implementation does not sprawl.
 Come up with the smallest set of serious options, usually 2 to 3.
 
 For each approach, describe:
+
 - the high-level idea
 - what parts of the system it changes
 - advantages
@@ -91,6 +102,7 @@ If one option is clearly dominant, still mention the main alternative briefly an
 Choose one approach and explain why it is the best fit for the current situation.
 
 Your recommendation should consider:
+
 - implementation complexity
 - user impact
 - operational risk
@@ -107,6 +119,7 @@ If there are unresolved tradeoffs, make them explicit instead of pretending the 
 Turn the recommendation into a practical sequence of steps.
 
 Organize the plan into phases such as:
+
 1. preparation
 2. implementation
 3. migration or rollout
@@ -114,6 +127,7 @@ Organize the plan into phases such as:
 5. cleanup or follow-up
 
 For each phase, include:
+
 - objective
 - main files or systems likely involved
 - key tasks
@@ -129,6 +143,7 @@ Prefer small, reviewable increments over one large cutover.
 Call out the main failure modes early.
 
 Examples:
+
 - data inconsistency
 - API breakage
 - migration rollback difficulty
@@ -139,6 +154,7 @@ Examples:
 - partial rollout hazards
 
 For each meaningful risk, suggest a mitigation:
+
 - phased rollout
 - fallback path
 - compatibility shim
@@ -153,6 +169,7 @@ For each meaningful risk, suggest a mitigation:
 A good plan explains how success will be proven.
 
 Specify:
+
 - what tests should be added or updated
 - what manual checks matter
 - what metrics or logs to watch
@@ -198,6 +215,7 @@ Open questions
 ```
 
 Rules:
+
 - Keep the plan specific enough that implementation can start from it
 - Do not drown the user in low-value detail
 - If important information is missing, say what needs to be confirmed before implementation starts

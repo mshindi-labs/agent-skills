@@ -9,6 +9,7 @@ This command is for safe synchronization, not history rewriting by default.
 ## Step 1 — Identify the sync goal
 
 Determine what the user wants:
+
 - push local commits to the remote branch
 - pull remote commits into the local branch
 - update the current branch from its base branch
@@ -18,6 +19,7 @@ Determine what the user wants:
 If the goal is unclear, ask before continuing.
 
 Also determine:
+
 - `CURRENT_BRANCH`
 - its upstream branch if any
 - the intended base branch if relevant
@@ -47,6 +49,7 @@ git diff --stat <remote-or-base>...HEAD
 ```
 
 Record clearly whether the branch is:
+
 - clean or dirty
 - ahead
 - behind
@@ -58,6 +61,7 @@ Record clearly whether the branch is:
 ## Step 3 — Stop on risky or ambiguous situations
 
 Do not proceed automatically if any of these are true:
+
 - there are uncommitted local changes
 - the branch has diverged and the correct merge vs rebase strategy is unclear
 - the current branch is a protected branch such as `main` or `master`
@@ -65,6 +69,7 @@ Do not proceed automatically if any of these are true:
 - force push would be required
 
 In those cases:
+
 - explain the current state
 - explain the safest next options
 - ask the user which strategy they want
@@ -101,6 +106,7 @@ If the repo already has a clear team convention, follow it. Otherwise prefer the
 Use the smallest safe Git commands needed for the chosen strategy.
 
 Examples of safe operations:
+
 - `git push -u origin <branch>`
 - `git push origin <branch>`
 - `git pull --ff-only`
@@ -109,6 +115,7 @@ Examples of safe operations:
 - `git rebase <base-branch>` only when the user wants a rebase workflow
 
 Rules:
+
 - avoid `--force` unless the user explicitly requests it
 - avoid `reset --hard`, `checkout --`, or similar destructive commands unless explicitly approved
 - do not modify Git config
@@ -119,6 +126,7 @@ Rules:
 ## Step 6 — Verify the final state
 
 After syncing, confirm:
+
 - current branch name
 - upstream relationship
 - ahead/behind state
@@ -139,6 +147,7 @@ If the result is not what the user asked for, stop and explain the mismatch.
 ## Step 7 — Report back clearly
 
 Summarize:
+
 - starting state
 - strategy used
 - commands or actions taken
