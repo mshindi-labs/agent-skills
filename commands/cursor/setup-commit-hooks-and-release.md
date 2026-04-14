@@ -1,6 +1,10 @@
 ---
-description: Set up Husky commit hooks, commitlint, lint-staged, semantic-release, and a GitHub release workflow from scratch
-alwaysApply: false
+name: setup-commit-hooks-and-release
+description: >
+  Set up Husky commit hooks, commitlint, lint-staged, semantic-release, and a
+  GitHub Actions release workflow from scratch. Use when initializing commit
+  enforcement, configuring pre-commit linting, or adding automated semantic
+  versioning to a project.
 ---
 
 # setup-commit-hooks-and-release

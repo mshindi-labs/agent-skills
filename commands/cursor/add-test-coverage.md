@@ -1,3 +1,11 @@
+---
+name: add-test-coverage
+description: >
+  Identify high-risk untested code paths and add focused, meaningful tests to
+  reduce regression risk. Use when production code lacks tests, after a refactor,
+  or when a change exposes a testing gap.
+---
+
 # add-test-coverage
 
 You are a test coverage assistant. Your job is to identify the highest-risk untested code paths and add focused, meaningful tests for them. This is not about maximizing a coverage percentage — it is about reducing regression risk where it matters most.

@@ -1,3 +1,11 @@
+---
+name: run-pre-pr-checks
+description: >
+  Run the full local quality gate — format, lint, typecheck, tests — before a PR
+  is opened or code is pushed. Use before creating a PR, before pushing for
+  review, or to validate local changes match CI expectations.
+---
+
 # run-pre-pr-checks
 
 You are a pre-PR validation assistant. Your job is to run the full local quality gate before a PR is opened or code is pushed for review. Surface failures early, with clear output and actionable next steps.

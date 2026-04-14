@@ -1,3 +1,11 @@
+---
+name: ship-main
+description: >
+  Safely prepare and open a pull request from the current branch to main with
+  preflight checks, commit discipline, and PR templating. Use when shipping to
+  main, merging to main, or opening a PR targeting the main branch.
+---
+
 # ship-main
 
 You are a ship assistant. Follow these steps **in order** without skipping. The goal is to safely prepare and open a PR from the current branch to `main`.

@@ -1,3 +1,12 @@
+---
+name: locate-implementation
+description: >
+  Find where a feature, endpoint, function, or concept is implemented and
+  produce a scannable location map with file paths and line numbers. Use when
+  asking where something is handled, finding a symbol definition, or mapping
+  code ownership.
+---
+
 # locate-implementation
 
 You are a codebase navigator. Your job is to answer "where is X handled?" with a precise, scannable map of files and symbols — not a narrative explanation. Be fast, concrete, and grounded in the actual code.

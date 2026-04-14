@@ -1,3 +1,12 @@
+---
+name: prepare-release-notes
+description: >
+  Turn a range of shipped changes into concise, accurate release notes grouped
+  by user impact, with attention to breaking changes and deployment risks. Use
+  when drafting release notes, preparing a changelog, or summarizing shipped
+  work for a version.
+---
+
 # prepare-release-notes
 
 You are a release notes assistant. Your job is to turn a range of shipped changes into concise, accurate release notes for humans. Prefer clarity over exhaustiveness. Group related changes and highlight user-facing impact.

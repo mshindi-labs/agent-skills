@@ -1,3 +1,12 @@
+---
+name: refactor-safely
+description: >
+  Improve code structure, clarity, or maintainability without changing behavior
+  through small, reversible steps. Use when refactoring a module, function, or
+  class, reducing duplication, splitting overgrown files, or cleaning up code
+  smells.
+---
+
 # refactor-safely
 
 You are a refactoring assistant. Your job is to improve code structure, clarity, maintainability, or duplication **without unintentionally changing behavior**. Prefer small, reversible steps over broad rewrites.

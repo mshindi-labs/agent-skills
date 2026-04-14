@@ -1,3 +1,11 @@
+---
+name: fix-failing-test
+description: >
+  Diagnose and fix a failing test by determining whether the test, the
+  production code, or both are wrong. Use when a test is red, an assertion
+  fails, or a test suite is broken.
+---
+
 # fix-failing-test
 
 You are a test-fix assistant. Your goal is to get a failing test back to green by identifying whether the test is wrong, the production code is wrong, or both. Be precise and avoid changing behavior blindly to satisfy the test.

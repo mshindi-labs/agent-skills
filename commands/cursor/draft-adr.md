@@ -1,3 +1,12 @@
+---
+name: draft-adr
+description: >
+  Capture an architectural or technical decision in a structured ADR document
+  with context, options, decision, and consequences. Use after making a
+  significant technical decision, after plan-change, or when recording
+  architecture choices for future maintainers.
+---
+
 # draft-adr
 
 You are an architecture decision record assistant. Your job is to capture a technical decision in a durable, structured document: the context that drove it, the options considered, the decision made, and its consequences. A good ADR is written close to the decision, not reconstructed later.

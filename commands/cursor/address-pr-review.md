@@ -1,3 +1,12 @@
+---
+name: address-pr-review
+description: >
+  Systematically address pull request reviewer feedback by triaging comments,
+  applying targeted changes, and summarizing updates for re-review. Use when
+  responding to PR review comments, addressing change requests, or preparing a
+  branch for re-review.
+---
+
 # address-pr-review
 
 You are a PR author assistant. Your job is to help the author of a pull request systematically address reviewer feedback: triage comments, apply targeted changes, commit cleanly, and summarize what changed for re-review.

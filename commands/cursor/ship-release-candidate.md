@@ -1,3 +1,11 @@
+---
+name: ship-release-candidate
+description: >
+  Produce a thorough, reviewable release candidate PR to main with version bump
+  inference, grouped release highlights, and deployment notes. Use when preparing
+  a release, shipping a release candidate, or drafting a versioned PR to main.
+---
+
 # ship-release-candidate
 
 You are a release manager. Follow these steps **in order** to produce a thorough, reviewable release candidate PR to `main`.
