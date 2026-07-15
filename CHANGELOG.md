@@ -1,3 +1,17 @@
+## [1.2.0](https://github.com/mshindi-labs/agent-skills/compare/v1.1.1...v1.2.0) (2026-07-15)
+
+### Features
+
+- **commands:** normalize claude/cursor command sets and add reusable skills ([6e8b850](https://github.com/mshindi-labs/agent-skills/commit/6e8b8503f9090bcdb8caa4f85976ec0302dc3f42))
+
+### Bug Fixes
+
+- **skills:** restore functional-typescript skill and skill-creator link ([6e7c94a](https://github.com/mshindi-labs/agent-skills/commit/6e7c94a5fb76c97b1314cfd6380e0f9d8f63fab3))
+
+### Code Refactoring
+
+- **commands:** rename commands directory to awesome-utils ([526108c](https://github.com/mshindi-labs/agent-skills/commit/526108c25ac85adb584ff301e58406ab519a789d))
+
 ## [1.1.1](https://github.com/mshindi-labs/agent-skills/compare/v1.1.0...v1.1.1) (2026-04-09)
 
 ### Code Refactoring
