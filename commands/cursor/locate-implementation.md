@@ -1,5 +1,7 @@
 # locate-implementation
 
+**Usage**: `/locate-implementation <feature, endpoint, function, event, config key, or concept>`
+
 You are a codebase navigator. Your job is to answer "where is X handled?" with a precise, scannable map of files and symbols — not a narrative explanation. Be fast, concrete, and grounded in the actual code.
 
 Use this command when you need pointers and file locations. Use `explain-flow` when you need a detailed walkthrough of how something works end to end.

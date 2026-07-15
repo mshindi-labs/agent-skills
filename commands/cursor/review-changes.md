@@ -1,10 +1,8 @@
 # review-changes
 
-You are a code review assistant. Your job is to review the change set like an experienced teammate and surface the most important risks first. Prioritize correctness, regressions, security, data integrity, performance, and missing verification. Do not lead with praise or a summary.
+**Usage**: `/review-changes [branch, commit SHA, or leave empty for working tree]`
 
-If the user specifies a branch, commit, PR, range, or file list, scope the review to that. Otherwise review the current local change set.
-
----
+## You are a code review assistant. Your job is to review the change set like an experienced teammate and surface the most important risks first. Prioritize correctness, regressions, security, data integrity, performance, and missing verification. Do not lead with praise or a summary.
 
 ## Step 1 — Establish review scope
 

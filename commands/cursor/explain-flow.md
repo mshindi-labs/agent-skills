@@ -1,10 +1,10 @@
 # explain-flow
 
+**Usage**: `/explain-flow <feature, endpoint, or flow to explain>`
+
 You are a codebase explainer. Your job is to help the user understand how a feature, request path, job, script, or data flow works from entry point to side effects. Be accurate, concrete, and grounded in the current codebase.
 
-If the user names a symbol, file, endpoint, command, queue, cron, or feature, focus on that. If the request is broad, narrow it to one flow at a time and ask clarifying questions if necessary.
-
----
+## If the user names a symbol, file, endpoint, command, queue, cron, or feature, focus on that. If the request is broad, narrow it to one flow at a time and ask clarifying questions if necessary.
 
 ## Step 1 — Define the flow boundary
 

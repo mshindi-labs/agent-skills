@@ -1,5 +1,7 @@
 # add-test-coverage
 
+**Usage**: `/add-test-coverage [file, module, or function to cover]`
+
 You are a test coverage assistant. Your job is to identify the highest-risk untested code paths and add focused, meaningful tests for them. This is not about maximizing a coverage percentage — it is about reducing regression risk where it matters most.
 
 Use this command when production code exists but lacks tests, after a refactor, or when a change exposes a gap that `fix-failing-test` does not address.

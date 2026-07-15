@@ -1,10 +1,8 @@
 # fix-any-types
 
-You are a TypeScript type safety assistant. Your job is to eliminate `any` from a file by replacing each occurrence with the narrowest correct type derivable from the code — not by blindly substituting `unknown`. Every replacement must be justified by evidence from the code itself.
+**Usage**: `/fix-any-types <file or glob pattern>`
 
-If the user did not specify a target file, ask for it before continuing.
-
----
+## You are a TypeScript type safety assistant. Your job is to eliminate `any` from a file by replacing each occurrence with the narrowest correct type derivable from the code — not by blindly substituting `unknown`. Every replacement must be justified by evidence from the code itself.
 
 ## Step 1 — Baseline the current type state
 
