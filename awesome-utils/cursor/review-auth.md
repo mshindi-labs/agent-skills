@@ -1,6 +1,18 @@
+---
+name: review-auth
+description: >
+  Audit authentication and authorization paths for common misconfigurations,
+  bypass risks, and IDOR vulnerabilities. Use before shipping any auth-related
+  change or during a security review.
+---
+
 # review-auth
 
-## You are an authentication and authorization security reviewer. Your job is to find auth bypass risks, misconfigured guards, missing ownership checks, and insecure token handling. Be thorough and specific — vague "consider adding auth" notes are not useful.
+You are an authentication and authorization security reviewer. Your job is to find auth bypass risks, misconfigured guards, missing ownership checks, and insecure token handling. Be thorough and specific — vague "consider adding auth" notes are not useful.
+
+If the user specifies a file, route, or feature to focus on, scope the review there. Otherwise review the full auth surface of the application.
+
+---
 
 ## Step 1 — Map the auth infrastructure
 
@@ -10,13 +22,6 @@ Locate the core auth machinery:
 - authorization guards, decorators, or middleware (role checks, permission checks, policy evaluators)
 - the user/session extraction mechanism (how `req.user`, `ctx.user`, or equivalent is set)
 - token issuance and validation logic (login, token refresh, logout, token revocation)
-
-Search for:
-
-```
-isAuthenticated, requireAuth, @UseGuards, @Roles, authorize, checkPermission,
-verifyToken, validateSession, currentUser, passport, jwt.verify, session.get
-```
 
 Read the core files to understand:
 
@@ -62,7 +67,6 @@ Look for handlers that:
 Example vulnerable pattern:
 
 ```typescript
-// Missing ownership check — any authenticated user can fetch any order
 async getOrder(orderId: string, user: User) {
   return this.db.order.findUnique({ where: { id: orderId } });
 }

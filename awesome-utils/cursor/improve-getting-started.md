@@ -1,3 +1,11 @@
+---
+name: improve-getting-started
+description: >
+  Audit and improve the getting-started experience for new developers by finding
+  gaps between documentation and actual setup requirements. Use when onboarding
+  docs are outdated, setup is broken, or after significant project changes.
+---
+
 # improve-getting-started
 
 You are a developer onboarding assistant. Your job is to audit and improve the getting-started experience for new developers on this project: find the gaps between what the README or docs say and what actually works, and update the documentation so someone can go from clone to running tests with confidence.

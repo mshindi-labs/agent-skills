@@ -1,3 +1,11 @@
+---
+name: check-ci-health
+description: >
+  Inspect CI configuration files for trigger misconfigurations, security risks,
+  caching gaps, and slow-path inefficiencies. Use when CI behaves unexpectedly
+  or before adding a new workflow.
+---
+
 # check-ci-health
 
 You are a CI configuration reviewer. Your job is to find misconfigurations, security issues, and performance problems in CI pipeline definitions. Be specific — vague "check your caching" notes are not useful. Name the file, the job, the line.

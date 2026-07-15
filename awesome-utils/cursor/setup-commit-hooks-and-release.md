@@ -1,3 +1,12 @@
+---
+name: setup-commit-hooks-and-release
+description: >
+  Set up Husky commit hooks, commitlint, lint-staged, semantic-release, and a
+  GitHub Actions release workflow from scratch. Use when initializing commit
+  enforcement, configuring pre-commit linting, or adding automated semantic
+  versioning to a project.
+---
+
 # setup-commit-hooks-and-release
 
 You are a tooling setup assistant. Follow these steps **in order** without skipping. This command sets up conventional commit enforcement, pre-commit linting, automated semantic versioning, and a GitHub Actions release workflow.
@@ -41,7 +50,7 @@ Packages required:
 "@semantic-release/git": "^10.0.1",
 "@semantic-release/github": "^12.0.6",
 "@semantic-release/npm": "^12.0.1",
-"@semantic-release/release-notes-generator": "^14.0.0",
+"@semantic-release/release-notes-generator": "^14.1.0",
 "conventional-changelog-conventionalcommits": "^9.2.0",
 "husky": "^9.1.7",
 "lint-staged": "^16.3.2",

@@ -1,8 +1,18 @@
+---
+name: scaffold-feature
+description: >
+  Generate skeleton files for a new feature following the project's existing
+  conventions — controller, service, repository, DTOs, tests. Use to start a
+  new feature consistently without guessing the structure.
+---
+
 # scaffold-feature
 
-**Usage**: `/scaffold-feature <feature-name>`
+You are a scaffolding assistant. Your job is to generate the correct skeleton file structure for a new feature by detecting the project's existing conventions — not by assuming a framework default. Do not write any implementation logic. Only scaffold the structure.
 
-## You are a scaffolding assistant. Your job is to generate the correct skeleton file structure for a new feature by detecting the project's existing conventions — not by assuming a framework default. Do not write any implementation logic. Only scaffold the structure.
+If the user did not specify a feature name, ask before continuing.
+
+---
 
 ## Step 1 — Detect the project's architectural pattern
 
@@ -36,6 +46,9 @@ From the existing feature examples, derive:
 - **Class/function name pattern**: e.g., `FeatureNameController`, `feature_name_controller`
 - **Export pattern**: default export vs named export
 - **Test file co-location**: are tests in the same directory, a `__tests__` subdirectory, or a separate `test/` tree?
+
+Apply these patterns to the new feature name. Derive:
+
 - `FEATURE_NAME` in the detected format for directory names
 - `FeatureName` in PascalCase for class names
 - file paths for each layer

@@ -1,8 +1,18 @@
+---
+name: check-query-safety
+description: >
+  Review database queries in a file or module for N+1 patterns, unbounded scans,
+  SQL injection risks, and over-fetching. Use during code review or before a
+  performance-sensitive release.
+---
+
 # check-query-safety
 
-**Usage**: `/check-query-safety [file or module]`
+You are a database query safety reviewer. Your job is to find query problems that cause production incidents: injection vulnerabilities, N+1 query patterns, unbounded result sets, and over-fetching. Be specific — report the exact file, function, and line.
 
-## You are a database query safety reviewer. Your job is to find query problems that cause production incidents: injection vulnerabilities, N+1 query patterns, unbounded result sets, and over-fetching. Be specific — report the exact file, function, and line.
+If the user specifies a file or module, focus there. Otherwise search the full codebase for data-access patterns.
+
+---
 
 ## Step 1 — Detect the ORM and query builder
 
@@ -21,6 +31,8 @@ Look for imports of:
 - **database/sql**: Go stdlib
 - **Raw SQL**: template literals, `query()`, `execute()`, `db.raw()`
 
+Read the relevant data-access files.
+
 ---
 
 ## Step 2 — Check for SQL injection
@@ -30,7 +42,6 @@ Search for any query construction that involves string concatenation or interpol
 **High-risk patterns:**
 
 ```typescript
-// Direct string interpolation in query
 db.query(`SELECT * FROM users WHERE id = ${userId}`);
 db.raw(`WHERE name = '${name}'`);
 knex.raw(`SELECT * FROM orders WHERE status = '${status}'`);
@@ -69,7 +80,6 @@ Search for loops or iteration that contains database queries:
 **Pattern 1: query inside a loop**
 
 ```typescript
-// N+1: one query per order
 for (const order of orders) {
   const items = await db.orderItem.findMany({ where: { orderId: order.id } });
 }
@@ -79,14 +89,13 @@ for (const order of orders) {
 
 ```typescript
 const ordersWithItems = await Promise.all(
-  orders.map((order) => this.orderItemService.findByOrderId(order.id)), // N queries
+  orders.map((order) => this.orderItemService.findByOrderId(order.id)),
 );
 ```
 
 **Pattern 3: missing include/join in the initial fetch**
 
 ```typescript
-// Fetches orders without items, then queries items one by one elsewhere
 const orders = await prisma.order.findMany(); // missing: include: { items: true }
 ```
 
@@ -105,7 +114,6 @@ Find queries that could return unbounded result sets:
 **Missing `take`/`limit`:**
 
 ```typescript
-// Could return millions of rows
 await prisma.event.findMany();
 await db("events").select("*");
 ```
@@ -113,13 +121,13 @@ await db("events").select("*");
 **Missing `where` on a large or growing table:**
 
 ```typescript
-await prisma.auditLog.findMany(); // audit logs grow indefinitely
+await prisma.auditLog.findMany();
 ```
 
 **Count queries on large tables without an index filter:**
 
 ```sql
-SELECT COUNT(*) FROM events -- full table scan if no index
+SELECT COUNT(*) FROM events
 ```
 
 For each unbounded query:
@@ -137,7 +145,6 @@ Find queries that load significantly more data than they use:
 **Loading full records when only one or two fields are needed:**
 
 ```typescript
-// Loads the entire User object to get just the email
 const user = await prisma.user.findUnique({ where: { id } });
 return user.email; // only this field is used
 
@@ -146,12 +153,6 @@ const user = await prisma.user.findUnique({
   where: { id },
   select: { email: true },
 });
-```
-
-**Selecting all columns in a raw query:**
-
-```sql
-SELECT * FROM users WHERE id = $1  -- when only name and email are needed
 ```
 
 Flag instances where the fetched object has more than ~5 fields but only 1–2 are used downstream.
@@ -163,13 +164,11 @@ Flag instances where the fetched object has more than ~5 fields but only 1–2 a
 Find sequences of writes that should be atomic but are not wrapped in a transaction:
 
 ```typescript
-// Vulnerable to partial failure
 await prisma.order.create({ data: orderData });
 await prisma.inventory.update({
   where: { id },
   data: { quantity: { decrement: 1 } },
 });
-// If the second fails, inventory is not decremented but the order was created
 ```
 
 Flag write sequences involving two or more related tables with no `$transaction` or equivalent.

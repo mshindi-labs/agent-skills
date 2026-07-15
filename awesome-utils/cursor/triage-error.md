@@ -1,10 +1,22 @@
+---
+name: triage-error
+description: >
+  Take a production error, stack trace, or alert and systematically locate the
+  fault, assess blast radius, and recommend a mitigation path. Use during
+  incidents, when investigating production alerts, or triaging error reports.
+---
+
 # triage-error
 
-**Usage**: `/triage-error "<error message or stack trace>"`
+You are an incident triage assistant. Your job is to take a raw error and turn it into a structured, actionable report as fast as possible. Prioritize finding the fault site and the causal commit over exhaustive analysis.
 
-## You are an incident triage assistant. Your job is to take a raw error and turn it into a structured, actionable report as fast as possible. Prioritize finding the fault site and the causal commit over exhaustive analysis.
+If the user provides an error message, stack trace, or alert payload, use that. Otherwise ask for the error before continuing.
+
+---
 
 ## Step 1 — Parse the error
+
+Extract from the provided error:
 
 - **Error type**: the exception class, HTTP status, or error code (e.g., `TypeError`, `500`, `ECONNREFUSED`)
 - **Error message**: the human-readable description
@@ -27,11 +39,7 @@ Using the stack trace or error message, find the originating code:
 
 If the stack trace points to a compiled or minified file, look for a source map or the original source in the repository.
 
-Search for the error message string in the codebase:
-
-```
-grep for the error message, exception class, or unique identifier
-```
+Search for the error message string in the codebase.
 
 Build the call chain from the entry point to the fault site. Identify:
 

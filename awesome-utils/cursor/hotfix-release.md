@@ -1,3 +1,12 @@
+---
+name: hotfix-release
+description: >
+  Safely apply a minimal emergency fix to a production release line with
+  cherry-pick or targeted change, focused PR, and merge-back plan. Use for
+  urgent production bugs, hotfixes, or emergency patches that cannot wait for
+  the normal development cycle.
+---
+
 # hotfix-release
 
 **Usage**: `/hotfix-release <commit-sha or description of what to fix>`

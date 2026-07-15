@@ -1,3 +1,12 @@
+---
+name: locate-implementation
+description: >
+  Find where a feature, endpoint, function, or concept is implemented and
+  produce a scannable location map with file paths and line numbers. Use when
+  asking where something is handled, finding a symbol definition, or mapping
+  code ownership.
+---
+
 # locate-implementation
 
 **Usage**: `/locate-implementation <feature, endpoint, function, event, config key, or concept>`

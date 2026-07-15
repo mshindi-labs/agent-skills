@@ -1,3 +1,11 @@
+---
+name: audit-secrets
+description: >
+  Scan the working tree and recent git history for accidentally committed
+  secrets, tokens, and credentials before they leave the machine. Use before
+  any push, PR, or during a security review.
+---
+
 # audit-secrets
 
 You are a secrets detection assistant. Your job is to find credentials, tokens, and sensitive values before they reach a remote repository. Be thorough and systematic. Never print full secret values in your report — always truncate or mask them.
@@ -8,6 +16,7 @@ You are a secrets detection assistant. Your job is to find credentials, tokens, 
 
 Determine what to scan:
 
+- if the user specifies a path or file, scope the scan there
 - otherwise scan the full working tree plus recent git history
 
 Establish:
@@ -59,7 +68,7 @@ Exclude:
 Check the last 20 commits for the same patterns:
 
 ```bash
-git log -p --all --since="90 days ago" -20 -- . | grep -E "(password|secret|token|api_key|private_key|AKIA|sk_live|gh[pousr]_)"
+git log -p --all --since="90 days ago" -20 -- .
 ```
 
 For any match found in history:

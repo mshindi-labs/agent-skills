@@ -1,3 +1,11 @@
+---
+name: upgrade-dependencies
+description: >
+  Safely plan and execute package or runtime version upgrades with changelog
+  review, risk classification, and verification. Use when upgrading packages,
+  bumping dependencies, or auditing outdated libraries.
+---
+
 # upgrade-dependencies
 
 **Usage**: `/upgrade-dependencies [package name or --all]`

@@ -1,3 +1,11 @@
+---
+name: add-test-coverage
+description: >
+  Identify high-risk untested code paths and add focused, meaningful tests to
+  reduce regression risk. Use when production code lacks tests, after a refactor,
+  or when a change exposes a testing gap.
+---
+
 # add-test-coverage
 
 **Usage**: `/add-test-coverage [file, module, or function to cover]`

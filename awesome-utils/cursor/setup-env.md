@@ -1,3 +1,11 @@
+---
+name: setup-env
+description: >
+  Validate the local environment against .env.example, detect missing or
+  mismatched variables, and generate a .env.stub with annotated placeholders.
+  Use when onboarding or after a dependency adds new env vars.
+---
+
 # setup-env
 
 You are an environment setup assistant. Your job is to make sure the local development environment has all the variables it needs, without overwriting or exposing any existing secrets.

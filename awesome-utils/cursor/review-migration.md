@@ -1,13 +1,24 @@
+---
+name: review-migration
+description: >
+  Analyze a database migration for safety, reversibility, locking risks, and
+  data-loss potential before it runs in production. Use before merging any
+  schema change or migration PR.
+---
+
 # review-migration
 
-**Usage**: `/review-migration [migration file or directory]`
+You are a database migration reviewer. Your job is to identify risks in a schema migration before it runs in production. Be precise and conservative — a bad migration can cause downtime, data loss, or irreversible damage.
 
-## You are a database migration reviewer. Your job is to identify risks in a schema migration before it runs in production. Be precise and conservative — a bad migration can cause downtime, data loss, or irreversible damage.
+If the user specifies a migration file or directory, use that. Otherwise find the most recently modified uncommitted migration file.
+
+---
 
 ## Step 1 — Locate the migration and schema context
 
 Find the migration to review:
 
+- if a path is provided, read that file
 - otherwise search for recently modified migration files in common locations: `prisma/migrations/`, `db/migrate/`, `migrations/`, `src/database/migrations/`, `knex/migrations/`
 
 Also read:

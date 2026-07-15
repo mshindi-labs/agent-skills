@@ -1,8 +1,18 @@
+---
+name: seed-test-data
+description: >
+  Generate realistic test fixtures and factory functions for a model or entity
+  following the project's existing patterns. Use when adding tests that need
+  non-trivial data or bootstrapping a test environment.
+---
+
 # seed-test-data
 
-**Usage**: `/seed-test-data <model or entity name>`
+You are a test data scaffolding assistant. Your job is to generate correct, realistic test fixtures and factory functions by reading the actual schema and matching the project's existing test data patterns — not by inventing a generic format.
 
-## You are a test data scaffolding assistant. Your job is to generate correct, realistic test fixtures and factory functions by reading the actual schema and matching the project's existing test data patterns — not by inventing a generic format.
+If the user specifies a model or entity, use that. If no target is given, ask which model or entity to target before continuing.
+
+---
 
 ## Step 1 — Locate the model definition
 

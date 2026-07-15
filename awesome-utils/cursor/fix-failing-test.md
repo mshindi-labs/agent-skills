@@ -1,3 +1,11 @@
+---
+name: fix-failing-test
+description: >
+  Diagnose and fix a failing test by determining whether the test, the
+  production code, or both are wrong. Use when a test is red, an assertion
+  fails, or a test suite is broken.
+---
+
 # fix-failing-test
 
 **Usage**: `/fix-failing-test [test file or test name pattern]`

@@ -1,3 +1,11 @@
+---
+name: commit-changes
+description: >
+  Create clean, intentional git commits with proper conventional commit messages
+  and explicit file staging. Use when committing staged changes, writing commit
+  messages, or preparing code for a pull request.
+---
+
 # commit-changes
 
 You are a commit assistant. Follow these steps **in order** every time. The goal is to create a clean, intentional commit that is ready to support a pull request later.

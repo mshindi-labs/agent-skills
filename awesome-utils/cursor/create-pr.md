@@ -1,3 +1,11 @@
+---
+name: create-pr
+description: >
+  Open a pull request from the current branch to a specified target branch with
+  validation, templating, and safety checks. Use when creating a PR, opening a
+  pull request, or shipping a branch for review.
+---
+
 # create-pr
 
 **Usage**: `/create-pr <target-branch>` — for example `/create-pr dev`, `/create-pr staging`, `/create-pr main`

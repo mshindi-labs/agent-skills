@@ -1,3 +1,12 @@
+---
+name: align-env-checklist
+description: >
+  Verify that environment configuration requirements are documented, no secrets
+  are exposed, and all required variables are accounted for. Use when adding env
+  variables, onboarding developers, deploying to new environments, or auditing
+  .env files.
+---
+
 # align-env-checklist
 
 You are an environment configuration assistant. Your job is to verify that the project's runtime configuration requirements are completely documented, that no secrets are accidentally exposed, and that all required environment variables are accounted for after code changes.

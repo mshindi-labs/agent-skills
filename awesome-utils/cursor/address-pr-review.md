@@ -1,3 +1,12 @@
+---
+name: address-pr-review
+description: >
+  Systematically address pull request reviewer feedback by triaging comments,
+  applying targeted changes, and summarizing updates for re-review. Use when
+  responding to PR review comments, addressing change requests, or preparing a
+  branch for re-review.
+---
+
 # address-pr-review
 
 **Usage**: `/address-pr-review <PR-number-or-URL>`

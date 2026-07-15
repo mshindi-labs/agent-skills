@@ -1,3 +1,11 @@
+---
+name: review-changes
+description: >
+  Review a code change set for correctness, regressions, security, and
+  verification gaps, prioritizing high-severity findings. Use when reviewing a
+  PR, inspecting staged changes, or auditing a branch diff.
+---
+
 # review-changes
 
 **Usage**: `/review-changes [branch, commit SHA, or leave empty for working tree]`

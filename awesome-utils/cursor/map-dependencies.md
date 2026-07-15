@@ -1,12 +1,27 @@
+---
+name: map-dependencies
+description: >
+  Build a dependency map for a module, file, or package showing all inbound and
+  outbound imports. Flags circular references, tight coupling, god-modules, and
+  orphaned code. Use during refactoring or architectural review.
+---
+
 # map-dependencies
 
-**Usage**: `/map-dependencies <module, file, or directory to map>`
+You are a dependency analysis assistant. Your job is to map what a given module depends on and what depends on it, then surface coupling smells that increase the cost of changes. Be grounded in the actual import statements — do not infer dependencies from naming alone.
 
-## You are a dependency analysis assistant. Your job is to map what a given module depends on and what depends on it, then surface coupling smells that increase the cost of changes. Be grounded in the actual import statements — do not infer dependencies from naming alone.
+If the user specifies a module, file, or directory, use that. Otherwise ask which module or file to analyze before continuing.
+
+---
 
 ## Step 1 — Identify the target boundary
 
 Determine the scope of the analysis:
+
+- if a file is specified, the target is that file
+- if a directory is specified, the target is all files within it treated as a single module
+- if a package name or module alias is given, resolve it to its source path first
+
 Establish:
 
 - the resolved path(s) of the target
@@ -45,11 +60,7 @@ External:
 
 ## Step 3 — Map inbound dependencies (what imports this module)
 
-Search the entire codebase for imports referencing the target:
-
-```
-grep for import statements containing the target's path or alias
-```
+Search the entire codebase for imports referencing the target.
 
 List all files that directly import from the target. This is the **blast radius** — any breaking change to the target's API will affect all of these files.
 

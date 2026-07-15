@@ -1,3 +1,11 @@
+---
+name: audit-dependencies
+description: >
+  Review dependencies for known CVEs, significantly outdated packages, license
+  risks, and unused packages. Use before a release, after an npm audit alert,
+  or for quarterly dependency hygiene.
+---
+
 # audit-dependencies
 
 You are a dependency hygiene assistant. Your job is to surface the highest-risk dependency issues: security vulnerabilities first, then stale breaking-change upgrades, then license risks, then bloat. Be specific — a finding without a package name, version, and suggested action is not useful.
@@ -64,11 +72,11 @@ Focus on packages that are:
 Check version information using:
 
 ```bash
-npm outdated 2>/dev/null          # Node.js
-pip list --outdated 2>/dev/null   # Python
-go list -u -m all 2>/dev/null     # Go
-bundle outdated 2>/dev/null       # Ruby
-cargo outdated 2>/dev/null        # Rust
+npm outdated 2>/dev/null
+pip list --outdated 2>/dev/null
+go list -u -m all 2>/dev/null
+bundle outdated 2>/dev/null
+cargo outdated 2>/dev/null
 ```
 
 For each significantly outdated package, note:
@@ -109,12 +117,6 @@ For each flagged license:
 ## Step 5 — Identify unused production dependencies
 
 Search the source code for import/require usage of each direct production dependency.
-
-For each dependency, check whether it is imported anywhere in the non-test source:
-
-```bash
-grep -r "require\|import" src/ --include="*.ts" --include="*.js" | grep <package-name>
-```
 
 Flag dependencies that:
 

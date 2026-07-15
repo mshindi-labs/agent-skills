@@ -1,3 +1,11 @@
+---
+name: triage-ci-failure
+description: >
+  Diagnose a failing CI pipeline run, classify the failure type, reproduce
+  locally, and recommend the smallest safe fix. Use when CI is red, a GitHub
+  Actions workflow fails, or a pipeline check is broken.
+---
+
 # triage-ci-failure
 
 **Usage**: `/triage-ci-failure [run-id or PR number or branch name]`

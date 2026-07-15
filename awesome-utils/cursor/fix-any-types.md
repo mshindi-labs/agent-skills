@@ -1,3 +1,11 @@
+---
+name: fix-any-types
+description: >
+  Eliminate TypeScript any types from a file by replacing each with the narrowest
+  correct type derived from code evidence. Use when removing any types, improving
+  type safety, or tightening TypeScript strictness.
+---
+
 # fix-any-types
 
 **Usage**: `/fix-any-types <file or glob pattern>`

@@ -1,3 +1,11 @@
+---
+name: explain-flow
+description: >
+  Trace and explain how a feature, request, job, or data flow works from entry
+  point to side effects in the current codebase. Use when asking how something
+  works, understanding a code path, or tracing request handling end to end.
+---
+
 # explain-flow
 
 **Usage**: `/explain-flow <feature, endpoint, or flow to explain>`

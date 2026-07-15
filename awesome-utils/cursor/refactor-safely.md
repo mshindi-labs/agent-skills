@@ -1,3 +1,12 @@
+---
+name: refactor-safely
+description: >
+  Improve code structure, clarity, or maintainability without changing behavior
+  through small, reversible steps. Use when refactoring a module, function, or
+  class, reducing duplication, splitting overgrown files, or cleaning up code
+  smells.
+---
+
 # refactor-safely
 
 **Usage**: `/refactor-safely [file, module, function, or smell to address]`
