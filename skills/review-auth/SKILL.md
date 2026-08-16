@@ -1,6 +1,14 @@
 ---
 name: review-auth
-description: Audit authentication and authorization paths for common misconfigurations, bypass risks, and IDOR vulnerabilities. Use before shipping any auth-related change or during a security review.
+description: >
+  Audit authentication and authorization paths for common misconfigurations,
+  bypass risks, and IDOR vulnerabilities. Use before shipping any
+  auth-related change or during a security review. Trigger on "is this auth
+  code secure", "check for IDOR vulnerabilities", "review my auth logic",
+  "can users access data they shouldn't", or "audit our permission checks".
+  This is the deep, dedicated auth audit — review-changes only flags auth
+  issues in passing during a general review; use this skill when auth needs
+  focused scrutiny.
 ---
 
 # review-auth

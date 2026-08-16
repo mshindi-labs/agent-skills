@@ -1,6 +1,14 @@
 ---
 name: locate-implementation
-description: Answer "where is X handled?" with a precise, scannable file and symbol map. Use for fast navigation to definitions, registrations, and related types — not for detailed flow explanations.
+description: >
+  Answer "where is X handled" or "which file does Y live in" with a precise,
+  scannable file and symbol map — no narrative, just definitions,
+  registrations, and related types. Use when the user asks "where is this
+  defined", "which file handles X", "find the function that does Y", "where is
+  this endpoint registered", or wants pointers for fast navigation rather than
+  an explanation. Not for understanding how something works — use explain-flow
+  instead when the user wants a step-by-step narrative of a feature or
+  endpoint rather than a location.
 ---
 
 # locate-implementation

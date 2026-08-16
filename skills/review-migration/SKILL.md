@@ -1,6 +1,15 @@
 ---
 name: review-migration
-description: Analyze a database migration for safety, reversibility, locking risks, and data-loss potential before it runs in production. Use before merging any schema change.
+description: >
+  Analyze a database migration file for safety, reversibility, locking risks,
+  and data-loss potential before it runs in production. Use when the user asks
+  "is this migration safe", "will this lock the table", "can I roll this
+  back", "will this cause downtime", or wants a schema migration reviewed
+  before merging — CREATE TABLE, ADD COLUMN, DROP COLUMN, ALTER COLUMN, or an
+  index or constraint change. Distinct from check-query-safety, which reviews
+  runtime application queries (N+1s, unbounded scans, injection) rather than
+  schema migration files — use that skill instead when the concern is query
+  performance, not a migration.
 ---
 
 # review-migration

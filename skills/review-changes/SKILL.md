@@ -1,6 +1,15 @@
 ---
 name: review-changes
-description: Review a change set like an experienced teammate. Surfaces the highest-risk issues first — correctness, regressions, security, data integrity — before style or nits.
+description: >
+  Review a change set like an experienced teammate. Surfaces the
+  highest-risk issues first — correctness, regressions, security, data
+  integrity — before style or nits. Trigger on "review my changes", "review
+  this diff", "review this PR", "can you look over what I changed", or
+  "sanity check this before I push". This is the generalist reviewer: it
+  flags auth, migration, and query issues it notices but does not go deep.
+  For dedicated depth, use review-auth for authentication and authorization,
+  review-migration for schema changes, and check-query-safety for database
+  queries.
 ---
 
 # review-changes

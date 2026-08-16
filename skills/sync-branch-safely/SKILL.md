@@ -1,6 +1,13 @@
 ---
 name: sync-branch-safely
-description: Safely sync the current branch with its remote or base branch. Inspects state first, stops on risky or ambiguous situations, and never defaults to destructive operations.
+description: >
+  Safely sync the current branch with its remote or base branch. Inspects
+  state first, stops on risky or ambiguous situations, and never defaults to
+  destructive operations. Trigger on requests like "sync my branch", "update
+  my branch with main", "rebase onto main", "pull in the latest changes", or
+  "bring my branch up to date". This is for getting in sync before conflicts
+  exist — once git has already left conflict markers in the tree, hand off to
+  resolve-merge-conflicts instead.
 ---
 
 # sync-branch-safely
