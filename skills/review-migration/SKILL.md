@@ -67,6 +67,13 @@ and the wrong name points them at the wrong remedy.
 - `ADD CONSTRAINT` (non-NOT VALID)
 - `DROP COLUMN` / `RENAME COLUMN` / `DROP TABLE` / `TRUNCATE`
 
+The lock type is not the finding on its own — how long it is held is. A nullable
+`ADD COLUMN`, or an `ADD COLUMN` with a non-volatile default on Postgres 11+, takes
+`ACCESS EXCLUSIVE` only for the catalogue update: milliseconds, no scan, no rewrite.
+Do not report those as lock risks. Report the lock when the statement holds it
+across a table scan or a full rewrite — a type change, a constraint validation, an
+index build — and say which of the two it is.
+
 `SHARE` — blocks writes for the whole build, reads keep working:
 
 - `CREATE INDEX` without `CONCURRENTLY`
@@ -79,7 +86,9 @@ and the wrong name points them at the wrong remedy.
 A bulk `UPDATE` or `DELETE` takes only `ROW EXCLUSIVE` on the table, so it does not
 block readers or writers of rows it does not touch. The risk is the row locks it
 holds until commit, plus WAL volume, table bloat, and replication lag — so the fix
-is batching, not a maintenance window.
+is batching, not a maintenance window. The mild lock does not make it a mild
+finding: on a large table an unbatched backfill stays **high** severity, as the risk
+table above rates it. Do not downgrade it just because it is not lock-blocking.
 
 For each lock risk:
 
