@@ -1,6 +1,13 @@
 ---
 name: address-pr-review
-description: Systematically address PR review comments by triaging feedback, applying targeted code changes, writing clean follow-up commits, and preparing a re-review summary for reviewers.
+description: >
+  Systematically address PR review comments by triaging feedback, applying
+  targeted code changes, writing clean follow-up commits, and preparing a
+  re-review summary for reviewers. Use when someone says "address the PR
+  feedback", "respond to reviewer comments", "the reviewer asked for changes",
+  "handle these review comments", or "fix what the reviewer flagged". Assumes the
+  PR already exists and has comments to work through -- for opening a brand-new
+  pull request, use create-pr instead.
 ---
 
 # address-pr-review

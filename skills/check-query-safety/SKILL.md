@@ -1,6 +1,14 @@
 ---
 name: check-query-safety
-description: Review database queries in a file or module for N+1 patterns, unbounded scans, SQL injection risks, and over-fetching. Use during code review or before a performance-sensitive release.
+description: >
+  Review database queries in a file or module for N+1 patterns, unbounded
+  scans, SQL injection risks, and over-fetching. Use during code review or
+  before a performance-sensitive release. Trigger on "is this query safe",
+  "check for N+1 queries", "could this cause a SQL injection", "will this
+  query scale", or "review my database queries". This is the deep,
+  query-focused audit — review-changes only flags query issues in passing
+  during a general review; use this skill when queries need dedicated
+  scrutiny.
 ---
 
 # check-query-safety

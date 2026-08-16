@@ -1,6 +1,12 @@
 ---
 name: revert-change-safely
-description: Safely undo a commit, PR, or set of changes. Assesses blast radius including database migrations, executes the correct revert strategy, verifies the result, and communicates the impact clearly.
+description: >
+  "Revert this PR", "roll this back", "undo that commit", "back out the last
+  release" — safely undo a commit, PR, or set of changes that has already
+  been pushed or merged. Assesses blast radius including database migrations,
+  executes the correct revert strategy, verifies the result, and communicates
+  the impact clearly. If the commit hasn't been pushed yet, use amend-safely
+  instead to fix it directly rather than reverting it.
 ---
 
 # revert-change-safely

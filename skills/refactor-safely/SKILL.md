@@ -1,6 +1,13 @@
 ---
 name: refactor-safely
-description: Refactor code for clarity, maintainability, or reduced duplication without changing behavior. Works in small reviewable increments and verifies behavior is preserved at each step.
+description: >
+  Refactor code for clarity, maintainability, or reduced duplication without
+  changing behavior. Use when someone says "refactor this", "clean up this code",
+  "this function is too long", "reduce the duplication here", or "make this more
+  readable", as long as behavior should stay the same. Works in small, reviewable
+  increments and verifies behavior is preserved at each step rather than
+  rewriting broadly. Not for adding features, fixing bugs, or changing what the
+  code does -- only for restructuring that behaves identically before and after.
 ---
 
 # refactor-safely
