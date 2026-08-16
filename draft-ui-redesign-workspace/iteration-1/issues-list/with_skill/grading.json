@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name",
+      "passed": true,
+      "evidence": "Three Linear mechanics named: grouped collapsible sections with per-group counts, restrained status-dot colour with priority glyph, and arrow-key/Enter row navigation scoped to the existing router.push."
+    },
+    {
+      "text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign",
+      "passed": true,
+      "evidence": "Filter control preserved with exactly All / Open / Closed; invariant pins it to the same ?status= query param."
+    },
+    {
+      "text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt",
+      "passed": true,
+      "evidence": "States section records loading, empty and error as 'not handled' today, notes useSWR already exposes isLoading and error, and the prompt specifies all three."
+    },
+    {
+      "text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API",
+      "passed": true,
+      "evidence": "Lists priority, labels, updated_at, comment_count, assignee.avatar_url and id as fetched-but-unrendered \u2014 'the cheapest lever in this redesign'."
+    },
+    {
+      "text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id",
+      "passed": true,
+      "evidence": "Header states 'Presentation-only redesign'; invariant: 'Clicking (or keyboard-selecting) an issue row still calls router.push('/issues/:id')'."
+    },
+    {
+      "text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)",
+      "passed": true,
+      "evidence": "Single addition: optional `counts` field on the existing endpoint, 'existing consumers that only read issues are unaffected', degrades to group headers with no count."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

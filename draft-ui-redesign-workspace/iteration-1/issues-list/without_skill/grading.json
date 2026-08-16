@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name",
+      "passed": false,
+      "evidence": "Names Linear ('Target feel: Linear's issue list') but the borrowed qualities are adjectives \u2014 dense, fast to scan, quiet colour. Grouping and keyboard shortcuts are explicitly placed out of scope, so no listed mechanic is borrowed."
+    },
+    {
+      "text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign",
+      "passed": true,
+      "evidence": "'One filter control with exactly three states: All / Open / Closed. Single-select. No multi-select, no additional filter fields.'"
+    },
+    {
+      "text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt",
+      "passed": true,
+      "evidence": "'Handle empty state (filter matches nothing) and the brief moment before data arrives, gracefully \u2014 these situations already occur today, just unstyled.'"
+    },
+    {
+      "text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API",
+      "passed": true,
+      "evidence": "Explicit paragraph: 'Priority, avatar, labels, updated_at, and comment_count are already returned by the API but unused \u2014 surfacing them is a visual improvement, not a behavior change.'"
+    },
+    {
+      "text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id",
+      "passed": true,
+      "evidence": "'This is a pure visual/UX polish pass \u2014 the underlying behavior, data, and interactions must not change'; row click still navigates to the issue detail page (path not spelled out, behaviour preserved)."
+    },
+    {
+      "text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)",
+      "passed": true,
+      "evidence": "Vacuously satisfied \u2014 no API additions proposed. Non-discriminating on this run."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333
+  }
+}

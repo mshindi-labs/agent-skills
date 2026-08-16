@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name",
+      "passed": true,
+      "evidence": "Cites Stripe (transaction table: right-aligned tabular amounts, 44px rows, status dot not pill), Mercury (money-as-typography for the summary strip), Ramp (amount in context via counterparty/payment method). Each name carries a named mechanic."
+    },
+    {
+      "text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)",
+      "passed": true,
+      "evidence": "Content inventory lists date, description, amount+currency, status for all three example rows; audit table maps each to created_at / description / amount_cents / status."
+    },
+    {
+      "text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)",
+      "passed": true,
+      "evidence": "Section 'In the response but not rendered' lists currency (mis-rendered as hardcoded $), counterparty.name/id, payment_method, and has_more with no pagination control."
+    },
+    {
+      "text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see",
+      "passed": true,
+      "evidence": "Prompt block opens with 'Product and user' and carries its own example values; no file paths, no reference to the audit or other document sections."
+    },
+    {
+      "text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking",
+      "passed": true,
+      "evidence": "GET /api/transactions/summary (new) with total_in_cents/total_out_cents/pending_count/currency, 'Non-breaking: new endpoint', and 'Degrades to: the summary strip is omitted entirely until this ships'."
+    },
+    {
+      "text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions",
+      "passed": true,
+      "evidence": "No existing field altered. Prompt explicitly forbids replacing row-click navigation with inline expansion, and the invariants list pins amount_cents/100 and raw status values."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

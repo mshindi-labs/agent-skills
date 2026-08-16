@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)",
+      "passed": true,
+      "evidence": "Vercel (status as loudest element, monospace copy-on-click commit metadata), Planetscale (safe destructive actions), Supabase (progressive depth, dense row expanding to detail) \u2014 each with the mechanic spelled out and tied to this page."
+    },
+    {
+      "text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign",
+      "passed": true,
+      "evidence": "Rollback kept as a per-row action; prompt applies Planetscale's mechanic \u2014 confirmation step naming the deployment before proceeding. Invariant: 'still calls rollback(d.id) with the same deployment id, only gated behind a confirmation step'."
+    },
+    {
+      "text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains",
+      "passed": true,
+      "evidence": "All six unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) listed in the audit and placed in the prompt's content inventory. Neither proposed API duplicates data already returned."
+    },
+    {
+      "text": "The generated prompt specifies loading, empty, and error states",
+      "passed": true,
+      "evidence": "States paragraph specifies skeleton loading, empty state, an error state for a failed list fetch explicitly distinguished from a row with status 'error', plus the 15-20 row dense case."
+    },
+    {
+      "text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required",
+      "passed": true,
+      "evidence": "Two additions, under the cap of three: optional error_summary field ('existing consumers ignore it') and new GET /api/deployments/:id/logs ('no existing consumer affected'). Both carry Degrades-to lines."
+    },
+    {
+      "text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions",
+      "passed": true,
+      "evidence": "Five checkable invariants covering rollback wiring, no hidden rows, unchanged field meaning, empty-vs-error distinction, and all ten response fields staying visible."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

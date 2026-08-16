@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "draft-ui-redesign", "runs": [{"id": "fintech-transactions-with_skill", "prompt": "Our billing dashboard's transactions page looks like a 2014 admin template and I want it redesigned. Here's the component:\n\n```tsx\nexport function TransactionsPage() {\n  const { data, isLoading, error } = useQuery(['transactions'], () =>\n    fetch('/api/transactions').then((r) => r.json())\n  )\n\n  if (isLoading) return <div className=\"spinner\" />\n  if (error) return <div>Something went wrong</div>\n  if (!data.transactions.length) return <p>No transactions.</p>\n\n  return (\n    <div className=\"container\">\n      <h1>Transactions</h1>\n      <table className=\"table table-striped\">\n        <thead>\n          <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>\n        </thead>\n        <tbody>\n          {data.transactions.map((t) => (\n            <tr key={t.id} onClick={() => navigate(`/transactions/${t.id}`)}>\n              <td>{new Date(t.created_at).toLocaleDateString()}</td>\n              <td>{t.description}</td>\n              <td>${(t.amount_cents / 100).toFixed(2)}</td>\n              <td><span className={`badge badge-${t.status}`}>{t.status}</span></td>\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    </div>\n  )\n}\n```\n\nAnd this is what `GET /api/transactions` returns:\n\n```json\n{\n  \"transactions\": [\n    {\n      \"id\": \"txn_1a2b3c\",\n      \"created_at\": \"2026-03-14T09:22:11Z\",\n      \"description\": \"Acme Corp - invoice #4471\",\n      \"amount_cents\": 248000,\n      \"currency\": \"USD\",\n      \"status\": \"succeeded\",\n      \"counterparty\": { \"name\": \"Acme Corp\", \"id\": \"cus_9x8y\" },\n      \"payment_method\": \"card_visa_4242\"\n    }\n  ],\n  \"has_more\": true\n}\n```\n\nCan you put together a prompt I can paste into a design tool to get a proper modern version of this page?", "eval_id": 1, "outputs": [{"name": "response.md", "type": "text", "content": "Written to `docs/redesign/transactions-redesign.md`. The paste-ready prompt is **Section 3** \u2014 copy just that fenced block into Claude Design, Stitch, v0, Lovable, or Figma Make.\n\nWorth knowing before you use it:\n- I flagged that the current code hardcodes `$` and ignores the `currency` field already in the payload \u2014 the redesign fixes that for free, no API change needed.\n- `counterparty` and `payment_method` are in the response today but never rendered \u2014 the redesign surfaces them as a muted secondary line per row (Ramp-style), also free.\n- I proposed exactly one additive API (`GET /api/transactions/summary`) for the total-in/total-out strip, because summing the current page would misreport a partial total as the account total \u2014 the design degrades to hiding that strip until you ship it.\n- Row-click-to-navigate stays as the only interaction; I explicitly told the design tool not to swap it for inline expansion even though that's the more \"Stripe\" pattern, since that would be a behavior change, not a presentation one.\n\n=== FILE: docs/redesign/transactions-redesign.md ===\n\n# Redesign: Transactions Page\n\n**Source:** `TransactionsPage` component (provided inline) \u00b7 **Data:** `GET /api/transactions`\n**Domain:** Fintech / billing \u00b7 **Benchmarks:** Stripe, Mercury, Ramp\n\nPresentation-only redesign. No logic, route, or existing API contract changes.\n\n## 1. Current State\n\n### Rendered content\n\n| Element | Data point (source field) | Interaction | Effect |\n| ------- | ------------------------- | ----------- | ------ |\n| Date column | `created_at` | none | formatted via `toLocaleDateString()` |\n| Description column | `description` | none | plain text |\n| Amount column | `amount_cents` | none | divided by 100, formatted as `$X.XX` (hardcoded `$`, ignores `currency`) |\n| Status column | `status` | none | text inside `badge-{status}` class |\n| Table row | (whole transaction, keyed by `id`) | click | `navigate(`/transactions/${t.id}`)` |\n\n### States handled today\n\n- **Loading:** unstyled `<div className=\"spinner\" />`\n- **Empty:** plain `<p>No transactions.</p>`\n- **Error:** plain `<div>Something went wrong</div>`, no retry action\n- **Other:** none \u2014 no unauthorized, partial-data, or stale-data handling\n\n### Derived in the component\n\n- Date formatting: `new Date(created_at).toLocaleDateString()`\n- Amount formatting: `(amount_cents / 100).toFixed(2)`, prefixed with a hardcoded `$` regardless of the transaction's actual `currency`\n\n### In the response but not rendered\n\n- `currency` \u2014 present per-transaction, but ignored in favor of a hardcoded `$`\n- `counterparty.name`, `counterparty.id` \u2014 who the money moved with, not shown at all\n- `payment_method` \u2014 how it was paid (e.g. `card_visa_4242`), not shown at all\n- `has_more` \u2014 pagination signal exists in the payload; there is no pagination or \"load more\" control anywhere in the component\n\n### Assessment\n\nBootstrap striped table with no visual hierarchy, no summary of what's on the page, and no use of half the payload \u2014 counterparty and payment method are paid for and thrown away, and currency is actively mis-rendered as a hardcoded `$`. There's no way to scan status at a glance (text-only badges), no responsive handling, and no feedback beyond a bare spinner and two plain-text state messages.\n\n## 2. Benchmarks\n\n**Stripe** \u2014 the transaction table: right-aligned amounts in tabular figures, ~44px rows, status as a small coloured dot plus label instead of a filled pill. This is a dense list of money movements; the eye needs to track one column (amount) and one glyph (status) without noise.\n\n**Mercury** \u2014 money as typography: balances set large and light, currency symbol de-emphasised relative to the figure, cents smaller than the dollar amount. Applies to the new summary totals (see Section 4) \u2014 calm, confident numbers rather than a shouted dashboard stat.\n\n**Ramp** \u2014 spend in context: an amount means little alone. Surfacing counterparty and payment method inline next to each row (currently fetched, never shown) gives every number a reason.\n\n## 3. Generation Prompt\n\nPaste this into Claude Design, Stitch, v0, Lovable, or Figma Make.\n\n```text\nProduct and user: This is the transactions page of a billing/fintech dashboard. The user is a business owner or finance team member checking incoming and outgoing payments \u2014 reconciling invoices, spotting failed charges, confirming a customer paid.\n\nScreen purpose: Let the user scan a list of transactions and quickly answer \"what came in, what went out, and is anything wrong\" \u2014 then click through to any transaction for detail.\n\nContent inventory \u2014 render every one of these, using these as realistic example rows (a dense list, expect 20-50+ rows on a real account):\n\nRow 1\n- Date: March 14, 2026\n- Description: \"Acme Corp - invoice #4471\"\n- Amount: $2,480.00, currency USD\n- Status: succeeded\n- Counterparty: Acme Corp\n- Payment method: Visa card ending 4242\n\nRow 2 (illustrative \u2014 vary the state)\n- Date: March 13, 2026\n- Description: \"Globex LLC - invoice #4470\"\n- Amount: $890.00, currency USD\n- Status: pending\n- Counterparty: Globex LLC\n- Payment method: ACH bank transfer ending 8831\n\nRow 3 (illustrative \u2014 vary the state)\n- Date: March 12, 2026\n- Description: \"Initech - invoice #4469\"\n- Amount: $150.00, currency USD\n- Status: failed\n- Counterparty: Initech\n- Payment method: Mastercard ending 0192\n\nEvery row has: a date, a free-text description, a monetary amount tied to a currency, a status (succeeded / pending / failed are the known values \u2014 design the status treatment so an unfamiliar status word still renders sensibly, e.g. \"refunded\"), a counterparty name, and a payment method. Clicking anywhere on a row is the only per-row action, and it always navigates to that transaction's own detail page \u2014 do not replace this with inline expansion or a modal, and do not add row-level actions (menus, buttons, checkboxes) that don't exist today.\n\nLayout and hierarchy: A single dense table/list is the primary content, full width, no card-in-a-card nesting. Above it, a slim summary strip showing total in, total out, and pending count for the currently visible set (see states below for how this behaves before real aggregate data exists). Below or beside the summary, one filter/search affordance is acceptable to imply visually (e.g. a search-by-description input) but do not wire up new filter logic \u2014 it's a static element in this pass, not a new feature.\n\nDesign direction: Dense rows, around 44px tall, 16px horizontal padding. Amount column right-aligned with tabular (monospaced-width) figures \u2014 negative/outgoing amounts in the normal text color, not red; red is reserved only for a \"failed\" status indicator. Status renders as a small 6-8px colored dot plus a short label (green=succeeded, amber=pending, red=failed, grey=any other/unknown value) \u2014 never a filled pill or colored badge background. Counterparty name and payment method (e.g. \"Visa \u2022\u2022\u2022\u2022 4242\") appear as a secondary, muted line under or beside the description \u2014 smaller type, lower-contrast grey. Summary strip totals are set large and light in weight, currency symbol small and de-emphasised relative to the digits, cents rendered smaller than the whole-dollar amount. Type scale: 12/14/16/20/30. Spacing on an 8px rhythm. Two greys for text (primary near-black, muted mid-grey), one accent color for links/focus, red reserved for destructive/failed only. Flat design \u2014 hierarchy from weight, size and whitespace, not boxes and borders. Every interactive element (rows, any control) has a visible focus ring.\n\nStates to design:\n- Loading: a skeleton matching the final row layout (shimmering placeholder bars for date/description/amount/status columns) \u2014 not a centered spinner.\n- Empty: no transactions yet \u2014 friendly message plus, if relevant, a pointer to what creates a transaction (no invented action beyond what a static empty state can say).\n- Error: a clear inline message with a retry affordance, visually distinct from the empty state (this is a fetch failure, not \"no data\").\n- Dense/overflowing: design for 50+ rows \u2014 the table should stay scannable at that density, with the summary strip staying pinned/visible near the top.\n- Summary strip before real aggregate data exists: since the current page of transactions is paginated, do not silently sum only the visible rows and label it as a total \u2014 either omit the summary strip in this state, or clearly scope it as reflecting only the loaded rows.\n\nResponsive: Desktop shows the full table with all columns. Tablet condenses counterparty/payment method into the secondary muted line under description (already the design above) rather than a separate column, so no column needs to be dropped. Mobile collapses each row into a two-line stacked card: date + status on one line, description/counterparty and right-aligned amount on the next \u2014 still tappable as a full row.\n\nRender every item in the content inventory. Do not invent data points beyond it, and do not remove any of them. Do not add features, filters, or actions that are not listed. This is a visual redesign of an existing screen \u2014 the behaviour is fixed, only the presentation changes.\n```\n\n## 4. Proposed API Additions\n\n### Aggregate summary totals (total in, total out, pending count)\n\n**Why:** The Stripe/Ramp-style summary strip above the table needs a trustworthy total across *all* transactions, not just the current page. The list endpoint is paginated (`has_more`), so summing the loaded rows client-side would silently mislabel a partial sum as the account total.\n\n**Endpoint:** `GET /api/transactions/summary` *(new)*\n\n**Response:**\n\n```json\n{\n  \"total_in_cents\": 1245000,\n  \"total_out_cents\": 892000,\n  \"pending_count\": 3,\n  \"currency\": \"USD\"\n}\n```\n\n**Non-breaking:** new endpoint \u2014 no existing consumer affected.\n\n**Degrades to:** the summary strip is omitted entirely until this ships. It is never computed from the paginated `transactions` array, since that would show an inaccurate partial total.\n\n## 5. Behavioural Invariants\n\nMust still hold after the redesign ships:\n\n- [ ] Clicking a row still navigates to `/transactions/:id`\n- [ ] Loading state still shows while the query is in flight\n- [ ] Error state still shows on fetch failure, distinct from the empty state\n- [ ] Empty state still shows when `transactions` is an empty array\n- [ ] Amounts still derive from `amount_cents / 100`, displayed in the transaction's own `currency` (not a hardcoded `$`)\n- [ ] Status label still reflects the raw `status` field value, including values not covered by the illustrative examples above\n- [ ] No new filters, row actions, or pagination controls are wired to real logic \u2014 this pass is presentation only\n"}], "grading": {"expectations": [{"text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name", "passed": true, "evidence": "Cites Stripe (transaction table: right-aligned tabular amounts, 44px rows, status dot not pill), Mercury (money-as-typography for the summary strip), Ramp (amount in context via counterparty/payment method). Each name carries a named mechanic."}, {"text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)", "passed": true, "evidence": "Content inventory lists date, description, amount+currency, status for all three example rows; audit table maps each to created_at / description / amount_cents / status."}, {"text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)", "passed": true, "evidence": "Section 'In the response but not rendered' lists currency (mis-rendered as hardcoded $), counterparty.name/id, payment_method, and has_more with no pagination control."}, {"text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see", "passed": true, "evidence": "Prompt block opens with 'Product and user' and carries its own example values; no file paths, no reference to the audit or other document sections."}, {"text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking", "passed": true, "evidence": "GET /api/transactions/summary (new) with total_in_cents/total_out_cents/pending_count/currency, 'Non-breaking: new endpoint', and 'Degrades to: the summary strip is omitted entirely until this ships'."}, {"text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions", "passed": true, "evidence": "No existing field altered. Prompt explicitly forbids replacing row-click navigation with inline expansion, and the invariants list pins amount_cents/100 and raw status values."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "fintech-transactions-without_skill", "prompt": "Our billing dashboard's transactions page looks like a 2014 admin template and I want it redesigned. Here's the component:\n\n```tsx\nexport function TransactionsPage() {\n  const { data, isLoading, error } = useQuery(['transactions'], () =>\n    fetch('/api/transactions').then((r) => r.json())\n  )\n\n  if (isLoading) return <div className=\"spinner\" />\n  if (error) return <div>Something went wrong</div>\n  if (!data.transactions.length) return <p>No transactions.</p>\n\n  return (\n    <div className=\"container\">\n      <h1>Transactions</h1>\n      <table className=\"table table-striped\">\n        <thead>\n          <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>\n        </thead>\n        <tbody>\n          {data.transactions.map((t) => (\n            <tr key={t.id} onClick={() => navigate(`/transactions/${t.id}`)}>\n              <td>{new Date(t.created_at).toLocaleDateString()}</td>\n              <td>{t.description}</td>\n              <td>${(t.amount_cents / 100).toFixed(2)}</td>\n              <td><span className={`badge badge-${t.status}`}>{t.status}</span></td>\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    </div>\n  )\n}\n```\n\nAnd this is what `GET /api/transactions` returns:\n\n```json\n{\n  \"transactions\": [\n    {\n      \"id\": \"txn_1a2b3c\",\n      \"created_at\": \"2026-03-14T09:22:11Z\",\n      \"description\": \"Acme Corp - invoice #4471\",\n      \"amount_cents\": 248000,\n      \"currency\": \"USD\",\n      \"status\": \"succeeded\",\n      \"counterparty\": { \"name\": \"Acme Corp\", \"id\": \"cus_9x8y\" },\n      \"payment_method\": \"card_visa_4242\"\n    }\n  ],\n  \"has_more\": true\n}\n```\n\nCan you put together a prompt I can paste into a design tool to get a proper modern version of this page?", "eval_id": 1, "outputs": [{"name": "response.md", "type": "text", "content": "Used the frontend-design skill's brainstorm pass to ground this in what the page actually is \u2014 a payments ledger for a B2B billing tool \u2014 rather than a generic dashboard template. Copy the block below into whatever tool you're using (v0, Lovable, Figma Make, Stitch, etc.):\n\n```\nRedesign a \"Transactions\" table for a B2B fintech billing dashboard. Audience: \nfinance/ops people reconciling customer payments \u2014 they scan for status and \namount fast, then drill into one row. Trust and precision matter more than \nflash; this is a ledger, not a marketing page.\n\nDATA (per row):\n- date (ISO timestamp \u2192 display as \"Mar 14, 2026\")\n- description (e.g. \"Acme Corp - invoice #4471\")\n- counterparty name\n- amount_cents \u2192 format as currency using the currency field (USD \u2192 $2,480.00)\n- status: succeeded | pending | failed | refunded\n- payment_method (e.g. \"card_visa_4242\" \u2192 show as \"Visa \u2022\u2022\u2022\u2022 4242\")\nList is paginated (cursor-based \"load more\", not numbered pages).\n\nSTATES TO DESIGN: populated table, loading (skeleton rows, not a spinner), \nempty (\"No transactions yet.\" + one sentence on when they'll appear), error \n(plain-language retry, no stack traces).\n\nVISUAL DIRECTION:\nColor \u2014 cool-neutral base, not warm/cream: background #F7F8FA, surface #FFFFFF, \nhairline border #E4E7EC, primary text #14181F, secondary text #5B6472, accent \n#2447F5 (cobalt, used only for interactive/focus). Status as tinted dot + label, \nnot loud badges: succeeded #0E9F6E on #E9FBF3, pending #D97706 on #FEF6E7, \nfailed #DC2626 on #FDECEC, refunded #6B7280 on #F1F2F4.\n\nType \u2014 pair a grotesk sans (Inter or General Sans) for UI chrome, labels, and \nfilters with a monospace (IBM Plex Mono) set to tabular-nums for every number: \ndates, amounts, transaction IDs. The mono numerals are the signature move \u2014 \nthey read as a ledger, not an admin CRUD table.\n\nLayout \u2014 sticky header row, hairline dividers between rows instead of card \nshadows, amount column right-aligned in mono, generous row height (48-56px) \nfor scannability, row hover state that reveals an affordance the row is \nclickable (chevron, not just a background tint). Filter bar above the table: \nsearch by description/counterparty, status filter, date range. \"Load more\" \nbutton at the bottom, not pagination numbers.\n\nWireframe:\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502 Transactions                                             \u2502\n\u2502 [Search description or customer]  [Status \u25be] [Date \u25be]    \u2502\n\u2502 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2502\n\u2502 DATE       DESCRIPTION              STATUS      AMOUNT   \u2502\n\u2502 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2502\n\u2502 Mar 14     Acme Corp \u2014 inv #4471    \u25cf Succeeded $2,480.00\u2502\n\u2502 Mar 13     Globex \u2014 inv #4470       \u25cf Pending     $860.00\u2502\n\u2502 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2502\n\u2502                      Load more                           \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\nConstraints: keyboard-focusable rows with visible focus ring, WCAG AA contrast \non status colors, respects prefers-reduced-motion, responsive down to a \nmobile card-stack layout (date/status/amount as a compact meta line under \nthe description).\n```\n\nSkipped: an actual code implementation \u2014 you asked for a design-tool prompt, not the redesigned component. Say the word if you want the React/Tailwind version once you've settled on a look."}], "grading": {"expectations": [{"text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name", "passed": false, "evidence": "No industry benchmark named anywhere. Design direction is given as raw hex values and font choices with no product reference or borrowed mechanic."}, {"text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)", "passed": true, "evidence": "DATA block covers date, description, amount_cents+currency, status \u2014 all four rendered fields preserved."}, {"text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)", "passed": false, "evidence": "Uses counterparty and payment_method in the prompt but never identifies them as currently-unrendered free wins, and turns has_more into an invented cursor-paginated 'Load more' feature rather than flagging it."}, {"text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see", "passed": true, "evidence": "The fenced block is self-contained \u2014 audience, data, states, visual direction and an ASCII wireframe, with no reference to the codebase."}, {"text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking", "passed": false, "evidence": "No API section at all. No endpoint, shape, or non-breaking note proposed, despite the prompt introducing pagination and filter controls that need backing data."}, {"text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions", "passed": true, "evidence": "No existing field in GET /api/transactions is removed, renamed, or retyped."}], "summary": {"passed": 3, "failed": 3, "total": 6, "pass_rate": 0.5}}}, {"id": "issues-list-with_skill", "prompt": "This is our issues list. It works but it's ugly and feels slow compared to Linear. I want to hand a design tool a really good prompt to redesign it \u2014 but nothing about how it behaves should change.\n\n```tsx\nexport function IssuesList() {\n  const [status, setStatus] = useState('all')\n  const { data } = useSWR(`/api/issues?status=${status}`)\n\n  return (\n    <div>\n      <h2>Issues</h2>\n      <select value={status} onChange={(e) => setStatus(e.target.value)}>\n        <option value=\"all\">All</option>\n        <option value=\"open\">Open</option>\n        <option value=\"closed\">Closed</option>\n      </select>\n      <ul>\n        {data?.issues.map((i) => (\n          <li key={i.id} onClick={() => router.push(`/issues/${i.id}`)}>\n            <strong>{i.title}</strong>\n            <span>{i.status}</span>\n            <span>{i.assignee?.name ?? 'Unassigned'}</span>\n          </li>\n        ))}\n      </ul>\n    </div>\n  )\n}\n```\n\n`GET /api/issues?status=` returns:\n\n```json\n{\n  \"issues\": [\n    {\n      \"id\": \"ISS-142\",\n      \"title\": \"Webhook retries drop the idempotency key\",\n      \"status\": \"open\",\n      \"priority\": 2,\n      \"assignee\": { \"id\": \"u_88\", \"name\": \"Priya Raman\", \"avatar_url\": \"https://cdn.example.dev/u_88.png\" },\n      \"labels\": [\"bug\", \"webhooks\"],\n      \"updated_at\": \"2026-03-12T16:04:00Z\",\n      \"comment_count\": 7\n    }\n  ]\n}\n```", "eval_id": 2, "outputs": [{"name": "response.md", "type": "text", "content": "Written to `docs/redesign/issues-list-redesign.md`. Paste **Section 3** into your design tool \u2014 it's self-contained.\n\nQuick summary of what it says:\n\n- **Domain/benchmark:** work tracking, benchmarking against Linear \u2014 grouped status sections with counts, restrained status-dot colour, and keyboard row navigation (scoped to the one action this screen has: opening an issue).\n- **Cheapest win:** `priority`, `labels`, `updated_at`, `comment_count`, `assignee.avatar_url`, and `id` are already in the API response but never rendered today \u2014 the redesign surfaces all of them with zero API changes.\n- **One API addition, capped well under the limit of 3:** an optional `counts` field on the existing `/api/issues` response so grouped headers can show \"Open (34)\" \u2014 degrades to plain headers with no count until it ships.\n- **Invariants:** filter still drives the same query param, row click/keyboard-enter still does the same `router.push`, unassigned still reads \"Unassigned\" \u2014 nothing about behavior changes.\n\n=== FILE: docs/redesign/issues-list-redesign.md ===\n\n# Redesign: Issues List\n\n**Source:** `IssuesList` component (pasted inline) \u00b7 **Data:** `GET /api/issues?status=`\n**Domain:** work tracking \u00b7 **Benchmarks:** Linear\n\nPresentation-only redesign. No logic, route, or existing API contract changes.\n\n## 1. Current State\n\n### Rendered content\n\n| Element | Data point (source field) | Interaction | Effect |\n| ------- | ------------------------- | ----------- | ------ |\n| Page heading | static text \"Issues\" | none | none |\n| Status select | local `status` state | `onChange` sets `status` | re-triggers `useSWR` with new `?status=` query param |\n| Issue row title | `issues[].title` | click anywhere on `<li>` | `router.push('/issues/:id')` using `issues[].id` |\n| Issue row status text | `issues[].status` | none (row click covers it) | same as above |\n| Issue row assignee | `issues[].assignee.name`, fallback `'Unassigned'` when `assignee` is null | none (row click covers it) | same as above |\n| Row key | `issues[].id` | n/a (React key only, not displayed) | n/a |\n\n### States handled today\n\n- **Loading:** not handled \u2014 `data` is `undefined` until the fetch resolves, so the list is just empty with no indicator.\n- **Empty:** not handled \u2014 an empty `issues` array renders an empty `<ul>` with no message.\n- **Error:** not handled \u2014 `useSWR`'s `error` value isn't read; a failed fetch looks identical to a loading or empty state.\n- **Other:** none (no unauthorized/partial/stale handling).\n\nNote: `useSWR` already exposes `isLoading` and `error` \u2014 wiring loading/empty/error states into the redesign is a presentation change only, it doesn't require any new data or API work.\n\n### Derived in the component\n\n- `assignee?.name ?? 'Unassigned'` \u2014 fallback display string when `assignee` is `null`.\n\n### In the response but not rendered\n\n- `priority` (integer, e.g. `2`)\n- `labels` (string array, e.g. `[\"bug\", \"webhooks\"]`)\n- `updated_at` (ISO timestamp)\n- `comment_count` (integer)\n- `assignee.avatar_url`\n- `id` (used for navigation, never shown as text)\n\nSix fields are already being paid for and thrown away \u2014 this is the cheapest lever in this redesign.\n\n### Assessment\n\nThe list is a bare `<ul>` with no visual hierarchy: title, status, and assignee run together as plain inline text with no spacing, colour, or alignment system, so a long list is hard to scan. Six fetched fields (priority, labels, freshness, comment count, avatar, id) never reach the screen, leaving the page far sparser than the data backing it. There's also no loading, empty, or error state, so a slow network or a filter with zero matches both look identical to a blank page.\n\n## 2. Benchmarks\n\n**Linear** \u2014 grouped, collapsible lists with a count in each group header, instead of a flat unstyled `<ul>`. When the status filter is \"All\", group rows under \"Open\" and \"Closed\" headers so the eye doesn't have to hunt through a mixed list; the \"Open\"/\"Closed\" filter options continue to work exactly as today, just pre-selecting a group.\n\n**Linear** \u2014 restrained status colour: a small coloured dot plus label for `status`, and a compact glyph/level indicator for `priority`, instead of bare text and an unrendered number. Colour is reserved for status and priority only, so the rest of the row stays monochrome and titles stay the most scannable thing on the page.\n\n**Linear** \u2014 keyboard-first navigation, scoped to this screen's one action: arrow keys move focus between rows and Enter opens the focused issue. This is not a new capability, it's a second path to the exact `router.push('/issues/:id')` call the row click already triggers.\n\n## 3. Generation Prompt\n\nPaste this into Claude Design, Stitch, v0, Lovable, or Figma Make.\n\n```text\nProduct and user: This is an internal issue tracker, similar in spirit to Linear. The user is a software engineer or product manager triaging and scanning a list of work items several times a day.\n\nScreen purpose: This screen's single job is letting the user scan a filtered list of issues and open the one they care about. Nothing on this screen edits data \u2014 opening an issue is the only action.\n\nContent inventory \u2014 render every item below, using these as realistic example values:\n\nFilter control: a three-way filter (All / Open / Closed). Currently selected value is one of \"all\", \"open\", \"closed\".\n\nEach row in the list represents one issue with these fields:\n- id: a short code like \"ISS-142\" (currently not displayed at all \u2014 show it, e.g. as small muted text near the title, monospaced)\n- title: a sentence, e.g. \"Webhook retries drop the idempotency key\"\n- status: one of \"open\" or \"closed\"\n- priority: a small integer, e.g. 2 (no fixed label set is defined \u2014 render it as a compact ordinal indicator such as stacked bars or a two-character badge like \"P2\"; do not invent a named scale like \"Urgent/High/Medium/Low\" since that mapping isn't provided)\n- assignee: either a person with a name (e.g. \"Priya Raman\") and an avatar image URL, or absent, in which case show the literal text \"Unassigned\" with a neutral placeholder avatar\n- labels: zero or more short tags, e.g. [\"bug\", \"webhooks\"]\n- updated_at: an ISO timestamp, e.g. \"2026-03-12T16:04:00Z\" \u2014 render as a relative time like \"5mo ago\"\n- comment_count: an integer, e.g. 7 \u2014 render with a small comment/bubble icon next to the count; omit the icon entirely when the count is 0\n\nLayout and hierarchy: A filter control sits above the list. Below it, when the filter is \"All\", group rows under two collapsible section headers, \"Open\" and \"Closed\", each showing a count of issues in that group (e.g. \"Open (34)\"). When the filter is \"Open\" or \"Closed\", show a single flat list with no group header since it's already filtered. Within a row, the title is the dominant element (largest weight); status, priority, assignee, labels, comment count, and relative time are all secondary and sit in a single-line row layout, right-aligned metadata after the title.\n\nDesign direction: Dense rows, around 40-44px tall, generous horizontal padding, no boxes-inside-boxes or heavy borders \u2014 use whitespace and type weight for hierarchy, not cards. A 12/14/16/20/30 type scale and a 4px spacing rhythm (multiples of 4/8) throughout. Status renders as a small coloured dot plus label (green-ish for open, muted grey for closed) \u2014 colour is reserved for status and priority only, everything else stays neutral grey/black so titles stay the most scannable element. Labels render as small neutral pill-less tags (text with a faint background, not bright filled pills). Rows are keyboard-navigable: arrow keys move a focus highlight between rows, Enter opens the focused row \u2014 this mirrors the existing click-to-open behavior, it does not add any new action.\n\nStates: Design a loading state that shows skeleton rows matching the final row layout (not a centered spinner), an empty state for when a filter matches zero issues (explain there are no issues in this view, no illustration), an error state for a failed fetch (short message, no stack trace), and a dense/overflowing case showing how a list of 50+ issues with long titles and multiple labels stays readable.\n\nResponsive: On desktop, show the full row layout described above. On tablet, keep all fields but tighten horizontal spacing. On mobile, stack each row into two lines \u2014 title on the first line, status/priority/assignee/labels/comment count/time wrapping onto a second line \u2014 while keeping every field visible, none hidden behind a menu.\n\nRender every item in the content inventory. Do not invent data points beyond it, and do not remove any of them. Do not add features, filters, or actions that are not listed. This is a visual redesign of an existing screen \u2014 the behaviour is fixed, only the presentation changes.\n```\n\n## 4. Proposed API Additions\n\n### Status group counts\n\n**Why:** The Linear-style grouped view (section 2) shows a count per status group \u2014 \"Open (34)\", \"Closed (94)\" \u2014 even when the current filter only returns one status's worth of issues. The existing endpoint only returns the subset matching the active filter, so counts for the other group aren't available today.\n\n**Extends:** `GET /api/issues?status=` \u2014 adds optional field `counts`\n\n**Response:**\n\n```json\n{\n  \"issues\": [ \"...unchanged...\" ],\n  \"counts\": { \"all\": 128, \"open\": 34, \"closed\": 94 }\n}\n```\n\n**Non-breaking:** new optional field \u2014 existing consumers that only read `issues` are unaffected.\n\n**Degrades to:** group headers render with no count (\"Open\", \"Closed\") until this field is present.\n\n## 5. Behavioural Invariants\n\nMust still hold after the redesign ships:\n\n- [ ] Changing the filter control still calls `useSWR` with `/api/issues?status=all|open|closed` and re-fetches\n- [ ] Clicking (or keyboard-selecting) an issue row still calls `router.push('/issues/:id')` with that issue's `id`\n- [ ] An issue with no assignee still displays the literal text \"Unassigned\"\n- [ ] An empty `issues` array still renders a distinct empty state, not a broken or blank layout\n- [ ] A fetch error still renders a distinct error state, not a silent blank list\n- [ ] No field is read from anywhere other than the current `GET /api/issues?status=` response (plus the optional `counts` addition above)\n"}], "grading": {"expectations": [{"text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name", "passed": true, "evidence": "Three Linear mechanics named: grouped collapsible sections with per-group counts, restrained status-dot colour with priority glyph, and arrow-key/Enter row navigation scoped to the existing router.push."}, {"text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign", "passed": true, "evidence": "Filter control preserved with exactly All / Open / Closed; invariant pins it to the same ?status= query param."}, {"text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt", "passed": true, "evidence": "States section records loading, empty and error as 'not handled' today, notes useSWR already exposes isLoading and error, and the prompt specifies all three."}, {"text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API", "passed": true, "evidence": "Lists priority, labels, updated_at, comment_count, assignee.avatar_url and id as fetched-but-unrendered \u2014 'the cheapest lever in this redesign'."}, {"text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id", "passed": true, "evidence": "Header states 'Presentation-only redesign'; invariant: 'Clicking (or keyboard-selecting) an issue row still calls router.push('/issues/:id')'."}, {"text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)", "passed": true, "evidence": "Single addition: optional `counts` field on the existing endpoint, 'existing consumers that only read issues are unaffected', degrades to group headers with no count."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "issues-list-without_skill", "prompt": "This is our issues list. It works but it's ugly and feels slow compared to Linear. I want to hand a design tool a really good prompt to redesign it \u2014 but nothing about how it behaves should change.\n\n```tsx\nexport function IssuesList() {\n  const [status, setStatus] = useState('all')\n  const { data } = useSWR(`/api/issues?status=${status}`)\n\n  return (\n    <div>\n      <h2>Issues</h2>\n      <select value={status} onChange={(e) => setStatus(e.target.value)}>\n        <option value=\"all\">All</option>\n        <option value=\"open\">Open</option>\n        <option value=\"closed\">Closed</option>\n      </select>\n      <ul>\n        {data?.issues.map((i) => (\n          <li key={i.id} onClick={() => router.push(`/issues/${i.id}`)}>\n            <strong>{i.title}</strong>\n            <span>{i.status}</span>\n            <span>{i.assignee?.name ?? 'Unassigned'}</span>\n          </li>\n        ))}\n      </ul>\n    </div>\n  )\n}\n```\n\n`GET /api/issues?status=` returns:\n\n```json\n{\n  \"issues\": [\n    {\n      \"id\": \"ISS-142\",\n      \"title\": \"Webhook retries drop the idempotency key\",\n      \"status\": \"open\",\n      \"priority\": 2,\n      \"assignee\": { \"id\": \"u_88\", \"name\": \"Priya Raman\", \"avatar_url\": \"https://cdn.example.dev/u_88.png\" },\n      \"labels\": [\"bug\", \"webhooks\"],\n      \"updated_at\": \"2026-03-12T16:04:00Z\",\n      \"comment_count\": 7\n    }\n  ]\n}\n```", "eval_id": 2, "outputs": [{"name": "response.md", "type": "text", "content": "The sandbox is empty \u2014 this is just the snippet you pasted, so the prompt below is grounded in that alone (no existing design tokens to reference). I also noticed a Stitch (Google's AI design tool) integration is connected in this session \u2014 happy to run the prompt through it directly if you want an actual mockup instead of just the text, just say so.\n\nHere's the prompt, written so a design tool can't accidentally invent new features while making it look good:\n\n```\nRedesign the visual design of an \"Issues List\" screen. This is a pure visual/UX polish pass \u2014 the underlying behavior, data, and interactions must not change in any way.\n\nCONTEXT\nInternal issue tracker, list view. Currently functional but visually flat and slow-feeling \u2014 plain HTML list, no hierarchy, no color, no density control. Target feel: Linear's issue list \u2014 dense, fast to scan, quiet color use, confident typography.\n\nBEHAVIOR THAT MUST STAY EXACTLY AS-IS (do not add, remove, or restyle-into-a-new-interaction):\n- One filter control with exactly three states: All / Open / Closed. Single-select. No multi-select, no additional filter fields, no search box, no sort control.\n- Clicking anywhere on a row navigates to that issue's detail page. The whole row is the click target \u2014 no separate buttons, checkboxes, or menus per row.\n- One list, no pagination, no infinite scroll, no kanban/board toggle, no grouping. Assume the API already returns the right set of rows for the active filter.\n- No new client-side state (no saved views, no remembered sort, no column customization).\n\nDATA AVAILABLE PER ROW (style what's useful, don't invent fields):\n- id \u2014 short code, e.g. \"ISS-142\"\n- title \u2014 string\n- status \u2014 \"open\" | \"closed\"\n- priority \u2014 integer (confirm the actual min/max range from the API before picking an icon set; don't hardcode assuming a specific scale)\n- assignee \u2014 { name, avatar_url } or null \u2192 show avatar + name, or \"Unassigned\" when null\n- labels \u2014 string[], can be empty\n- updated_at \u2014 ISO timestamp \u2192 show as relative time (\"2h ago\")\n- comment_count \u2014 integer \u2192 only show when > 0\n\nCurrently only title, status (as raw text), and assignee name are displayed. Priority, avatar, labels, updated_at, and comment_count are already returned by the API but unused \u2014 surfacing them is a visual improvement, not a behavior change, since no new interaction is attached to them (they're read-only display, same as title/status/assignee are today).\n\nDESIGN DIRECTION\n- Dense, scannable rows: title as primary text, everything else as secondary/muted metadata aligned to the right or in a metadata row.\n- Status as a small colored dot/icon instead of raw text.\n- Priority as a compact icon, not a number.\n- Labels as small low-contrast pills, wrapping gracefully if there are several.\n- Avatar as a small circle (initials fallback if avatar_url fails to load).\n- Subtle row hover state to reinforce that rows are clickable.\n- Style the filter control as a segmented control or clean dropdown \u2014 same three options, no new ones.\n- Handle empty state (filter matches nothing) and the brief moment before data arrives, gracefully \u2014 these situations already occur today, just unstyled. Don't design elaborate skeleton/optimistic-UI beyond a simple loading treatment.\n\nOUT OF SCOPE \u2014 do not include: search, sorting, bulk actions, multi-select, kanban/board view, new filter types, pagination controls, keyboard shortcuts. If any of these feel tempting, flag them separately as \"future idea,\" not part of this deliverable.\n```\n\nSkipped: writing this from a real design system (none exists in the sandbox) \u2014 if you have one, tell me and I'll fold in actual tokens/colors instead of leaving that to the tool's judgment."}], "grading": {"expectations": [{"text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name", "passed": false, "evidence": "Names Linear ('Target feel: Linear's issue list') but the borrowed qualities are adjectives \u2014 dense, fast to scan, quiet colour. Grouping and keyboard shortcuts are explicitly placed out of scope, so no listed mechanic is borrowed."}, {"text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign", "passed": true, "evidence": "'One filter control with exactly three states: All / Open / Closed. Single-select. No multi-select, no additional filter fields.'"}, {"text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt", "passed": true, "evidence": "'Handle empty state (filter matches nothing) and the brief moment before data arrives, gracefully \u2014 these situations already occur today, just unstyled.'"}, {"text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API", "passed": true, "evidence": "Explicit paragraph: 'Priority, avatar, labels, updated_at, and comment_count are already returned by the API but unused \u2014 surfacing them is a visual improvement, not a behavior change.'"}, {"text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id", "passed": true, "evidence": "'This is a pure visual/UX polish pass \u2014 the underlying behavior, data, and interactions must not change'; row click still navigates to the issue detail page (path not spelled out, behaviour preserved)."}, {"text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)", "passed": true, "evidence": "Vacuously satisfied \u2014 no API additions proposed. Non-discriminating on this run."}], "summary": {"passed": 5, "failed": 1, "total": 6, "pass_rate": 0.8333}}}, {"id": "deployments-page-with_skill", "prompt": "Redesign brief needed for our deployments page. Give me something I can paste into Stitch.\n\n```tsx\nexport default function Deployments({ deployments }) {\n  return (\n    <div className=\"deployments\">\n      <h1>Deployments</h1>\n      {deployments.map((d) => (\n        <div className=\"row\" key={d.id}>\n          <span>{d.id}</span>\n          <span>{d.status}</span>\n          <span>{d.branch}</span>\n          <span>{d.created_at}</span>\n          <button onClick={() => rollback(d.id)}>Rollback</button>\n        </div>\n      ))}\n    </div>\n  )\n}\n```\n\nThe page is server-rendered from `GET /api/deployments`:\n\n```json\n{\n  \"deployments\": [\n    {\n      \"id\": \"dpl_7Kq2\",\n      \"status\": \"ready\",\n      \"branch\": \"main\",\n      \"commit_sha\": \"9f3c1ab\",\n      \"commit_message\": \"fix: handle null region in edge config\",\n      \"author\": \"bmulumia\",\n      \"created_at\": \"2026-03-14T11:02:44Z\",\n      \"duration_ms\": 84200,\n      \"environment\": \"production\",\n      \"url\": \"https://app-9f3c1ab.example.dev\"\n    }\n  ]\n}\n```", "eval_id": 3, "outputs": [{"name": "response.md", "type": "text", "content": "Written to `docs/redesign/deployments-redesign.md`. Paste **Section 3** into Stitch \u2014 it's self-contained.\n\nQuick summary of what the audit found: the current page only renders 4 of 10 API fields (skips commit SHA, message, author, duration, environment, URL) and handles no loading/empty/error states. The redesign borrows Vercel's status-first + monospace treatment, Planetscale's confirm-before-destructive pattern for Rollback, and Supabase's progressive-depth row (dense by default, expand for detail). Two additive, optional API pieces are proposed \u2014 an `error_summary` field and a logs endpoint \u2014 both with explicit degrade-to-today behavior so the design still works before either ships.\n\n=== FILE: docs/redesign/deployments-redesign.md ===\n\n# Redesign: Deployments\n\n**Source:** `Deployments` component (renders `deployments` prop) \u00b7 **Data:** `GET /api/deployments`\n**Domain:** Developer tooling / infrastructure \u00b7 **Benchmarks:** Vercel, Planetscale, Supabase\n\nPresentation-only redesign. No logic, route, or existing API contract changes.\n\n## 1. Current State\n\n### Rendered content\n\n| Element | Data point (source field) | Interaction | Effect |\n| ------- | ------------------------- | ----------- | ------ |\n| ID text | `id` (e.g. `dpl_7Kq2`) | none | display only |\n| Status text | `status` (e.g. `ready`) | none | display only, plain text, no color coding |\n| Branch text | `branch` (e.g. `main`) | none | display only |\n| Timestamp text | `created_at` (e.g. `2026-03-14T11:02:44Z`) | none | display only, raw ISO string, unformatted |\n| Rollback button | \u2014 | `onClick` | calls `rollback(d.id)` |\n\n### States handled today\n\n- **Loading:** not handled \u2014 no loading state in the component\n- **Empty:** not handled \u2014 an empty `deployments` array renders an empty list with just the `<h1>`\n- **Error:** not handled \u2014 no error state\n- **Other:** no unauthorized or partial/stale-data handling\n\n### Derived in the component\n\n- None \u2014 every rendered value is passed through from the API field as-is\n\n### In the response but not rendered\n\n- `commit_sha` \u2014 short commit hash\n- `commit_message` \u2014 commit message for the deploy\n- `author` \u2014 who triggered the deployment\n- `duration_ms` \u2014 build duration\n- `environment` \u2014 e.g. `production`, `preview`\n- `url` \u2014 live URL for that deployment\n\nSix of ten response fields are paid for and thrown away \u2014 the single cheapest improvement here is simply rendering what's already returned.\n\n### Assessment\n\nThe page is a flat, unstyled list of `<span>` tags with no visual hierarchy, no status color-coding, and no formatting \u2014 a raw ISO timestamp and a bare status word carry the same weight as everything else. Over half the API response (commit info, author, duration, environment, URL) is fetched but never shown, so the page under-serves the data it already has before any redesign work even begins. There's also no loading, empty, or error handling, so those states need to be designed from scratch, not just restyled.\n\n## 2. Benchmarks\n\n**Vercel** \u2014 status as the loudest element (color-coded, first thing read, with elapsed time attached) plus monospace, copy-on-click treatment for commit SHAs and URLs. This page's core content \u2014 status, branch, commit \u2014 is exactly what Vercel's deployment list optimizes for.\n\n**Planetscale** \u2014 safe destructive actions: irreversible operations require typing the resource name and state plainly what will change. `Rollback` here fires immediately on click with no confirmation; it's exactly the kind of action this mechanic protects.\n\n**Supabase** \u2014 progressive depth: a clean row by default with a \"show more\" escape hatch. Lets the row stay dense (id, status, branch, time) while commit message, author, duration, environment, and URL live behind an inline expand instead of cluttering every row.\n\n## 3. Generation Prompt\n\nPaste this into Stitch.\n\n```text\nProduct and user: This is the deployments page of a developer platform (in the spirit of Vercel or Railway). The user is a software engineer checking whether their latest deploy succeeded, comparing it to recent history, and occasionally rolling back to a previous deployment.\n\nScreen purpose: A single job \u2014 let the engineer see the status of every deployment at a glance, and roll back safely if something is wrong.\n\nContent inventory \u2014 every deployment row has these fields, all already available today:\n- Deployment ID: a short identifier like \"dpl_7Kq2\"\n- Status: one of \"ready\", \"building\", or \"error\"\n- Branch: the git branch, e.g. \"main\"\n- Commit SHA: a short hash, e.g. \"9f3c1ab\"\n- Commit message: e.g. \"fix: handle null region in edge config\"\n- Author: the username who triggered the deploy, e.g. \"bmulumia\"\n- Created at: an ISO timestamp, e.g. \"2026-03-14T11:02:44Z\" \u2014 format this as a relative or readable time\n- Duration: milliseconds, e.g. 84200 \u2014 format this as \"1m 24s\"\n- Environment: \"production\" or \"preview\"\n- URL: the live deployment URL, e.g. \"https://app-9f3c1ab.example.dev\"\n- A Rollback action per row\n\nDesign for at least three example rows with different statuses so the states are visible: one \"ready\" deployment on main/production, one \"building\" deployment on a preview branch with no duration yet, and one \"error\" deployment on a feature branch.\n\nLayout and hierarchy: A dense, single list of deployment rows, most recent first. Status is the first thing the eye should read on each row \u2014 it dominates over the ID or branch. Branch, commit message, and author are secondary. Commit SHA, deployment ID, and URL are tertiary, tertiary-styled, monospaced.\n\nDesign direction: Borrow Vercel's mechanic of making status the loudest element \u2014 a colored dot or label plus elapsed/duration time sits first in the row, color-coded (e.g. green for ready, blue/pulsing for building, red for error). Commit SHAs, deployment IDs, and URLs render in a monospace font and are copyable on click, again following Vercel's treatment of machine-readable data. Each row stays collapsed and dense by default \u2014 id, status, branch, and time only \u2014 and expands inline to reveal commit message, author, duration, environment, and URL, following Supabase's progressive-depth pattern, rather than cramming all ten fields into every row. Use a restrained palette: neutral grays for structure and text, color reserved for status only. Tabular figures for any numeric/time values so they align in a column. Establish a type scale (e.g. 12/14/16/20/30) and 8px spacing rhythm rather than boxed borders between rows.\n\nRollback action: Follow Planetscale's safe-destructive-action mechanic. Clicking Rollback does not fire immediately \u2014 it opens a confirmation step that states plainly which deployment will become live and requires an explicit confirm action before proceeding.\n\nStates: Design a loading state that skeletons the row layout (status dot, branch, time placeholders) rather than a centered spinner. Design an empty state for when there are no deployments yet, explaining what a deployment is and how to trigger the first one. Design an error state for when the deployment list itself fails to load, distinct from a row showing status \"error\". Also design the dense case \u2014 at least 15-20 rows \u2014 to confirm the list stays scannable at that length.\n\nResponsive: On desktop, show the full row (status, branch, commit, author, time) inline. On tablet, secondary fields may wrap to a second line within the row. On mobile, collapse each row to status, branch, and time, with everything else behind the expand.\n\nRender every item in the content inventory. Do not invent data points beyond it, and do not remove any of them. Do not add features, filters, or actions that are not listed. This is a visual redesign of an existing screen \u2014 the behaviour is fixed, only the presentation changes.\n```\n\n## 4. Proposed API Additions\n\n### Inline failure reason on error rows\n\n**Why:** Vercel's status-first mechanic surfaces *why* a deployment failed right on the row, not just that it failed. Today `status: \"error\"` carries no explanation, so an error row can only say \"error\" with no detail \u2014 the design's expand-to-detail affordance has nothing to show for a failure.\n\n**Extends:** `GET /api/deployments` \u2014 adds optional field `error_summary`\n\n**Response:**\n\n```json\n{\n  \"deployments\": [\n    {\n      \"id\": \"dpl_9Ff1\",\n      \"status\": \"error\",\n      \"branch\": \"feature/edge-cache\",\n      \"commit_sha\": \"1a2b3c4\",\n      \"commit_message\": \"wip: edge cache invalidation\",\n      \"author\": \"bmulumia\",\n      \"created_at\": \"2026-03-14T09:11:02Z\",\n      \"duration_ms\": 12400,\n      \"environment\": \"preview\",\n      \"url\": null,\n      \"error_summary\": \"Build failed: module not found './edgeConfig'\"\n    }\n  ]\n}\n```\n\n**Non-breaking:** new optional field \u2014 existing consumers ignore it; absent field means the component renders the status label alone, with no inline reason.\n\n**Degrades to:** the expanded row shows status only, no failure detail, exactly as today.\n\n### Build/deploy logs\n\n**Why:** Supabase's progressive-depth mechanic and Vercel's inline-logs mechanic both point to letting the user drill from a failure straight into the raw build output, without leaving the page. No log content exists in the current response.\n\n**Endpoint:** `GET /api/deployments/:id/logs` *(new)*\n\n**Response:**\n\n```json\n{\n  \"lines\": [\n    { \"timestamp\": \"2026-03-14T09:10:58Z\", \"text\": \"Installing dependencies...\" },\n    { \"timestamp\": \"2026-03-14T09:11:02Z\", \"text\": \"Error: module not found './edgeConfig'\" }\n  ]\n}\n```\n\n**Non-breaking:** new endpoint \u2014 no existing consumer affected.\n\n**Degrades to:** the row's expand view omits the \"View logs\" affordance entirely and shows only the fields already in the deployments response (plus `error_summary` above, once shipped).\n\n## 5. Behavioural Invariants\n\nMust still hold after the redesign ships:\n\n- [ ] Clicking Rollback still calls `rollback(d.id)` with the same deployment id, only gated behind a confirmation step\n- [ ] Every deployment in the `deployments` array still renders as a row \u2014 none are hidden or paginated away by default\n- [ ] `status`, `branch`, and `created_at` still render for every row, unchanged in meaning\n- [ ] Empty `deployments` array still shows an empty state, distinct from an error state\n- [ ] All ten current response fields (`id`, `status`, `branch`, `commit_sha`, `commit_message`, `author`, `created_at`, `duration_ms`, `environment`, `url`) remain visible somewhere on the row (collapsed or expanded), none dropped\n"}], "grading": {"expectations": [{"text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)", "passed": true, "evidence": "Vercel (status as loudest element, monospace copy-on-click commit metadata), Planetscale (safe destructive actions), Supabase (progressive depth, dense row expanding to detail) \u2014 each with the mechanic spelled out and tied to this page."}, {"text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign", "passed": true, "evidence": "Rollback kept as a per-row action; prompt applies Planetscale's mechanic \u2014 confirmation step naming the deployment before proceeding. Invariant: 'still calls rollback(d.id) with the same deployment id, only gated behind a confirmation step'."}, {"text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains", "passed": true, "evidence": "All six unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) listed in the audit and placed in the prompt's content inventory. Neither proposed API duplicates data already returned."}, {"text": "The generated prompt specifies loading, empty, and error states", "passed": true, "evidence": "States paragraph specifies skeleton loading, empty state, an error state for a failed list fetch explicitly distinguished from a row with status 'error', plus the 15-20 row dense case."}, {"text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required", "passed": true, "evidence": "Two additions, under the cap of three: optional error_summary field ('existing consumers ignore it') and new GET /api/deployments/:id/logs ('no existing consumer affected'). Both carry Degrades-to lines."}, {"text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions", "passed": true, "evidence": "Five checkable invariants covering rollback wiring, no hidden rows, unchanged field meaning, empty-vs-error distinction, and all ten response fields staying visible."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}}, {"id": "deployments-page-without_skill", "prompt": "Redesign brief needed for our deployments page. Give me something I can paste into Stitch.\n\n```tsx\nexport default function Deployments({ deployments }) {\n  return (\n    <div className=\"deployments\">\n      <h1>Deployments</h1>\n      {deployments.map((d) => (\n        <div className=\"row\" key={d.id}>\n          <span>{d.id}</span>\n          <span>{d.status}</span>\n          <span>{d.branch}</span>\n          <span>{d.created_at}</span>\n          <button onClick={() => rollback(d.id)}>Rollback</button>\n        </div>\n      ))}\n    </div>\n  )\n}\n```\n\nThe page is server-rendered from `GET /api/deployments`:\n\n```json\n{\n  \"deployments\": [\n    {\n      \"id\": \"dpl_7Kq2\",\n      \"status\": \"ready\",\n      \"branch\": \"main\",\n      \"commit_sha\": \"9f3c1ab\",\n      \"commit_message\": \"fix: handle null region in edge config\",\n      \"author\": \"bmulumia\",\n      \"created_at\": \"2026-03-14T11:02:44Z\",\n      \"duration_ms\": 84200,\n      \"environment\": \"production\",\n      \"url\": \"https://app-9f3c1ab.example.dev\"\n    }\n  ]\n}\n```", "eval_id": 3, "outputs": [{"name": "response.md", "type": "text", "content": "Stitch prompts work best as one dense descriptive paragraph/list rather than a spec doc, so here's something sized to paste directly into its prompt box.\n\n---\n\n**Paste into Stitch:**\n\n> Redesign a \"Deployments\" dashboard page (desktop web app, developer tool aesthetic \u2014 think Vercel/Netlify/Railway). Dark-mode-friendly, dense, monospace accents for technical values.\n>\n> **Header:** Page title \"Deployments\" with a subtitle showing the project/repo name. Optional filter/search bar (by branch, environment, status) aligned right.\n>\n> **List layout:** Replace the flat row list with a clean table or stacked-card list, one row per deployment, containing:\n> - **Status badge** (pill, left-aligned): color-coded \u2014 green \"Ready\", blue/pulsing \"Building\", red \"Error\", gray \"Canceled\", yellow \"Queued\"\n> - **Branch + commit**: branch name as a small tag/chip (e.g. `main`), commit message as primary text, short commit SHA (`9f3c1ab`) in monospace next to it\n> - **Environment tag**: \"Production\" or \"Preview\" as a subtle badge, visually distinct (e.g. black/filled for production, outlined for preview)\n> - **Author**: avatar or initials + username\n> - **Timestamp**: relative time (\"2h ago\"), full date on hover\n> - **Duration**: build time, e.g. \"1m 24s\", de-emphasized/secondary text\n> - **Preview URL**: clickable link/icon that opens the deployment\n> - **Actions**: overflow menu (\u22ef) containing \"Visit\", \"Rollback\", \"View logs\" \u2014 rollback should feel like a guarded/destructive action (confirmation on click, not a bare inline button)\n>\n> **States:** empty state when no deployments exist; skeleton/loading rows; hover state highlights the row and reveals actions.\n>\n> **Style:** compact row height, clear visual hierarchy (commit message > metadata), generous use of monospace for SHAs/durations, subtle dividers between rows, rounded status pills.\n\n---\n\nCurrent component only renders `id`, `status`, `branch`, `created_at` \u2014 the API already returns `commit_message`, `author`, `duration_ms`, `environment`, and `url` that aren't shown at all, so I folded those into the brief. Also moved Rollback off a bare inline button since it's a destructive action with no confirmation today."}], "grading": {"expectations": [{"text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)", "passed": true, "evidence": "'developer tool aesthetic \u2014 think Vercel/Netlify/Railway' alongside monospace commit SHAs and a guarded destructive rollback \u2014 a named product plus borrowed mechanics."}, {"text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign", "passed": true, "evidence": "Rollback retained in an overflow menu and called out as guarded/destructive with confirmation on click, replacing the bare inline button."}, {"text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains", "passed": true, "evidence": "Closing note identifies commit_message, author, duration_ms, environment and url as already returned but unshown, and folds them into the brief."}, {"text": "The generated prompt specifies loading, empty, and error states", "passed": false, "evidence": "Specifies empty state and skeleton/loading rows, but no error state for a failed fetch anywhere in the prompt."}, {"text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required", "passed": false, "evidence": "Neither proposes labelled API additions nor states that none are required, while introducing a 'View logs' action and branch/environment/status filters that have no backing data in the current response."}, {"text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions", "passed": false, "evidence": "No invariants checklist produced."}], "summary": {"passed": 3, "failed": 3, "total": 6, "pass_rate": 0.5}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "draft-ui-redesign", "skill_path": "/home/mshindi-labs/dev/mshindi-labs/agent-skills/skills/draft-ui-redesign", "executor_model": "claude-sonnet-4-6", "analyzer_model": "claude-opus-5", "timestamp": "2026-08-16T00:00:00Z", "evals_run": [1, 2, 3], "runs_per_configuration": 1}, "runs": [{"eval_id": 1, "eval_name": "fintech-transactions", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 140.7, "tokens": 219008, "tool_calls": 3, "errors": 0}, "expectations": [{"text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name", "passed": true, "evidence": "Cites Stripe (transaction table: right-aligned tabular amounts, 44px rows, status dot not pill), Mercury (money-as-typography for the summary strip), Ramp (amount in context via counterparty/payment method). Each name carries a named mechanic."}, {"text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)", "passed": true, "evidence": "Content inventory lists date, description, amount+currency, status for all three example rows; audit table maps each to created_at / description / amount_cents / status."}, {"text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)", "passed": true, "evidence": "Section 'In the response but not rendered' lists currency (mis-rendered as hardcoded $), counterparty.name/id, payment_method, and has_more with no pagination control."}, {"text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see", "passed": true, "evidence": "Prompt block opens with 'Product and user' and carries its own example values; no file paths, no reference to the audit or other document sections."}, {"text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking", "passed": true, "evidence": "GET /api/transactions/summary (new) with total_in_cents/total_out_cents/pending_count/currency, 'Non-breaking: new endpoint', and 'Degrades to: the summary strip is omitted entirely until this ships'."}, {"text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions", "passed": true, "evidence": "No existing field altered. Prompt explicitly forbids replacing row-click navigation with inline expansion, and the invariants list pins amount_cents/100 and raw status values."}], "notes": []}, {"eval_id": 1, "eval_name": "fintech-transactions", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 107.6, "tokens": 122256, "tool_calls": 3, "errors": 0}, "expectations": [{"text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name", "passed": false, "evidence": "No industry benchmark named anywhere. Design direction is given as raw hex values and font choices with no product reference or borrowed mechanic."}, {"text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)", "passed": true, "evidence": "DATA block covers date, description, amount_cents+currency, status \u2014 all four rendered fields preserved."}, {"text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)", "passed": false, "evidence": "Uses counterparty and payment_method in the prompt but never identifies them as currently-unrendered free wins, and turns has_more into an invented cursor-paginated 'Load more' feature rather than flagging it."}, {"text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see", "passed": true, "evidence": "The fenced block is self-contained \u2014 audience, data, states, visual direction and an ASCII wireframe, with no reference to the codebase."}, {"text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking", "passed": false, "evidence": "No API section at all. No endpoint, shape, or non-breaking note proposed, despite the prompt introducing pagination and filter controls that need backing data."}, {"text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions", "passed": true, "evidence": "No existing field in GET /api/transactions is removed, renamed, or retyped."}], "notes": []}, {"eval_id": 2, "eval_name": "issues-list", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 182.0, "tokens": 293685, "tool_calls": 4, "errors": 0}, "expectations": [{"text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name", "passed": true, "evidence": "Three Linear mechanics named: grouped collapsible sections with per-group counts, restrained status-dot colour with priority glyph, and arrow-key/Enter row navigation scoped to the existing router.push."}, {"text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign", "passed": true, "evidence": "Filter control preserved with exactly All / Open / Closed; invariant pins it to the same ?status= query param."}, {"text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt", "passed": true, "evidence": "States section records loading, empty and error as 'not handled' today, notes useSWR already exposes isLoading and error, and the prompt specifies all three."}, {"text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API", "passed": true, "evidence": "Lists priority, labels, updated_at, comment_count, assignee.avatar_url and id as fetched-but-unrendered \u2014 'the cheapest lever in this redesign'."}, {"text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id", "passed": true, "evidence": "Header states 'Presentation-only redesign'; invariant: 'Clicking (or keyboard-selecting) an issue row still calls router.push('/issues/:id')'."}, {"text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)", "passed": true, "evidence": "Single addition: optional `counts` field on the existing endpoint, 'existing consumers that only read issues are unaffected', degrades to group headers with no count."}], "notes": []}, {"eval_id": 2, "eval_name": "issues-list", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8333, "passed": 5, "failed": 1, "total": 6, "time_seconds": 126.5, "tokens": 126419, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name", "passed": false, "evidence": "Names Linear ('Target feel: Linear's issue list') but the borrowed qualities are adjectives \u2014 dense, fast to scan, quiet colour. Grouping and keyboard shortcuts are explicitly placed out of scope, so no listed mechanic is borrowed."}, {"text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign", "passed": true, "evidence": "'One filter control with exactly three states: All / Open / Closed. Single-select. No multi-select, no additional filter fields.'"}, {"text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt", "passed": true, "evidence": "'Handle empty state (filter matches nothing) and the brief moment before data arrives, gracefully \u2014 these situations already occur today, just unstyled.'"}, {"text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API", "passed": true, "evidence": "Explicit paragraph: 'Priority, avatar, labels, updated_at, and comment_count are already returned by the API but unused \u2014 surfacing them is a visual improvement, not a behavior change.'"}, {"text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id", "passed": true, "evidence": "'This is a pure visual/UX polish pass \u2014 the underlying behavior, data, and interactions must not change'; row click still navigates to the issue detail page (path not spelled out, behaviour preserved)."}, {"text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)", "passed": true, "evidence": "Vacuously satisfied \u2014 no API additions proposed. Non-discriminating on this run."}], "notes": []}, {"eval_id": 3, "eval_name": "deployments-page", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 125.9, "tokens": 213725, "tool_calls": 3, "errors": 0}, "expectations": [{"text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)", "passed": true, "evidence": "Vercel (status as loudest element, monospace copy-on-click commit metadata), Planetscale (safe destructive actions), Supabase (progressive depth, dense row expanding to detail) \u2014 each with the mechanic spelled out and tied to this page."}, {"text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign", "passed": true, "evidence": "Rollback kept as a per-row action; prompt applies Planetscale's mechanic \u2014 confirmation step naming the deployment before proceeding. Invariant: 'still calls rollback(d.id) with the same deployment id, only gated behind a confirmation step'."}, {"text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains", "passed": true, "evidence": "All six unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) listed in the audit and placed in the prompt's content inventory. Neither proposed API duplicates data already returned."}, {"text": "The generated prompt specifies loading, empty, and error states", "passed": true, "evidence": "States paragraph specifies skeleton loading, empty state, an error state for a failed list fetch explicitly distinguished from a row with status 'error', plus the 15-20 row dense case."}, {"text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required", "passed": true, "evidence": "Two additions, under the cap of three: optional error_summary field ('existing consumers ignore it') and new GET /api/deployments/:id/logs ('no existing consumer affected'). Both carry Degrades-to lines."}, {"text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions", "passed": true, "evidence": "Five checkable invariants covering rollback wiring, no hidden rows, unchanged field meaning, empty-vs-error distinction, and all ten response fields staying visible."}], "notes": []}, {"eval_id": 3, "eval_name": "deployments-page", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 74.6, "tokens": 137985, "tool_calls": 2, "errors": 0}, "expectations": [{"text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)", "passed": true, "evidence": "'developer tool aesthetic \u2014 think Vercel/Netlify/Railway' alongside monospace commit SHAs and a guarded destructive rollback \u2014 a named product plus borrowed mechanics."}, {"text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign", "passed": true, "evidence": "Rollback retained in an overflow menu and called out as guarded/destructive with confirmation on click, replacing the bare inline button."}, {"text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains", "passed": true, "evidence": "Closing note identifies commit_message, author, duration_ms, environment and url as already returned but unshown, and folds them into the brief."}, {"text": "The generated prompt specifies loading, empty, and error states", "passed": false, "evidence": "Specifies empty state and skeleton/loading rows, but no error state for a failed fetch anywhere in the prompt."}, {"text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required", "passed": false, "evidence": "Neither proposes labelled API additions nor states that none are required, while introducing a 'View logs' action and branch/environment/status filters that have no backing data in the current response."}, {"text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions", "passed": false, "evidence": "No invariants checklist produced."}], "notes": []}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 149.5333, "stddev": 29.0744, "min": 125.9, "max": 182.0}, "tokens": {"mean": 242139.3333, "stddev": 44717.942, "min": 213725, "max": 293685}}, "without_skill": {"pass_rate": {"mean": 0.6111, "stddev": 0.1924, "min": 0.5, "max": 0.8333}, "time_seconds": {"mean": 102.9, "stddev": 26.2673, "min": 74.6, "max": 126.5}, "tokens": {"mean": 128886.6667, "stddev": 8149.6868, "min": 122256, "max": 137985}}}, "notes": ["Executor runs were isolated `claude -p` subprocesses, one fresh context per run.", "with_skill injected SKILL.md plus both reference files as a preamble; without_skill received the raw prompt only.", "Baselines inherited the session's ambient frontend-design plugin skill, so without_skill is a strong baseline rather than a naive one.", "Graded inline against evals.json assertions by claude-opus-5."]}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

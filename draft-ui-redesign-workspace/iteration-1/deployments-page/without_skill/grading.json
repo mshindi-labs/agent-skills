@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)",
+      "passed": true,
+      "evidence": "'developer tool aesthetic \u2014 think Vercel/Netlify/Railway' alongside monospace commit SHAs and a guarded destructive rollback \u2014 a named product plus borrowed mechanics."
+    },
+    {
+      "text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign",
+      "passed": true,
+      "evidence": "Rollback retained in an overflow menu and called out as guarded/destructive with confirmation on click, replacing the bare inline button."
+    },
+    {
+      "text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains",
+      "passed": true,
+      "evidence": "Closing note identifies commit_message, author, duration_ms, environment and url as already returned but unshown, and folds them into the brief."
+    },
+    {
+      "text": "The generated prompt specifies loading, empty, and error states",
+      "passed": false,
+      "evidence": "Specifies empty state and skeleton/loading rows, but no error state for a failed fetch anywhere in the prompt."
+    },
+    {
+      "text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required",
+      "passed": false,
+      "evidence": "Neither proposes labelled API additions nor states that none are required, while introducing a 'View logs' action and branch/environment/status filters that have no backing data in the current response."
+    },
+    {
+      "text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions",
+      "passed": false,
+      "evidence": "No invariants checklist produced."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 3,
+    "total": 6,
+    "pass_rate": 0.5
+  }
+}
