@@ -1,0 +1,403 @@
+{
+  "metadata": {
+    "suite": "detection-skills iteration-3/4 \u2014 the two regressions fixed",
+    "skills": ["audit-dependencies", "review-migration"],
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-opus-5",
+    "arms": "with_skill re-run after the fixes; without_skill reused from iteration 2 unchanged, since a baseline does not depend on the skill",
+    "environment": {
+      "sandbox": "/tmp/eval-rerun-{3,4}/<skill>/eval-N/with_skill \u2014 outside the repo",
+      "config_dir": "credentials-only CLAUDE_CONFIG_DIR: no hooks, plugins, global skills or CLAUDE.md",
+      "skill_tool": "disabled in both arms; the with_skill arm reads ./skill/SKILL.md"
+    },
+    "timestamp": "2026-08-16T13:00:00Z"
+  },
+  "runs": [
+    {
+      "skill": "review-migration",
+      "eval_name": "review-migration-before",
+      "iteration": "iteration-3",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6
+      }
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "review-migration-before",
+      "iteration": "iteration-2 (reused)",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 35.9,
+        "cost_usd": 0.166871,
+        "output_tokens": 1494
+      },
+      "expectations": [
+        {
+          "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+          "passed": true,
+          "evidence": "'Critical \u2014 ADD COLUMN email TEXT NOT NULL will fail on a non-empty table'."
+        },
+        {
+          "text": "Describes `CREATE INDEX idx_users_email ON users(email);` as a lock risk that blocks writes to `users` for the duration of the build while reads keep working (a SHARE lock), and recommends `CREATE INDEX CONCURRENTLY` as the fix \u2014 it must NOT claim the index build takes an ACCESS EXCLUSIVE lock",
+          "passed": true,
+          "evidence": "'acquires a ShareLock, which blocks INSERT/UPDATE/DELETE for the duration'; recommends CONCURRENTLY. Correct lock, so the old ACCESS EXCLUSIVE assertion was penalising this."
+        },
+        {
+          "text": "Flags the absent down/rollback migration as a reversibility gap",
+          "passed": false,
+          "evidence": "Never mentions the missing down migration or reversibility anywhere."
+        },
+        {
+          "text": "Gives the ordered three-step fix for the email column \u2014 add it nullable or with a default, backfill existing rows, then apply NOT NULL \u2014 rather than only naming the problem",
+          "passed": true,
+          "evidence": "Three numbered steps: nullable, backfill, SET NOT NULL."
+        },
+        {
+          "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "nickname is not flagged."
+        },
+        {
+          "text": "Uses the skill's sectioned report structure: findings grouped under named risk categories (data-loss, lock, reversibility, backfill, index) with a severity tag per finding and a closing overall verdict, rather than one flat run of prose",
+          "passed": false,
+          "evidence": "Flat numbered list plus a corrected-migration block; no named risk sections."
+        }
+      ]
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "rails-add-org-to-projects",
+      "iteration": "iteration-3",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6
+      }
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "rails-add-org-to-projects",
+      "iteration": "iteration-2 (reused)",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 33.7,
+        "cost_usd": 0.16986700000000002,
+        "output_tokens": 1676
+      },
+      "expectations": [
+        {
+          "text": "Flags `rename_column :projects, :owner, :legacy_owner` as high risk because it breaks any application code not yet deployed to use the new column name",
+          "passed": true,
+          "evidence": "'rename_column is a breaking change for live traffic ... not safely zero-downtime'."
+        },
+        {
+          "text": "Flags `add_foreign_key :projects, :organizations, column: :organization_id` as adding a foreign key on `organization_id` with no corresponding index on that column, and recommends adding one",
+          "passed": false,
+          "evidence": "Never mentions that organization_id needs an index; the revised migration adds no index on the FK column."
+        },
+        {
+          "text": "Flags the `down` method as an incomplete reversibility gap because it only removes `organization_id` and does not reverse the `rename_column` or `add_foreign_key`/`add_index` calls from `up`",
+          "passed": true,
+          "evidence": "'down is incomplete' with a corrected method."
+        },
+        {
+          "text": "Does not flag `add_index :projects, :status, algorithm: :concurrently` as a lock risk, correctly treating the CONCURRENTLY-qualified index build as low risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Treats concurrently only as a transaction-block error, not a lock risk."
+        },
+        {
+          "text": "Reasons explicitly from the stated table size \u2014 that `projects` has millions of rows \u2014 when rating the risk or recommending how to run the migration, rather than giving size-independent generic advice",
+          "passed": true,
+          "evidence": "'On millions of rows this blocks all reads and writes for the duration'."
+        },
+        {
+          "text": "Gives an overall verdict that the migration needs changes before running (not that it is safe to run), given the rename and reversibility gap",
+          "passed": true,
+          "evidence": "'The disable_ddl_transaction! + incomplete down are the two I'd fix before running this anywhere.'"
+        }
+      ]
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "drop-narrow-backfill",
+      "iteration": "iteration-4",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6
+      }
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "drop-narrow-backfill",
+      "iteration": "iteration-2 (reused)",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 45.1,
+        "cost_usd": 0.07046290000000001,
+        "output_tokens": 1997
+      },
+      "expectations": [
+        {
+          "text": "Flags `DROP TABLE legacy_sessions;` as high risk and irreversible/destructive",
+          "passed": true,
+          "evidence": "'Irreversible table destruction \u2014 permanently discards the table and all its data.'"
+        },
+        {
+          "text": "Flags `ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;` as high risk, noting the type narrowing from NUMERIC(10,2) to INTEGER can truncate or lose precision on existing data",
+          "passed": true,
+          "evidence": "'truncating the fractional part: 10.99 becomes 10 ... silently destroys it'."
+        },
+        {
+          "text": "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill because it rewrites matched rows across a ~40 million row table in a single long transaction, and recommends batching it \u2014 it must NOT describe the UPDATE as taking a table-wide or ACCESS EXCLUSIVE lock that blocks all reads and writes",
+          "passed": true,
+          "evidence": "'Hold a long-running transaction, blocking autovacuum and increasing replication lag'; supplies a batching DO block. No table-lock claim."
+        },
+        {
+          "text": "Flags the absence of a down/rollback migration as a reversibility gap, specifically noting that `DROP TABLE legacy_sessions` cannot be safely reversed without a backup",
+          "passed": false,
+          "evidence": "Notes 'no rollback defined' but never says DROP TABLE cannot be reversed without a backup; recommends rename-and-wait instead."
+        },
+        {
+          "text": "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk \u2014 restraint / false-positive check",
+          "passed": false,
+          "evidence": "Flags audit_logs for missing indexes on actor_id and created_at (Low in the summary table)."
+        },
+        {
+          "text": "Gives an overall verdict indicating the migration needs changes before running or blocks deployment, not that it is safe to run",
+          "passed": true,
+          "evidence": "'Do not run this migration as-is.'"
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "dependency-audit-node",
+      "iteration": "iteration-3",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6
+      }
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "dependency-audit-node",
+      "iteration": "iteration-2 (reused)",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 34.9,
+        "cost_usd": 0.0647899,
+        "output_tokens": 1480
+      },
+      "expectations": [
+        {
+          "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and gives a concrete upgrade target or command (>=4.17.19 or later) rather than a vague 'update lodash' instruction",
+          "passed": true,
+          "evidence": "'CVE-2020-8203 \u2014 Prototype Pollution ... npm install lodash@4.17.21'."
+        },
+        {
+          "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+          "passed": true,
+          "evidence": "'AGPL-3.0 is a strong copyleft license ... Audit whether a commercial license is available ... or replace'."
+        },
+        {
+          "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+          "passed": true,
+          "evidence": "'No file in the repo imports moment ... npm uninstall moment'."
+        },
+        {
+          "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Recognises tailwindcss is 'referenced exclusively in postcss.config.js'; recommends a devDependencies move, not removal as unused."
+        },
+        {
+          "text": "Orders the report security-first: the lodash CVE is presented above the license and unused-package findings, matching the skill's risk ordering",
+          "passed": true,
+          "evidence": "The lodash CVE is section 1, above the license and unused findings."
+        },
+        {
+          "text": "Uses the skill's sectioned report structure \u2014 security vulnerabilities, license risks, and unused production dependencies as named sections with severity-tagged entries, closing with the summary tallies and recommended immediate actions \u2014 rather than a flat prose list",
+          "passed": false,
+          "evidence": "Markdown headings plus a summary table; no per-category counts, no Summary tallies, no recommended-actions block."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "react-jsx-runtime-trap",
+      "iteration": "iteration-3",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6
+      }
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "react-jsx-runtime-trap",
+      "iteration": "iteration-2 (reused)",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 26.6,
+        "cost_usd": 0.0574319,
+        "output_tokens": 1034
+      },
+      "expectations": [
+        {
+          "text": "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx as the evidence",
+          "passed": true,
+          "evidence": "'react-dom \u2014 needed. Explicitly imported in entry-client.tsx:2 (hydrateRoot from react-dom/client).'"
+        },
+        {
+          "text": "Does NOT list react as an unused dependency or removal candidate",
+          "passed": true,
+          "evidence": "'react \u2014 not dead weight.'"
+        },
+        {
+          "text": "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
+          "passed": true,
+          "evidence": "'\"jsx\": \"react-jsx\" activates React's automatic JSX runtime ... injecting import { jsx as _jsx } from react/jsx-runtime'."
+        },
+        {
+          "text": "Never claims that the react-dom import itself counts as evidence that 'react' is imported \u2014 treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+          "passed": true,
+          "evidence": "'A grep for 'react' in source files gives a false negative here' \u2014 treats the two packages as distinct."
+        },
+        {
+          "text": "Answers the user's specific doubt directly and early \u2014 react is not dead weight and should stay \u2014 rather than burying the verdict inside a generic full-audit report",
+          "passed": true,
+          "evidence": "Opens with 'All four dependencies are legitimate' and answers the react question in the first paragraph."
+        },
+        {
+          "text": "Does not invent a CVE or license finding for react or react-dom; where security is addressed at all, it notes that no audit output was supplied rather than asserting the packages are clean \u2014 restraint check",
+          "passed": true,
+          "evidence": "Reports no CVE or license finding at all; invents nothing."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "api-outdated-license",
+      "iteration": "iteration-3",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6
+      }
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "api-outdated-license",
+      "iteration": "iteration-2 (reused)",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 37.7,
+        "cost_usd": 0.0684539,
+        "output_tokens": 1733
+      },
+      "expectations": [
+        {
+          "text": "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
+          "passed": true,
+          "evidence": "'Majors behind: 3 ... v3: auth rewrite ... v5: callback API dropped ... requires a migration, not just a version bump'."
+        },
+        {
+          "text": "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
+          "passed": true,
+          "evidence": "'LGPL-2.1 permits use in proprietary software but requires that the LGPL-covered library remain replaceable' \u2014 correctly weak copyleft."
+        },
+        {
+          "text": "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
+          "passed": true,
+          "evidence": "'supertest is listed under dependencies but is only imported in tests/api.test.ts. Move it to devDependencies.'"
+        },
+        {
+          "text": "Does NOT flag ts-node as an unused dependency \u2014 recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'ts-node is in dependencies and is invoked by the start script' \u2014 flagged as hygiene, not as unused."
+        },
+        {
+          "text": "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it \u2014 keeps it in the outdated-dependencies category",
+          "passed": true,
+          "evidence": "Keeps the staleness as version drift; makes no CVE claim."
+        },
+        {
+          "text": "Separates the findings into the skill's named categories \u2014 acme-http-client under significantly outdated, geo-lookup under license risks, supertest under dependency placement/unused \u2014 and closes with a summary tally rather than one undifferentiated list",
+          "passed": true,
+          "evidence": "Sections for version drift, placement, hygiene and license, closing with a five-row summary table."
+        }
+      ]
+    }
+  ],
+  "per_skill": {
+    "audit-dependencies": {
+      "with_skill": {
+        "passed": 18,
+        "total": 18,
+        "pass_rate": 1.0
+      },
+      "without_skill": {
+        "passed": 17,
+        "total": 18,
+        "pass_rate": 0.9444
+      }
+    },
+    "review-migration": {
+      "with_skill": {
+        "passed": 17,
+        "total": 18,
+        "pass_rate": 0.9444
+      },
+      "without_skill": {
+        "passed": 13,
+        "total": 18,
+        "pass_rate": 0.7222
+      }
+    }
+  },
+  "notes": [
+    "FIXED \u2014 review-migration nullable ADD COLUMN: Step 3 now says the lock type is not the finding on its own and that a metadata-only ADD COLUMN holds ACCESS EXCLUSIVE for milliseconds. The skill now explicitly declines to flag it. review-migration eval 1 goes 5/6 -> 6/6.",
+    "FIXED \u2014 audit-dependencies burying a narrow question: new Step 0 requires leading with the answer when the request is narrow, and Step 2 forbids claiming a package is clean without audit data. The react eval goes 4/6 -> 6/6 and the response no longer carries nine unsupplied vite advisories. Eval 1 also stopped inventing two moment CVEs.",
+    "REGRESSION INTRODUCED AND FIXED IN TURN: the Step 3 lock-duration clause led iteration 3 to downgrade the 40M-row backfill to [medium], contradicting the skill's own risk table. One added sentence ('the mild lock does not make it a mild finding') restored [high] in iteration 4 while keeping the correct ROW EXCLUSIVE description.",
+    "review-migration eval 3 assertion 5 remains the one open failure and the assertion is the problem, not the output: it forbids flagging CREATE TABLE audit_logs, but both arms consistently add a low-severity missing-index note on actor_id, which is reasonable review. It should be rewritten to permit that."
+  ]
+}

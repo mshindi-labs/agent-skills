@@ -1,0 +1,40 @@
+{
+  "eval_name": "drop-narrow-backfill",
+  "configuration": "with_skill",
+  "pass_rate": 0.8333,
+  "passed": 5,
+  "failed": 1,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `DROP TABLE legacy_sessions;` as high risk and irreversible/destructive",
+      "passed": true,
+      "evidence": "'[high] DROP TABLE legacy_sessions ... irreversible without a database backup.'"
+    },
+    {
+      "text": "Flags `ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;` as high risk, noting the type narrowing from NUMERIC(10,2) to INTEGER can truncate or lose precision on existing data",
+      "passed": true,
+      "evidence": "'[high] ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER' under data-loss risks."
+    },
+    {
+      "text": "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill because it rewrites matched rows across a ~40 million row table in a single long transaction, and recommends batching it \u2014 it must NOT describe the UPDATE as taking a table-wide or ACCESS EXCLUSIVE lock that blocks all reads and writes",
+      "passed": true,
+      "evidence": "FIXED: now '[high] UPDATE users ... Takes ROW EXCLUSIVE (not ACCESS EXCLUSIVE), so concurrent readers and writers ... 40-million-row table, an unbatched UPDATE runs as a single transaction'; prescribes batching. Severity restored to high after iteration 3 downgraded it to medium."
+    },
+    {
+      "text": "Flags the absence of a down/rollback migration as a reversibility gap, specifically noting that `DROP TABLE legacy_sessions` cannot be safely reversed without a backup",
+      "passed": true,
+      "evidence": "'[high] DROP TABLE legacy_sessions \u2014 no down migration defined ... irreversible without a database backup.'"
+    },
+    {
+      "text": "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk \u2014 restraint / false-positive check",
+      "passed": false,
+      "evidence": "Still adds '[low] actor_id \u2014 audit_logs' for a missing index. The assertion is mis-specified: a low-severity index note on a new table is defensible review, and both arms have failed it in every iteration."
+    },
+    {
+      "text": "Gives an overall verdict indicating the migration needs changes before running or blocks deployment, not that it is safe to run",
+      "passed": true,
+      "evidence": "'BLOCKS DEPLOYMENT \u2014 needs changes before running.'"
+    }
+  ]
+}

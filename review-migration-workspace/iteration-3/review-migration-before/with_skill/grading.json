@@ -1,0 +1,40 @@
+{
+  "eval_name": "review-migration-before",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+      "passed": true,
+      "evidence": "'[high] ALTER TABLE users ADD COLUMN email TEXT NOT NULL ... will fail immediately ... those rows have no value for the new column'."
+    },
+    {
+      "text": "Describes `CREATE INDEX idx_users_email ON users(email);` as a lock risk that blocks writes to `users` for the duration of the build while reads keep working (a SHARE lock), and recommends `CREATE INDEX CONCURRENTLY` as the fix \u2014 it must NOT claim the index build takes an ACCESS EXCLUSIVE lock",
+      "passed": true,
+      "evidence": "'Takes a SHARE lock for the entire duration of the index build. Reads continue, but writes to users are blocked'; fix is CREATE INDEX CONCURRENTLY, named as SHARE UPDATE EXCLUSIVE."
+    },
+    {
+      "text": "Flags the absent down/rollback migration as a reversibility gap",
+      "passed": true,
+      "evidence": "'[medium] No .down.sql exists.'"
+    },
+    {
+      "text": "Gives the ordered three-step fix for the email column \u2014 add it nullable or with a default, backfill existing rows, then apply NOT NULL \u2014 rather than only naming the problem",
+      "passed": true,
+      "evidence": "Three numbered SQL steps: add nullable, backfill, ALTER COLUMN SET NOT NULL."
+    },
+    {
+      "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "FIXED: 'The two ALTER TABLE ADD COLUMN statements take ACCESS EXCLUSIVE only for a catalog update (milliseconds, no table scan or rewrite), so they are not a practical lock concern.' nickname is no longer a finding."
+    },
+    {
+      "text": "Uses the skill's sectioned report structure: findings grouped under named risk categories (data-loss, lock, reversibility, backfill, index) with a severity tag per finding and a closing overall verdict, rather than one flat run of prose",
+      "passed": true,
+      "evidence": "Data-loss / Lock / Reversibility / Backfills / Indexes sections, severity per finding, verdict 'Blocks deployment.'"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "eval_name": "dependency-audit-node",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and gives a concrete upgrade target or command (>=4.17.19 or later) rather than a vague 'update lodash' instruction",
+      "passed": true,
+      "evidence": "'Security vulnerabilities (1) 1. [high] lodash@4.17.15 \u2014 CVE-2020-8203' with an upgrade command."
+    },
+    {
+      "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+      "passed": true,
+      "evidence": "'License risks (1)' carries pdf-stamp AGPL-3.0 with a legal-review action."
+    },
+    {
+      "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+      "passed": true,
+      "evidence": "'moment@2.24.0 \u2014 no imports found in any source file across the repo. Action: remove'."
+    },
+    {
+      "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "tailwindcss is absent from the unused section."
+    },
+    {
+      "text": "Orders the report security-first: the lodash CVE is presented above the license and unused-package findings, matching the skill's risk ordering",
+      "passed": true,
+      "evidence": "Security vulnerabilities is the first section."
+    },
+    {
+      "text": "Uses the skill's sectioned report structure \u2014 security vulnerabilities, license risks, and unused production dependencies as named sections with severity-tagged entries, closing with the summary tallies and recommended immediate actions \u2014 rather than a flat prose list",
+      "passed": true,
+      "evidence": "Sectioned report with counts, Summary tallies and recommended immediate actions. Also improved: 'no advisories for pdf-stamp, tailwindcss, moment, or jest from the supplied output' \u2014 iteration 2 invented two moment CVEs from memory here."
+    }
+  ]
+}

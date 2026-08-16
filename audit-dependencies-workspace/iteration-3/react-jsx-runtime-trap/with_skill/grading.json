@@ -1,0 +1,40 @@
+{
+  "eval_name": "react-jsx-runtime-trap",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx as the evidence",
+      "passed": true,
+      "evidence": "'react-dom \u2014 explicitly imported in src/entry-client.tsx (hydrateRoot)'."
+    },
+    {
+      "text": "Does NOT list react as an unused dependency or removal candidate",
+      "passed": true,
+      "evidence": "'Unused production dependencies (0)'."
+    },
+    {
+      "text": "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
+      "passed": true,
+      "evidence": "'tsconfig.json sets \"jsx\": \"react-jsx\", which is the automatic JSX transform ... emits calls to react/jsx-runtime'."
+    },
+    {
+      "text": "Never claims that the react-dom import itself counts as evidence that 'react' is imported \u2014 treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+      "passed": true,
+      "evidence": "'A grep for the string 'react' will only find 'react-dom' imports and falsely conclude react is unused.'"
+    },
+    {
+      "text": "Answers the user's specific doubt directly and early \u2014 react is not dead weight and should stay \u2014 rather than burying the verdict inside a generic full-audit report",
+      "passed": true,
+      "evidence": "FIXED: the response opens with '**Direct answer to your specific concern: react is not dead weight**' before any report section."
+    },
+    {
+      "text": "Does not invent a CVE or license finding for react or react-dom; where security is addressed at all, it notes that no audit output was supplied rather than asserting the packages are clean \u2014 restraint check",
+      "passed": true,
+      "evidence": "FIXED: 'Security vulnerabilities \u2014 Scan did not run \u2014 no lockfile was provided ... No vulnerability claims can be made.' The nine unsupplied vite advisories from iteration 2 are gone, and recalled version data is labelled against the knowledge cutoff."
+    }
+  ]
+}

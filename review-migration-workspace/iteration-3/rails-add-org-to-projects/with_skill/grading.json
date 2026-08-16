@@ -1,0 +1,40 @@
+{
+  "eval_name": "rails-add-org-to-projects",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `rename_column :projects, :owner, :legacy_owner` as high risk because it breaks any application code not yet deployed to use the new column name",
+      "passed": true,
+      "evidence": "'[high] rename_column ... hard cut-over rename. Any app instance still running the old code ... immediately get column owner does not exist errors.'"
+    },
+    {
+      "text": "Flags `add_foreign_key :projects, :organizations, column: :organization_id` as adding a foreign key on `organization_id` with no corresponding index on that column, and recommends adding one",
+      "passed": true,
+      "evidence": "'Missing indexes \u2014 [low] organization_id \u2014 projects table', with add_index ... algorithm: :concurrently."
+    },
+    {
+      "text": "Flags the `down` method as an incomplete reversibility gap because it only removes `organization_id` and does not reverse the `rename_column` or `add_foreign_key`/`add_index` calls from `up`",
+      "passed": true,
+      "evidence": "'[high] rename_column is not reversed in down' plus '[medium] add_index ... is not removed in down', with a corrected down."
+    },
+    {
+      "text": "Does not flag `add_index :projects, :status, algorithm: :concurrently` as a lock risk, correctly treating the CONCURRENTLY-qualified index build as low risk \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "The concurrent index is filed under CRITICAL runtime error for the transaction wrapper, not under Lock risks; Lock risks contains only the foreign key."
+    },
+    {
+      "text": "Reasons explicitly from the stated table size \u2014 that `projects` has millions of rows \u2014 when rating the risk or recommending how to run the migration, rather than giving size-independent generic advice",
+      "passed": true,
+      "evidence": "'holds it across a full table scan of all millions of rows'; the rename and FK are both rated against that size."
+    },
+    {
+      "text": "Gives an overall verdict that the migration needs changes before running (not that it is safe to run), given the rename and reversibility gap",
+      "passed": true,
+      "evidence": "'BLOCKS DEPLOYMENT \u2014 do not run as-is.' with four enumerated blockers."
+    }
+  ]
+}

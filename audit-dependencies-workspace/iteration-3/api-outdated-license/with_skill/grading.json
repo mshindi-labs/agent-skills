@@ -1,0 +1,40 @@
+{
+  "eval_name": "api-outdated-license",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
+      "passed": true,
+      "evidence": "'acme-http-client: installed 2.1.0 -> latest 5.0.0' with significant effort and the v3/v5 breaking changes."
+    },
+    {
+      "text": "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
+      "passed": true,
+      "evidence": "'geo-lookup@1.8.0 \u2014 LGPL-2.1 (direct production dependency)' with legal sign-off recommended."
+    },
+    {
+      "text": "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
+      "passed": true,
+      "evidence": "'supertest@6.3.3 \u2014 only imported in tests/api.test.ts', with the devDependencies move."
+    },
+    {
+      "text": "Does NOT flag ts-node as an unused dependency \u2014 recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "'ts-node is not imported as a module anywhere, but it is invoked as a CLI tool in scripts.start'."
+    },
+    {
+      "text": "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it \u2014 keeps it in the outdated-dependencies category",
+      "passed": true,
+      "evidence": "Staleness stays under outdated; the security section asks for a real npm audit run rather than asserting CVEs."
+    },
+    {
+      "text": "Separates the findings into the skill's named categories \u2014 acme-http-client under significantly outdated, geo-lookup under license risks, supertest under dependency placement/unused \u2014 and closes with a summary tally rather than one undifferentiated list",
+      "passed": true,
+      "evidence": "Named sections with counts, Summary tallies, recommended immediate actions."
+    }
+  ]
+}
