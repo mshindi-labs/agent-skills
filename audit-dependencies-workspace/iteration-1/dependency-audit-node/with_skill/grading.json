@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and recommends upgrading to >=4.17.19 or later",
+      "passed": true,
+      "evidence": "'[high] lodash@4.17.15 \u2014 CVE-2020-8203 ... Fix: upgrade to >=4.17.19 (latest 4.x is 4.17.21)'."
+    },
+    {
+      "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+      "passed": true,
+      "evidence": "'pdf-stamp@2.1.0 \u2014 AGPL-3.0 (direct production dependency) ... strong copyleft + network-use clause ... get legal review', plus pdf-lib as a substitution."
+    },
+    {
+      "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+      "passed": true,
+      "evidence": "'moment@2.24.0 \u2014 no imports found anywhere in the repo ... Action: npm uninstall moment'."
+    },
+    {
+      "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly",
+      "passed": true,
+      "evidence": "tailwindcss is placed under 'Significantly outdated', never under unused, and the closing line states lodash and tailwindcss are 'genuinely used (verified via the grep results, not just substring match)'."
+    },
+    {
+      "text": "Does NOT flag pdf-stamp or lodash as unused, since both have a genuine import in src/",
+      "passed": true,
+      "evidence": "Neither pdf-stamp nor lodash appears in the unused section; both are cited with their call sites."
+    },
+    {
+      "text": "Gives a concrete upgrade command or version target for lodash rather than a vague 'update lodash' instruction",
+      "passed": true,
+      "evidence": "'run: npm install lodash@4.17.21'."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

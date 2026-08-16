@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Flags the getOrder handler in OrdersController as missing an ownership check, citing it by file (src/orders/orders.controller.ts) and function name (getOrder)",
+      "passed": true,
+      "evidence": "'[high] IDOR \u2014 getOrder has no ownership check \u2014 src/orders/orders.controller.ts:8-10' \u2014 cites both file and function."
+    },
+    {
+      "text": "Does not flag cancelOrder as vulnerable, since it already fetches the order and checks order.userId !== user.id before mutating it \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "Explicit 'IDOR check (Step 3)' section marks cancelOrder **safe** and calls it the correct template. No false positive."
+    },
+    {
+      "text": "Assigns high severity to the getOrder finding",
+      "passed": true,
+      "evidence": "Tagged [high]."
+    },
+    {
+      "text": "Explains the exploitable scenario: any authenticated user can fetch another user's order by supplying or guessing an arbitrary orderId, since getOrder returns whatever findUnique returns with no check against the caller",
+      "passed": true,
+      "evidence": "'Any authenticated user who knows or guesses an orderId (sequential IDs, leaked from another response, enumerated) can read another customer's order.'"
+    },
+    {
+      "text": "The suggested fix for getOrder matches the ownership-check shape used in cancelOrder: fetch the order, then reject when the order is missing or order.userId !== user.id (e.g. throwing ForbiddenException) before returning it",
+      "passed": true,
+      "evidence": "Proposed fix fetches then throws ForbiddenException when !order || order.userId !== user.id \u2014 the same shape as cancelOrder, explicitly 'mirror the check already present in cancelOrder'."
+    },
+    {
+      "text": "Uses the skill's report structure: a numbered, severity-tagged finding referencing the file, distinct from an unstructured paragraph",
+      "passed": true,
+      "evidence": "Numbered severity-tagged findings under a report header with per-section structure."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

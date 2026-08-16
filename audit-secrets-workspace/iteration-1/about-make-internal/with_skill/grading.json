@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+      "passed": true,
+      "evidence": "'[HIGH] AWS credential pair, still in working tree AND history ... Present in: current working tree (HEAD) and every commit since 973222e'."
+    },
+    {
+      "text": "Identifies the RSA private key block as a finding present ONLY in git history \u2014 explicitly notes it was removed from the current working tree in a later commit",
+      "passed": true,
+      "evidence": "'[HIGH] RSA private key block, git history only ... **Not present in current working tree**', naming both the introducing and removing commits."
+    },
+    {
+      "text": "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+      "passed": true,
+      "evidence": "Findings carry 'Masked: AKIA****MPLE / wJal****EKEY' and 'Masked: MIIF****AAAA'."
+    },
+    {
+      "text": "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+      "passed": true,
+      "evidence": "'Both findings are in committed history, so per policy: **rotate, don't just remove.** Rotate/revoke the AWS key pair with AWS IAM ... Treat the private key as compromised and reissue it'."
+    },
+    {
+      "text": "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+      "passed": true,
+      "evidence": "'git filter-repo --path config/credentials.txt --invert-paths (not rebase -i/commit --amend \u2014 those leave reflog traces)'."
+    },
+    {
+      "text": "The response never prints the full RSA private key body or the full AWS secret access key value anywhere, even while explaining the finding",
+      "passed": false,
+      "evidence": "VIOLATION: after masking the finding, the prose prints both full literal values \u2014 AKIAIOSFODNN7EXAMPLE and wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \u2014 while arguing they are AWS's documented placeholders."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333
+  }
+}

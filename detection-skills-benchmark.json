@@ -1,0 +1,642 @@
+{
+  "metadata": {
+    "suite": "detection-skills smoke test",
+    "skills": [
+      "audit-dependencies",
+      "audit-secrets",
+      "check-query-safety",
+      "review-auth",
+      "review-changes",
+      "review-migration"
+    ],
+    "evals_per_skill": 1,
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-opus-5",
+    "timestamp": "2026-08-16T00:00:00Z"
+  },
+  "runs": [
+    {
+      "skill": "review-changes",
+      "eval_name": "review-diff-before",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 34.9,
+        "tokens": 122403,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+          "passed": true,
+          "evidence": "Opens with '1. [high] Auth bypass for unauthenticated GET requests'; the only preamble is a one-line scope caveat, not praise or a diff restatement."
+        },
+        {
+          "text": "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+          "passed": true,
+          "evidence": "Names src/routes/reports.ts, quotes the surviving comment documenting that fetchForUser resolves null, and states reports.map on null throws a TypeError for any user with zero reports."
+        },
+        {
+          "text": "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+          "passed": true,
+          "evidence": "'## Testing \u2014 No test changes accompany either fix', with the two specific tests it would want."
+        },
+        {
+          "text": "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+          "passed": false,
+          "evidence": "Analyses the auth bypass itself in depth but never recommends a dedicated auth review or review-auth. The restraint/delegation check fails."
+        },
+        {
+          "text": "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+          "passed": true,
+          "evidence": "'skips the 401 check entirely when req.method === GET, regardless of whether an authorization header is present'."
+        },
+        {
+          "text": "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments",
+          "passed": true,
+          "evidence": "Both appear as top-level [high] findings, numbered 1 and 2."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "review-changes",
+      "eval_name": "review-diff-before",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 53.6,
+        "tokens": 243795,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+          "passed": true,
+          "evidence": "Opens directly on '**1. [high] Auth guard no longer protects GET requests**' with no preamble at all."
+        },
+        {
+          "text": "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+          "passed": true,
+          "evidence": "Names src/routes/reports.ts, cites the stale comment, and states reports.map on null throws a TypeError."
+        },
+        {
+          "text": "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+          "passed": true,
+          "evidence": "'No tests were touched in this diff \u2014 neither change has a regression test, so both would ship silently.'"
+        },
+        {
+          "text": "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+          "passed": false,
+          "evidence": "Same failure as the skill arm: no handoff to a dedicated auth review."
+        },
+        {
+          "text": "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+          "passed": true,
+          "evidence": "'requireAuth now skips the check entirely when req.method === GET' plus the shared-middleware blast radius."
+        },
+        {
+          "text": "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments",
+          "passed": true,
+          "evidence": "Both are top-level [high] findings."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "review-auth",
+      "eval_name": "audit-auth-orders",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 33.7,
+        "tokens": 123086,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags the getOrder handler in OrdersController as missing an ownership check, citing it by file (src/orders/orders.controller.ts) and function name (getOrder)",
+          "passed": true,
+          "evidence": "'[high] IDOR \u2014 getOrder has no ownership check \u2014 src/orders/orders.controller.ts:8-10' \u2014 cites both file and function."
+        },
+        {
+          "text": "Does not flag cancelOrder as vulnerable, since it already fetches the order and checks order.userId !== user.id before mutating it \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Explicit 'IDOR check (Step 3)' section marks cancelOrder **safe** and calls it the correct template. No false positive."
+        },
+        {
+          "text": "Assigns high severity to the getOrder finding",
+          "passed": true,
+          "evidence": "Tagged [high]."
+        },
+        {
+          "text": "Explains the exploitable scenario: any authenticated user can fetch another user's order by supplying or guessing an arbitrary orderId, since getOrder returns whatever findUnique returns with no check against the caller",
+          "passed": true,
+          "evidence": "'Any authenticated user who knows or guesses an orderId (sequential IDs, leaked from another response, enumerated) can read another customer's order.'"
+        },
+        {
+          "text": "The suggested fix for getOrder matches the ownership-check shape used in cancelOrder: fetch the order, then reject when the order is missing or order.userId !== user.id (e.g. throwing ForbiddenException) before returning it",
+          "passed": true,
+          "evidence": "Proposed fix fetches then throws ForbiddenException when !order || order.userId !== user.id \u2014 the same shape as cancelOrder, explicitly 'mirror the check already present in cancelOrder'."
+        },
+        {
+          "text": "Uses the skill's report structure: a numbered, severity-tagged finding referencing the file, distinct from an unstructured paragraph",
+          "passed": true,
+          "evidence": "Numbered severity-tagged findings under a report header with per-section structure."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "review-auth",
+      "eval_name": "audit-auth-orders",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 52.2,
+        "tokens": 178584,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags the getOrder handler in OrdersController as missing an ownership check, citing it by file (src/orders/orders.controller.ts) and function name (getOrder)",
+          "passed": false,
+          "evidence": "Names the getOrder function but explicitly declines the file path ('The file isn't in this repo \u2014 it's a pasted snippet'). No src/orders/orders.controller.ts citation."
+        },
+        {
+          "text": "Does not flag cancelOrder as vulnerable, since it already fetches the order and checks order.userId !== user.id before mutating it \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Does not flag cancelOrder; praises its shared ForbiddenException for not leaking ID existence."
+        },
+        {
+          "text": "Assigns high severity to the getOrder finding",
+          "passed": true,
+          "evidence": "Tagged '**Critical:**' \u2014 a severity assignment at or above high."
+        },
+        {
+          "text": "Explains the exploitable scenario: any authenticated user can fetch another user's order by supplying or guessing an arbitrary orderId, since getOrder returns whatever findUnique returns with no check against the caller",
+          "passed": true,
+          "evidence": "'Any caller who can hit this endpoint gets any order \u2014 customer names, addresses, totals \u2014 just by knowing/guessing an ID.'"
+        },
+        {
+          "text": "The suggested fix for getOrder matches the ownership-check shape used in cancelOrder: fetch the order, then reject when the order is missing or order.userId !== user.id (e.g. throwing ForbiddenException) before returning it",
+          "passed": false,
+          "evidence": "Deliberately proposes a DIFFERENT shape \u2014 findFirst with userId in the where clause and NotFoundException \u2014 and argues it is better than the fetch-then-check pattern cancelOrder uses."
+        },
+        {
+          "text": "Uses the skill's report structure: a numbered, severity-tagged finding referencing the file, distinct from an unstructured paragraph",
+          "passed": false,
+          "evidence": "Free-form bold headers, no numbered severity-tagged findings, no file references."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "review-migration-before",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 63.8,
+        "tokens": 125159,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+          "passed": true,
+          "evidence": "'[high] email NOT NULL \u2014 users \u2014 BLOCKS DEPLOYMENT ... will fail immediately with a not-null violation', explicitly because there is no DEFAULT and no preceding backfill."
+        },
+        {
+          "text": "Flags `CREATE INDEX idx_users_email ON users(email);` as a lock risk and explicitly names the ACCESS EXCLUSIVE lock type",
+          "passed": false,
+          "evidence": "ASSERTION IS DEFECTIVE. It requires naming ACCESS EXCLUSIVE, but CREATE INDEX takes a SHARE lock in Postgres. The response said SHARE, which is correct; the assertion is wrong."
+        },
+        {
+          "text": "Recommends `CREATE INDEX CONCURRENTLY` as the fix for the non-concurrent index",
+          "passed": true,
+          "evidence": "'Use CREATE INDEX CONCURRENTLY idx_users_email ON users(email);' plus the caveat that it cannot run inside a transaction block."
+        },
+        {
+          "text": "Flags the migration for having no down/rollback as a reversibility gap",
+          "passed": true,
+          "evidence": "'[high] No down/rollback script exists at all' with the companion .down.sql it would want."
+        },
+        {
+          "text": "Recommends the safe two-step pattern for the email column (add nullable or with a default, backfill existing rows, then enforce NOT NULL) rather than only naming the problem",
+          "passed": true,
+          "evidence": "Gives the full add-nullable then backfill then SET NOT NULL sequence, including the NOT VALID check-constraint variant for large tables."
+        },
+        {
+          "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk",
+          "passed": true,
+          "evidence": "nickname is never flagged as a risk; it appears only inside the suggested down script."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "review-migration-before",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 57.1,
+        "tokens": 118222,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+          "passed": true,
+          "evidence": "'This will **fail outright** on a table with existing rows ... Postgres/MySQL will reject the statement'."
+        },
+        {
+          "text": "Flags `CREATE INDEX idx_users_email ON users(email);` as a lock risk and explicitly names the ACCESS EXCLUSIVE lock type",
+          "passed": false,
+          "evidence": "Same defective assertion. Says the index 'takes a lock that blocks writes for the duration' without naming a lock type."
+        },
+        {
+          "text": "Recommends `CREATE INDEX CONCURRENTLY` as the fix for the non-concurrent index",
+          "passed": true,
+          "evidence": "'Use CREATE INDEX CONCURRENTLY (Postgres) \u2014 note it can't run inside a transaction block'."
+        },
+        {
+          "text": "Flags the migration for having no down/rollback as a reversibility gap",
+          "passed": true,
+          "evidence": "'No .down.sql' is raised, though downgraded as 'moot for now' given the migration cannot run."
+        },
+        {
+          "text": "Recommends the safe two-step pattern for the email column (add nullable or with a default, backfill existing rows, then enforce NOT NULL) rather than only naming the problem",
+          "passed": true,
+          "evidence": "Gives a five-stage split: add nullable, backfill in batches, deploy writing code, add NOT NULL, index concurrently."
+        },
+        {
+          "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk",
+          "passed": true,
+          "evidence": "'**nickname**: fine as-is \u2014 nullable, no default, metadata-only change, no lock concern.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "check-file-query",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 35.7,
+        "tokens": 124448,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk and quotes the vulnerable line in the finding",
+          "passed": true,
+          "evidence": "Quotes the vulnerable line verbatim under 'SQL injection risks (1) \u2014 [high] String interpolation in raw query \u2014 line 5'."
+        },
+        {
+          "text": "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding",
+          "passed": true,
+          "evidence": "'Input source: req.params.id (route parameter, user-controlled)'."
+        },
+        {
+          "text": "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern",
+          "passed": true,
+          "evidence": "'[medium] Query inside loop \u2014 lines 9-11, prisma.orderItem.findMany() called once per order (N queries for N orders)'."
+        },
+        {
+          "text": "Proposes a fix for the N+1 using `include` on the initial order query or a single batched `findMany` with an `in` filter, rather than the per-order query",
+          "passed": true,
+          "evidence": "Offers both the include fix on the initial order query and the batched findMany with an in filter."
+        },
+        {
+          "text": "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
+          "passed": true,
+          "evidence": "'[medium] findMany without take/limit \u2014 line 18 (listEvents)' with 'Fix: add take: 100 ... with cursor/offset pagination'."
+        },
+        {
+          "text": "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk",
+          "passed": true,
+          "evidence": "getUserById is explicitly called out as already correct and recommended as the template \u2014 not flagged."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "check-file-query",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 53.7,
+        "tokens": 119177,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk and quotes the vulnerable line in the finding",
+          "passed": true,
+          "evidence": "Quotes the line in a fenced block under '**Critical \u2014 SQL injection (line 5)**'."
+        },
+        {
+          "text": "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding",
+          "passed": true,
+          "evidence": "'req.params.id is attacker-controlled \u2014 classic injection'."
+        },
+        {
+          "text": "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern",
+          "passed": true,
+          "evidence": "'**N+1 query (lines 9-12)** ... One round-trip per order.'"
+        },
+        {
+          "text": "Proposes a fix for the N+1 using `include` on the initial order query or a single batched `findMany` with an `in` filter, rather than the per-order query",
+          "passed": true,
+          "evidence": "Proposes the Prisma include fix with code."
+        },
+        {
+          "text": "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
+          "passed": true,
+          "evidence": "'prisma.event.findMany() with no take/cursor pulls the whole table on every call. Add pagination and a select' \u2014 satisfies the pagination branch of the assertion."
+        },
+        {
+          "text": "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk",
+          "passed": true,
+          "evidence": "'**Minor \u2014 getUserById (line 22)** Parameterized ($1) so no injection risk'. Also correctly declines to flag the parameterized Prisma call."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "dependency-audit-node",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 103.1,
+        "tokens": 326946,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and recommends upgrading to >=4.17.19 or later",
+          "passed": true,
+          "evidence": "'[high] lodash@4.17.15 \u2014 CVE-2020-8203 ... Fix: upgrade to >=4.17.19 (latest 4.x is 4.17.21)'."
+        },
+        {
+          "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+          "passed": true,
+          "evidence": "'pdf-stamp@2.1.0 \u2014 AGPL-3.0 (direct production dependency) ... strong copyleft + network-use clause ... get legal review', plus pdf-lib as a substitution."
+        },
+        {
+          "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+          "passed": true,
+          "evidence": "'moment@2.24.0 \u2014 no imports found anywhere in the repo ... Action: npm uninstall moment'."
+        },
+        {
+          "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly",
+          "passed": true,
+          "evidence": "tailwindcss is placed under 'Significantly outdated', never under unused, and the closing line states lodash and tailwindcss are 'genuinely used (verified via the grep results, not just substring match)'."
+        },
+        {
+          "text": "Does NOT flag pdf-stamp or lodash as unused, since both have a genuine import in src/",
+          "passed": true,
+          "evidence": "Neither pdf-stamp nor lodash appears in the unused section; both are cited with their call sites."
+        },
+        {
+          "text": "Gives a concrete upgrade command or version target for lodash rather than a vague 'update lodash' instruction",
+          "passed": true,
+          "evidence": "'run: npm install lodash@4.17.21'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "dependency-audit-node",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 66.7,
+        "tokens": 238337,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and recommends upgrading to >=4.17.19 or later",
+          "passed": true,
+          "evidence": "'lodash@4.17.15 \u2014 CVE-2020-8203 Prototype Pollution (HIGH, security). Patched in >=4.17.19'."
+        },
+        {
+          "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+          "passed": true,
+          "evidence": "'pdf-stamp@2.1.0 \u2014 AGPL-3.0 license (HIGH, legal risk) ... flag to legal/eng leadership before next release', with pdf-lib/pdfkit alternatives."
+        },
+        {
+          "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+          "passed": true,
+          "evidence": "'moment@2.24.0 \u2014 unused (MEDIUM, hygiene). No file in the repo references it. Action: remove from package.json'."
+        },
+        {
+          "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly",
+          "passed": true,
+          "evidence": "'tailwindcss@3.4.1 (LOW, hygiene). Actively used, no known CVE.' Not flagged as unused."
+        },
+        {
+          "text": "Does NOT flag pdf-stamp or lodash as unused, since both have a genuine import in src/",
+          "passed": true,
+          "evidence": "Both are described as used in real code paths, neither flagged unused."
+        },
+        {
+          "text": "Gives a concrete upgrade command or version target for lodash rather than a vague 'update lodash' instruction",
+          "passed": true,
+          "evidence": "'bump to ^4.17.21 (picks up this fix plus later ones, e.g. CVE-2020-28500)'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "about-make-internal",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 119.0,
+        "tokens": 517905,
+        "tool_calls": 12,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+          "passed": true,
+          "evidence": "'[HIGH] AWS credential pair, still in working tree AND history ... Present in: current working tree (HEAD) and every commit since 973222e'."
+        },
+        {
+          "text": "Identifies the RSA private key block as a finding present ONLY in git history \u2014 explicitly notes it was removed from the current working tree in a later commit",
+          "passed": true,
+          "evidence": "'[HIGH] RSA private key block, git history only ... **Not present in current working tree**', naming both the introducing and removing commits."
+        },
+        {
+          "text": "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+          "passed": true,
+          "evidence": "Findings carry 'Masked: AKIA****MPLE / wJal****EKEY' and 'Masked: MIIF****AAAA'."
+        },
+        {
+          "text": "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+          "passed": true,
+          "evidence": "'Both findings are in committed history, so per policy: **rotate, don't just remove.** Rotate/revoke the AWS key pair with AWS IAM ... Treat the private key as compromised and reissue it'."
+        },
+        {
+          "text": "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+          "passed": true,
+          "evidence": "'git filter-repo --path config/credentials.txt --invert-paths (not rebase -i/commit --amend \u2014 those leave reflog traces)'."
+        },
+        {
+          "text": "The response never prints the full RSA private key body or the full AWS secret access key value anywhere, even while explaining the finding",
+          "passed": false,
+          "evidence": "VIOLATION: after masking the finding, the prose prints both full literal values \u2014 AKIAIOSFODNN7EXAMPLE and wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \u2014 while arguing they are AWS's documented placeholders."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "about-make-internal",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 156.2,
+        "tokens": 1273378,
+        "tool_calls": 20,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+          "passed": false,
+          "evidence": "Reports the AWS pair as '**Live today, in the working tree**' but never states it is also present throughout git history; the history discussion covers only the RSA key."
+        },
+        {
+          "text": "Identifies the RSA private key block as a finding present ONLY in git history \u2014 explicitly notes it was removed from the current working tree in a later commit",
+          "passed": true,
+          "evidence": "'**Only in history, invisible today \u2014 this is the one that matters**', with the introducing and removing commits and a git show command proving reachability."
+        },
+        {
+          "text": "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+          "passed": false,
+          "evidence": "Prints the full AWS key pair verbatim in a fenced block and the PEM header with body; no masking anywhere."
+        },
+        {
+          "text": "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+          "passed": true,
+          "evidence": "'If that RSA key or those AWS creds were ever real ... rotate them \u2014 history rewrite only stops future clones from getting them.'"
+        },
+        {
+          "text": "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+          "passed": true,
+          "evidence": "Recommends 'git filter-repo --path config/credentials.txt --invert-paths'; never names rebase -i or commit --amend."
+        },
+        {
+          "text": "The response never prints the full RSA private key body or the full AWS secret access key value anywhere, even while explaining the finding",
+          "passed": false,
+          "evidence": "Same violation, more severe: full secret values reproduced in the report."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9166,
+        "stddev": 0.0913,
+        "min": 0.8333,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 65.0333,
+        "stddev": 37.718,
+        "min": 33.7,
+        "max": 119.0
+      },
+      "tokens": {
+        "mean": 223324.5,
+        "stddev": 165626.7007,
+        "min": 122403,
+        "max": 517905
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.7778,
+        "stddev": 0.2277,
+        "min": 0.5,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 73.25,
+        "stddev": 40.9777,
+        "min": 52.2,
+        "max": 156.2
+      },
+      "tokens": {
+        "mean": 361915.5,
+        "stddev": 449868.1868,
+        "min": 118222,
+        "max": 1273378
+      }
+    }
+  },
+  "notes": [
+    "One eval per skill (eval id 1 only); 12 of 18 detection evals remain unrun.",
+    "without_skill runs executed in sandboxes inside the repo after skills were symlinked into .claude/skills, so some baseline runs attempted a Skill load. Two said the skill did not load; treat baselines as approximate.",
+    "review-migration assertion 2 is defective: it demands ACCESS EXCLUSIVE for CREATE INDEX, which takes a SHARE lock. Both arms are marked failed on it."
+  ]
+}

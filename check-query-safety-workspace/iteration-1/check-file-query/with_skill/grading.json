@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk and quotes the vulnerable line in the finding",
+      "passed": true,
+      "evidence": "Quotes the vulnerable line verbatim under 'SQL injection risks (1) \u2014 [high] String interpolation in raw query \u2014 line 5'."
+    },
+    {
+      "text": "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding",
+      "passed": true,
+      "evidence": "'Input source: req.params.id (route parameter, user-controlled)'."
+    },
+    {
+      "text": "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern",
+      "passed": true,
+      "evidence": "'[medium] Query inside loop \u2014 lines 9-11, prisma.orderItem.findMany() called once per order (N queries for N orders)'."
+    },
+    {
+      "text": "Proposes a fix for the N+1 using `include` on the initial order query or a single batched `findMany` with an `in` filter, rather than the per-order query",
+      "passed": true,
+      "evidence": "Offers both the include fix on the initial order query and the batched findMany with an in filter."
+    },
+    {
+      "text": "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
+      "passed": true,
+      "evidence": "'[medium] findMany without take/limit \u2014 line 18 (listEvents)' with 'Fix: add take: 100 ... with cursor/offset pagination'."
+    },
+    {
+      "text": "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk",
+      "passed": true,
+      "evidence": "getUserById is explicitly called out as already correct and recommended as the template \u2014 not flagged."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

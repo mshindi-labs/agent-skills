@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+      "passed": true,
+      "evidence": "'This will **fail outright** on a table with existing rows ... Postgres/MySQL will reject the statement'."
+    },
+    {
+      "text": "Flags `CREATE INDEX idx_users_email ON users(email);` as a lock risk and explicitly names the ACCESS EXCLUSIVE lock type",
+      "passed": false,
+      "evidence": "Same defective assertion. Says the index 'takes a lock that blocks writes for the duration' without naming a lock type."
+    },
+    {
+      "text": "Recommends `CREATE INDEX CONCURRENTLY` as the fix for the non-concurrent index",
+      "passed": true,
+      "evidence": "'Use CREATE INDEX CONCURRENTLY (Postgres) \u2014 note it can't run inside a transaction block'."
+    },
+    {
+      "text": "Flags the migration for having no down/rollback as a reversibility gap",
+      "passed": true,
+      "evidence": "'No .down.sql' is raised, though downgraded as 'moot for now' given the migration cannot run."
+    },
+    {
+      "text": "Recommends the safe two-step pattern for the email column (add nullable or with a default, backfill existing rows, then enforce NOT NULL) rather than only naming the problem",
+      "passed": true,
+      "evidence": "Gives a five-stage split: add nullable, backfill in batches, deploy writing code, add NOT NULL, index concurrently."
+    },
+    {
+      "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk",
+      "passed": true,
+      "evidence": "'**nickname**: fine as-is \u2014 nullable, no default, metadata-only change, no lock concern.'"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333
+  }
+}

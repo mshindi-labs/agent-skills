@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+      "passed": true,
+      "evidence": "'[high] email NOT NULL \u2014 users \u2014 BLOCKS DEPLOYMENT ... will fail immediately with a not-null violation', explicitly because there is no DEFAULT and no preceding backfill."
+    },
+    {
+      "text": "Flags `CREATE INDEX idx_users_email ON users(email);` as a lock risk and explicitly names the ACCESS EXCLUSIVE lock type",
+      "passed": false,
+      "evidence": "ASSERTION IS DEFECTIVE. It requires naming ACCESS EXCLUSIVE, but CREATE INDEX takes a SHARE lock in Postgres. The response said SHARE, which is correct; the assertion is wrong."
+    },
+    {
+      "text": "Recommends `CREATE INDEX CONCURRENTLY` as the fix for the non-concurrent index",
+      "passed": true,
+      "evidence": "'Use CREATE INDEX CONCURRENTLY idx_users_email ON users(email);' plus the caveat that it cannot run inside a transaction block."
+    },
+    {
+      "text": "Flags the migration for having no down/rollback as a reversibility gap",
+      "passed": true,
+      "evidence": "'[high] No down/rollback script exists at all' with the companion .down.sql it would want."
+    },
+    {
+      "text": "Recommends the safe two-step pattern for the email column (add nullable or with a default, backfill existing rows, then enforce NOT NULL) rather than only naming the problem",
+      "passed": true,
+      "evidence": "Gives the full add-nullable then backfill then SET NOT NULL sequence, including the NOT VALID check-constraint variant for large tables."
+    },
+    {
+      "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk",
+      "passed": true,
+      "evidence": "nickname is never flagged as a risk; it appears only inside the suggested down script."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333
+  }
+}

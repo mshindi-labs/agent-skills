@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+      "passed": true,
+      "evidence": "Opens directly on '**1. [high] Auth guard no longer protects GET requests**' with no preamble at all."
+    },
+    {
+      "text": "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+      "passed": true,
+      "evidence": "Names src/routes/reports.ts, cites the stale comment, and states reports.map on null throws a TypeError."
+    },
+    {
+      "text": "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+      "passed": true,
+      "evidence": "'No tests were touched in this diff \u2014 neither change has a regression test, so both would ship silently.'"
+    },
+    {
+      "text": "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+      "passed": false,
+      "evidence": "Same failure as the skill arm: no handoff to a dedicated auth review."
+    },
+    {
+      "text": "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+      "passed": true,
+      "evidence": "'requireAuth now skips the check entirely when req.method === GET' plus the shared-middleware blast radius."
+    },
+    {
+      "text": "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments",
+      "passed": true,
+      "evidence": "Both are top-level [high] findings."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333
+  }
+}

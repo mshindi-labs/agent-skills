@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "dependency-audit-node",
+  "prompt": "Run a dependency audit on this Node project. Here's package.json:\n\n```json\n{\n  \"name\": \"acme-storefront\",\n  \"version\": \"3.2.0\",\n  \"dependencies\": {\n    \"lodash\": \"4.17.15\",\n    \"pdf-stamp\": \"2.1.0\",\n    \"tailwindcss\": \"3.4.1\",\n    \"moment\": \"2.24.0\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"29.7.0\"\n  }\n}\n```\n\n`npm audit --json` (excerpt):\n```\nlodash@4.17.15\n  Prototype Pollution in lodash\n  Severity: high\n  Advisory: CVE-2020-8203\n  Patched in: >=4.17.19\n```\n\n`node_modules/pdf-stamp/package.json` (excerpt):\n```json\n{ \"name\": \"pdf-stamp\", \"version\": \"2.1.0\", \"license\": \"AGPL-3.0\" }\n```\n\nHere's every file in the repo that references any of these packages:\n\n`src/utils/format.ts`:\n```ts\nimport merge from 'lodash/merge'\nexport const mergeDefaults = (a: object, b: object) => merge({}, a, b)\n```\n\n`src/invoices/export.ts`:\n```ts\nimport { stampPdf } from 'pdf-stamp'\nexport const exportInvoice = (doc: Buffer) => stampPdf(doc, { text: 'PAID' })\n```\n\n`postcss.config.js`:\n```js\nmodule.exports = {\n  plugins: [require('tailwindcss'), require('autoprefixer')],\n}\n```\n\nNo other file in the repo mentions lodash, pdf-stamp, tailwindcss, or moment.",
+  "assertions": [
+    "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and recommends upgrading to >=4.17.19 or later",
+    "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+    "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+    "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly",
+    "Does NOT flag pdf-stamp or lodash as unused, since both have a genuine import in src/",
+    "Gives a concrete upgrade command or version target for lodash rather than a vague 'update lodash' instruction"
+  ]
+}
