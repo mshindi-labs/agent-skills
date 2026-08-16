@@ -1,0 +1,47 @@
+{
+  "skill_name": "review-auth",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Can you audit auth on this orders controller before we ship it?\n\n```typescript\n// src/orders/orders.controller.ts\n@Injectable()\nexport class OrdersController {\n  constructor(private readonly db: PrismaService) {}\n\n  // GET /orders/:orderId\n  async getOrder(orderId: string, user: User) {\n    return this.db.order.findUnique({ where: { id: orderId } });\n  }\n\n  // POST /orders/:orderId/cancel\n  async cancelOrder(orderId: string, user: User) {\n    const order = await this.db.order.findUnique({ where: { id: orderId } });\n    if (!order || order.userId !== user.id) {\n      throw new ForbiddenException();\n    }\n    return this.db.order.update({\n      where: { id: orderId },\n      data: { status: 'cancelled' },\n    });\n  }\n}\n```\n",
+      "expected_output": "A findings report that flags getOrder as a high-severity IDOR (any authenticated user can fetch any order by id, no ownership check), does not flag cancelOrder since it already checks order.userId !== user.id, and proposes a fix for getOrder shaped like the guarded cancelOrder method.",
+      "files": [],
+      "assertions": [
+        "Flags the getOrder handler in OrdersController as missing an ownership check, citing it by file (src/orders/orders.controller.ts) and function name (getOrder)",
+        "Does not flag cancelOrder as vulnerable, since it already fetches the order and checks order.userId !== user.id before mutating it \u2014 restraint / false-positive check",
+        "Assigns high severity to the getOrder finding",
+        "Explains the exploitable scenario: any authenticated user can fetch another user's order by supplying or guessing an arbitrary orderId, since getOrder returns whatever findUnique returns with no check against the caller",
+        "The suggested fix for getOrder matches the ownership-check shape used in cancelOrder: fetch the order, then reject when the order is missing or order.userId !== user.id (e.g. throwing ForbiddenException) before returning it",
+        "Uses the skill's report structure: a numbered, severity-tagged finding referencing the file, distinct from an unstructured paragraph"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We use JWTs for the API and server sessions for the web dashboard. Can you audit these two files for auth issues before launch?\n\n```typescript\n// src/auth/tokenService.ts\nimport jwt from 'jsonwebtoken';\n\nexport function verifyToken(token: string) {\n  return jwt.verify(token, process.env.JWT_SECRET as string);\n}\n\nexport function requireAuth(req, res, next) {\n  try {\n    const authHeader = req.headers.authorization ?? '';\n    const token = authHeader.replace('Bearer ', '');\n    req.user = verifyToken(token);\n    next();\n  } catch {\n    res.status(401).json({ error: 'Unauthorized' });\n  }\n}\n```\n\n```typescript\n// src/auth/session.ts\nimport session from 'express-session';\n\nexport const sessionMiddleware = session({\n  secret: process.env.SESSION_SECRET as string,\n  resave: false,\n  saveUninitialized: false,\n  cookie: {\n    httpOnly: true,\n    secure: true,\n    sameSite: 'strict',\n    maxAge: 1000 * 60 * 60 * 8,\n  },\n});\n```\n",
+      "expected_output": "A report flagging jwt.verify in tokenService.ts for not specifying an algorithms allowlist (algorithm-confusion risk) with a fix that pins algorithms to the expected value, a Token configuration section summarizing the JWT issue, and no finding raised against session.ts since its cookie flags (httpOnly, secure, sameSite) are already correct.",
+      "files": [],
+      "assertions": [
+        "Flags the jwt.verify call in verifyToken (src/auth/tokenService.ts) for not passing an explicit algorithms array, identifying it as an algorithm-confusion risk",
+        "The suggested fix specifies passing an explicit algorithms allowlist to jwt.verify (e.g. algorithms: ['HS256']) rather than a vague 'validate the algorithm' remark",
+        "Does not flag the session cookie configuration in session.ts as vulnerable, since httpOnly, secure, and sameSite are already set correctly \u2014 restraint / false-positive check",
+        "Assigns high severity to the missing-algorithms-array finding",
+        "Includes a token-configuration summary section covering the JWT setup, consistent with the skill's report structure",
+        "Does not claim the JWT is stored in localStorage or flag XSS token exposure, since neither file shows where the client stores the token \u2014 restraint against inventing an unobserved risk"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Can you review these two profile-update routes for auth issues? Both already sit behind requireAuth.\n\n```typescript\n// src/routes/users.ts\nrouter.put('/users/:id', requireAuth, async (req, res) => {\n  const { name, email, role } = req.body;\n  await db.user.update({\n    where: { id: req.params.id },\n    data: { name, email, role },\n  });\n  res.json({ ok: true });\n});\n\nrouter.put('/users/:id/name', requireAuth, async (req, res) => {\n  if (req.user.id !== req.params.id) {\n    return res.status(403).json({ error: 'Forbidden' });\n  }\n  const { name } = req.body;\n  await db.user.update({ where: { id: req.params.id }, data: { name } });\n  res.json({ ok: true });\n});\n```\n",
+      "expected_output": "A report flagging PUT /users/:id as high severity for two compounding issues (no ownership check, and an unrestricted role field that lets a caller grant themselves or anyone else a new role), with a fix that adds an ownership check and strips/restricts the role field, while PUT /users/:id/name is left unflagged because it already checks req.user.id !== req.params.id.",
+      "files": [],
+      "assertions": [
+        "Flags the PUT /users/:id handler for having no ownership check, meaning any authenticated user can update another user's name, email, and role by supplying an arbitrary :id",
+        "Flags the same handler for accepting an unrestricted role field in the request body, enabling privilege escalation (a caller can set their own or another user's role)",
+        "Does not flag the PUT /users/:id/name handler, since it already checks req.user.id !== req.params.id before performing the update \u2014 restraint / false-positive check",
+        "Assigns high severity to the PUT /users/:id finding",
+        "The suggested fix adds an ownership check for PUT /users/:id shaped like the one already used in PUT /users/:id/name (reject when req.user.id !== req.params.id)",
+        "The suggested fix also restricts or removes the role field from the update payload (e.g. dropping it from destructuring, or requiring a separate admin-only path) rather than leaving it caller-controlled"
+      ]
+    }
+  ]
+}
