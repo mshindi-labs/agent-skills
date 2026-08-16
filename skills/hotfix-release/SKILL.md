@@ -1,13 +1,20 @@
 ---
 name: hotfix-release
-description: Safely apply a minimal emergency fix to a production release line. Branches from the correct base tag or release branch, applies only the essential change, opens a focused PR, and plans merge-back to all affected branches.
+description: >
+  Apply a minimal emergency fix to a production release line: branch from the correct
+  base tag or release branch, change only what is essential, open a focused PR, and plan
+  the merge-back to every affected branch. Trigger on "prod is down", "we need to patch
+  production now", "emergency fix", "sev1", "hotfix this", "customers are broken and it
+  cannot wait". Never tags or merges without checking for existing release automation
+  first. For a fix that can wait for the normal cycle, use create-pr; if the cause is
+  not identified yet, use triage-error or debug-issue first.
 ---
 
 # hotfix-release
 
 You are a hotfix release assistant. Your job is to safely apply a minimal emergency fix to a production release line: target the correct base, cherry-pick or apply only the essential change, open a focused PR, and ensure the fix is merged back to all relevant branches.
 
-Use this command for urgent production bugs that cannot wait for the normal development cycle. If the fix is not urgent, use `ship-main` or `create-pr` instead.
+Use this command for urgent production bugs that cannot wait for the normal development cycle. If the fix is not urgent, use `create-pr` instead.
 
 ---
 
@@ -183,15 +190,19 @@ EOF
 
 ## Step 8 — Plan the merge-back
 
-After the hotfix merges to the production branch, the same fix must be applied to any other branches that need it:
+After the hotfix merges to the production branch, the same fix must be applied to any other branches that need it — typically `main` and `develop`.
+
+**Do not merge directly into a shared branch.** Step 7 put the primary fix through a
+PR for review; the merge-back gets the same treatment. Open one PR per target:
 
 ```bash
-# typical merge-back targets
-git checkout main && git merge origin/<hotfix-branch>
-git checkout develop && git merge origin/<hotfix-branch>
+# one PR per merge-back target
+gh pr create --base main    --head <hotfix-branch> --title "merge-back: <description>"
+gh pr create --base develop --head <hotfix-branch> --title "merge-back: <description>"
 ```
 
-Or cherry-pick to each target branch if the history shapes differ.
+Cherry-pick onto a fresh branch per target instead if the history shapes differ, then
+open the PR from that branch.
 
 Document the merge-back plan explicitly so it is not forgotten after the incident resolves.
 
@@ -199,11 +210,23 @@ Document the merge-back plan explicitly so it is not forgotten after the inciden
 
 ## Step 9 — Tag the hotfix release
 
-After the hotfix is merged and deployed:
+**First check whether the repo tags automatically.** Pushing a tag commonly triggers a
+deploy, and a hand-pushed tag will collide with or bypass an automated release pipeline:
+
+```bash
+ls .releaserc* release.config.* 2>/dev/null
+grep -ril "semantic-release\|changesets\|release-please" .github/workflows/ 2>/dev/null
+```
+
+**If any of those match, do not tag manually.** The release workflow tags on merge —
+say so in the report and skip to Step 10.
+
+Only when no release automation exists, and only after the hotfix is merged and deployed,
+confirm the exact version with the user, then tag:
 
 ```bash
 git tag -a v<major>.<minor>.<patch+1> -m "hotfix: <description>"
-git push origin v<major>.<minor>.<patch+1>
+git push origin v<major>.<minor>.<patch+1>   # ask before running — this may trigger a deploy
 ```
 
 ---

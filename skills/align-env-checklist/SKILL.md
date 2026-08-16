@@ -1,6 +1,14 @@
 ---
 name: align-env-checklist
-description: Verify that all runtime environment variables are documented in .env.example, detect secrets accidentally committed to source, and check that config validation covers the full set of required variables.
+description: >
+  Verify that every runtime environment variable the code actually reads is documented
+  in .env.example, that config validation covers the full required set, and that no real
+  .env file is tracked. Trigger on "is my .env.example up to date", "are all our env
+  vars documented", "did we miss a config variable", "check our environment variables
+  before deploy", "why is this env var undefined in staging". Audits the documentation
+  and config coverage of the whole codebase; to generate a fillable stub of the values
+  missing from your own local environment, use setup-env. Delegates its secret scanning
+  to audit-secrets rather than duplicating it.
 ---
 
 # align-env-checklist
@@ -36,22 +44,25 @@ Build a complete list of environment variables the application reads.
 
 ## Step 2 — Check for secrets that must not be committed
 
-Scan for accidental secret exposure before anything else:
+**Delegate this to the `audit-secrets` skill.** Do not re-implement the scan here — that
+skill owns the credential pattern set and, unlike a working-tree check, also scans git
+history, where a secret survives after the file is deleted.
+
+Run `audit-secrets` and use its result as a gate:
+
+- **Secrets found** — stop. Report them and follow that skill's remediation, which
+  includes rotating the credential, not merely removing it. Do not continue to Step 3.
+- **Clean** — continue with the env-documentation audit below.
+
+The env-specific concern this skill still owns is `.env` files with real values being
+tracked at all, which `audit-secrets` reports but does not treat as a config problem:
 
 ```bash
-git diff HEAD
-git status --short
+git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.example$'
 ```
 
-Flag immediately if any of these appear in staged or tracked files:
-
-- `.env` files with real values (not `.env.example`)
-- private keys, certificates, or tokens
-- database connection strings with passwords
-- API keys or secrets in source files or config files
-- credentials in commit messages or comments
-
-If any are found, stop and tell the user immediately before continuing.
+Any output here means a real `.env` is tracked — flag it alongside the `.gitignore`
+gap in Step 4 even when it contains no recognisable credential pattern.
 
 Rules:
 

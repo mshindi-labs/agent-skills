@@ -1,0 +1,47 @@
+{
+  "skill_name": "audit-dependencies",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run a dependency audit on this Node project. Here's package.json:\n\n```json\n{\n  \"name\": \"acme-storefront\",\n  \"version\": \"3.2.0\",\n  \"dependencies\": {\n    \"lodash\": \"4.17.15\",\n    \"pdf-stamp\": \"2.1.0\",\n    \"tailwindcss\": \"3.4.1\",\n    \"moment\": \"2.24.0\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"29.7.0\"\n  }\n}\n```\n\n`npm audit --json` (excerpt):\n```\nlodash@4.17.15\n  Prototype Pollution in lodash\n  Severity: high\n  Advisory: CVE-2020-8203\n  Patched in: >=4.17.19\n```\n\n`node_modules/pdf-stamp/package.json` (excerpt):\n```json\n{ \"name\": \"pdf-stamp\", \"version\": \"2.1.0\", \"license\": \"AGPL-3.0\" }\n```\n\nHere's every file in the repo that references any of these packages:\n\n`src/utils/format.ts`:\n```ts\nimport merge from 'lodash/merge'\nexport const mergeDefaults = (a: object, b: object) => merge({}, a, b)\n```\n\n`src/invoices/export.ts`:\n```ts\nimport { stampPdf } from 'pdf-stamp'\nexport const exportInvoice = (doc: Buffer) => stampPdf(doc, { text: 'PAID' })\n```\n\n`postcss.config.js`:\n```js\nmodule.exports = {\n  plugins: [require('tailwindcss'), require('autoprefixer')],\n}\n```\n\nNo other file in the repo mentions lodash, pdf-stamp, tailwindcss, or moment.",
+      "expected_output": "A report flagging lodash@4.17.15 for CVE-2020-8203 with an upgrade target of >=4.17.19, flagging pdf-stamp as an AGPL-3.0 production dependency needing legal review, and flagging moment as an unused production dependency (zero references anywhere). tailwindcss is NOT flagged as unused because postcss.config.js requires it even though no source file imports it.",
+      "files": [],
+      "assertions": [
+        "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and recommends upgrading to >=4.17.19 or later",
+        "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+        "Flags moment as an unused production dependency — no import found anywhere in source or config — and recommends removing it",
+        "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly",
+        "Does NOT flag pdf-stamp or lodash as unused, since both have a genuine import in src/",
+        "Gives a concrete upgrade command or version target for lodash rather than a vague 'update lodash' instruction"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Quick dependency check on this frontend app before we ship. I especially want you to double-check that `react` itself isn't secretly dead weight — I have a feeling our grep-based tooling might get confused by `react-dom`.\n\n`package.json`:\n```json\n{\n  \"name\": \"acme-dashboard\",\n  \"dependencies\": {\n    \"react\": \"18.2.0\",\n    \"react-dom\": \"18.2.0\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"5.1.4\",\n    \"typescript\": \"5.4.2\"\n  }\n}\n```\n\n`tsconfig.json` (excerpt):\n```json\n{\n  \"compilerOptions\": {\n    \"jsx\": \"react-jsx\",\n    \"target\": \"ES2022\"\n  }\n}\n```\n\nEvery file in the repo that mentions 'react' or 'react-dom' as a string:\n\n`src/entry-client.tsx`:\n```tsx\nimport { hydrateRoot } from 'react-dom/client'\nimport { App } from './App'\n\nhydrateRoot(document.getElementById('root')!, <App />)\n```\n\n`src/App.tsx`:\n```tsx\nexport function App() {\n  return <main><h1>Dashboard</h1></main>\n}\n```\n\nNo file anywhere in the repo contains a literal import from 'react' (not 'react-dom') — the project uses the automatic JSX runtime.",
+      "expected_output": "A report confirming react-dom is used (literal import in entry-client.tsx) and explicitly NOT flagging react as unused, reasoning from tsconfig.json's \"jsx\": \"react-jsx\" setting (the automatic JSX runtime requires react even without a literal import string) rather than from any overlap between the substrings 'react' and 'react-dom'.",
+      "files": [],
+      "assertions": [
+        "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx",
+        "Does NOT list react as an unused dependency or removal candidate",
+        "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
+        "Never claims that the react-dom import itself counts as evidence that 'react' is imported — treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+        "States that no unused production dependencies were found, since both react and react-dom are justified",
+        "Does not report any security vulnerability or license finding for react or react-dom, since none was supplied in the prompt"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Full dependency audit please. package.json:\n\n```json\n{\n  \"name\": \"acme-api\",\n  \"version\": \"2.4.0\",\n  \"scripts\": {\n    \"start\": \"ts-node src/index.ts\",\n    \"test\": \"jest\"\n  },\n  \"dependencies\": {\n    \"acme-http-client\": \"2.1.0\",\n    \"geo-lookup\": \"1.8.0\",\n    \"supertest\": \"6.3.3\",\n    \"ts-node\": \"10.9.2\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"29.7.0\"\n  }\n}\n```\n\n`npm outdated` output:\n```\nPackage            Current  Wanted  Latest  Location\nacme-http-client   2.1.0    2.1.0   5.0.0   node_modules/acme-http-client\n```\nOur internal changelog notes breaking changes in acme-http-client v3 (auth rewrite) and v5 (dropped the callback API).\n\n`node_modules/geo-lookup/package.json` (excerpt):\n```json\n{ \"name\": \"geo-lookup\", \"version\": \"1.8.0\", \"license\": \"LGPL-2.1\" }\n```\n\nEvery file that references any of these four packages:\n\n`src/index.ts`:\n```ts\nimport { GeoLookup } from 'geo-lookup'\nimport { HttpClient } from 'acme-http-client'\n```\n\n`tests/api.test.ts`:\n```ts\nimport request from 'supertest'\n```\n\nNo other file mentions acme-http-client, geo-lookup, supertest, or ts-node. ts-node is not imported anywhere as a module.",
+      "expected_output": "A report flagging acme-http-client as significantly outdated (2.1.0 to 5.0.0, breaking changes across v3 and v5, effort: significant), flagging geo-lookup's LGPL-2.1 as a weak-copyleft license worth a legal review, and flagging supertest as listed under dependencies but only imported from a test file (recommend moving to devDependencies). ts-node is NOT flagged as unused despite having no source import, because it's the package.json start script.",
+      "files": [],
+      "assertions": [
+        "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
+        "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
+        "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
+        "Does NOT flag ts-node as an unused dependency — recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module",
+        "Does NOT flag geo-lookup or acme-http-client as unused, since both are imported in src/index.ts",
+        "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it — keeps it in the outdated-dependencies category"
+      ]
+    }
+  ]
+}

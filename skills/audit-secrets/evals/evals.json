@@ -1,0 +1,47 @@
+{
+  "skill_name": "audit-secrets",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm about to make this internal scratch project public. Before I do, run a secrets audit on it — I don't just want a scan of what's sitting in the files right now, I want to know if anything sensitive ever touched a commit, even if it looks clean today. The repo is at the path given in the fixture.",
+      "expected_output": "A report that finds the AWS access key AKIAIOSFODNN7EXAMPLE both in the current working tree (config/credentials.txt) and in git history, and finds the RSA private key block ONLY in git history (it was removed from the working tree in a later commit). Both values are masked in the report. Remediation for both says to rotate the credential, and history-purging guidance recommends git filter-repo rather than rebase -i or commit --amend.",
+      "files": ["skills/audit-secrets/evals/fixtures/leaked-aws-and-rsa-key/"],
+      "assertions": [
+        "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+        "Identifies the RSA private key block as a finding present ONLY in git history — explicitly notes it was removed from the current working tree in a later commit",
+        "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+        "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+        "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+        "The response never prints the full RSA private key body or the full AWS secret access key value anywhere, even while explaining the finding"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We're prepping to open-source this repo. Here's the current state of the file plus the full git log -p for it. Can you tell me if we're actually safe to make this public?\n\nCurrent working tree — `config/settings.py`:\n```python\nimport os\n\nSTRIPE_SECRET_KEY = os.environ[\"STRIPE_SECRET_KEY\"]\nDATABASE_URL = os.environ[\"DATABASE_URL\"]\n```\n\n`git log -p -- config/settings.py`:\n```\ncommit def5678901234567890123456789012345abcd (HEAD -> main)\nAuthor: Priya Raman <priya@acme.dev>\nDate:   Mon Jan 12 10:04:22 2026 -0800\n\n    settings: read Stripe key and DB url from environment\n\ndiff --git a/config/settings.py b/config/settings.py\nindex 3a1c2f0..9e21abc 100644\n--- a/config/settings.py\n+++ b/config/settings.py\n@@ -1,5 +1,4 @@\n import os\n\n-STRIPE_SECRET_KEY = \"sk_live_51HxrA2Cq_JmXbTuvvyZQwErTyU1234567890abcdefGHIJKLMNOPQ\"\n-DATABASE_URL = \"postgres://admin:SuperSecretPass1@db.internal.acme.dev:5432/prod\"\n+STRIPE_SECRET_KEY = os.environ[\"STRIPE_SECRET_KEY\"]\n+DATABASE_URL = os.environ[\"DATABASE_URL\"]\n\ncommit abc1234567890123456789012345678901abcde\nAuthor: Priya Raman <priya@acme.dev>\nDate:   Wed Jan 7 15:41:09 2026 -0800\n\n    settings: add Stripe and database config\n\ndiff --git a/config/settings.py b/config/settings.py\nnew file mode 100644\nindex 0000000..3a1c2f0\n--- /dev/null\n+++ b/config/settings.py\n@@ -0,0 +1,4 @@\n+import os\n+\n+STRIPE_SECRET_KEY = \"sk_live_51HxrA2Cq_JmXbTuvvyZQwErTyU1234567890abcdefGHIJKLMNOPQ\"\n+DATABASE_URL = \"postgres://admin:SuperSecretPass1@db.internal.acme.dev:5432/prod\"\n```",
+      "expected_output": "A report that does NOT declare the repo clean just because the current file is safe. It surfaces the Stripe live secret key and the database connection string with an embedded password, both found only in commit abc1234 (removed in def5678). It states clearly these are gone from the working tree but still live in history, masks both values, and recommends rotating the Stripe key and the database password, not just purging history.",
+      "files": [],
+      "assertions": [
+        "Flags the Stripe live secret key (sk_live_...) found in commit abc1234, even though the current working tree no longer contains it",
+        "Flags the database connection string with the embedded password (postgres://admin:...@db.internal.acme.dev) found in the same historical commit",
+        "Explicitly states that both values were removed from the working tree in a later commit (def5678) and now only exist in git history",
+        "Remediation says to rotate both the Stripe key and the database password, treating them as compromised — not just 'purge history' or 'add to .gitignore'",
+        "Masks both secret values wherever they appear in the report (e.g. sk_live_51Hx****NOPQ style truncation), never printing them in full",
+        "Does not conclude the repo has no findings or is safe to publish on the basis of the clean current file alone — the history scan result changes the conclusion"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Sanity check before I push: does this repo have any leaked credentials? Here's the git log -p for the one file involved, and the current contents of the only other file that mentions anything credential-related.\n\n`git log -p -- scripts/deploy.sh`:\n```\ncommit 222bbb3344556677889900aabbccddeeff11223 (HEAD -> main)\nAuthor: Tom Okafor <tom@acme.dev>\nDate:   Thu Feb 5 09:12:00 2026 -0800\n\n    ci: replace manual deploy script with GitHub Action\n\ndiff --git a/scripts/deploy.sh b/scripts/deploy.sh\ndeleted file mode 100755\nindex 7c3d9ab..0000000\n--- a/scripts/deploy.sh\n+++ /dev/null\n@@ -1,4 +0,0 @@\n-#!/bin/sh\n-GITHUB_TOKEN=\"ghp_1A2B3C4D5E6F7G8H9I0JklMnOpQrStUvWxYz12\"\n-curl -H \"Authorization: Bearer $GITHUB_TOKEN\" \\\n-  https://api.github.com/repos/acme/app/dispatches -d '{\"event_type\":\"deploy\"}'\n\ncommit 111aaa2233445566778899aabbccddeeff001122\nAuthor: Tom Okafor <tom@acme.dev>\nDate:   Mon Jan 12 08:30:00 2026 -0800\n\n    ops: add manual deploy trigger script\n\ndiff --git a/scripts/deploy.sh b/scripts/deploy.sh\nnew file mode 100755\nindex 0000000..7c3d9ab\n--- /dev/null\n+++ b/scripts/deploy.sh\n@@ -0,0 +1,4 @@\n+#!/bin/sh\n+GITHUB_TOKEN=\"ghp_1A2B3C4D5E6F7G8H9I0JklMnOpQrStUvWxYz12\"\n+curl -H \"Authorization: Bearer $GITHUB_TOKEN\" \\\n+  https://api.github.com/repos/acme/app/dispatches -d '{\"event_type\":\"deploy\"}'\n```\n\nCurrent contents of `scripts/README.md`:\n```markdown\n# scripts\n\nDeploys now run via GitHub Actions. If you ever need to trigger one manually,\nset GITHUB_TOKEN=your-token-here and hit the dispatches endpoint yourself.\n```",
+      "expected_output": "A report that flags the ghp_ GitHub token found in commit 111aaa, notes the whole file (and the token with it) was deleted in commit 222bbb so it no longer exists on disk but remains recoverable from history, masks the token value, and recommends revoking/rotating it on GitHub plus purging with git filter-repo. It does NOT treat the placeholder 'your-token-here' string in scripts/README.md as an actual leaked credential.",
+      "files": [],
+      "assertions": [
+        "Flags the GitHub token (ghp_...) found in commit 111aaa as a high-severity finding, even though scripts/deploy.sh was deleted entirely in a later commit",
+        "States that the finding exists only in git history now (the file was deleted, not just edited) and is still recoverable via git",
+        "Masks the GitHub token value in the report (e.g. ghp_1A2B****Yz12), never printing it in full",
+        "Remediation explicitly says to revoke/rotate the GitHub token via GitHub, not merely delete the file or purge history",
+        "Recommends git filter-repo (or BFG) to purge the deleted file's history, not git rebase -i or git commit --amend",
+        "Does not flag 'your-token-here' in scripts/README.md as a confirmed/high-severity leaked credential — recognizes it as an obvious placeholder rather than a real secret"
+      ]
+    }
+  ]
+}

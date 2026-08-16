@@ -1,6 +1,12 @@
 ---
 name: audit-dependencies
-description: Review dependencies for known CVEs, significantly outdated packages, license risks, and unused packages. Use before a release, after an npm audit alert, or for quarterly hygiene.
+description: >
+  Review dependencies for known CVEs, significantly outdated packages, license risks,
+  and genuinely unused packages. Trigger on "are my dependencies safe", "check for
+  vulnerable packages", "run a dependency audit", "do we have any GPL or AGPL
+  dependencies", "any CVEs in our deps", "what can I safely remove from package.json".
+  Produces a read-only report and changes no files — to actually plan and execute the
+  version bumps and verify checks still pass, use upgrade-dependencies.
 ---
 
 # audit-dependencies
@@ -115,11 +121,23 @@ For each flagged license:
 
 Search the source code for import/require usage of each direct production dependency.
 
-For each dependency, check whether it is imported anywhere in the non-test source:
+For each dependency, check whether it is referenced anywhere. Match the package name
+as a **quoted whole token** and search the whole repo, not just `src/` — a bare
+substring grep reports `react` as used when only `react-dom` is imported, and misses
+packages used exclusively from config files:
 
 ```bash
-grep -r "require\|import" src/ --include="*.ts" --include="*.js" | grep <package-name>
+PKG='<package-name>'
+# quoted exact match: catches `import x from 'pkg'`, `require("pkg")`, and `from 'pkg/sub'`
+grep -rEn "['\"]${PKG}(/[^'\"]*)?['\"]" . \
+  --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.mjs' \
+  --include='*.cjs' --include='*.json' --include='*.yml' --include='*.yaml' \
+  --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=build
 ```
+
+Also check the places imports do not appear as literals before concluding a package
+is unused: root config files (`*.config.{js,ts,mjs}`, `.eslintrc*`, `babel.config.*`),
+`Dockerfile`, CI workflow files, and `package.json` `scripts`.
 
 Flag dependencies that:
 
