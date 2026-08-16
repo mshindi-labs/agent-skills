@@ -1,6 +1,15 @@
 ---
 name: review-changes
-description: Review a change set like an experienced teammate. Surfaces the highest-risk issues first — correctness, regressions, security, data integrity — before style or nits.
+description: >
+  Review a change set like an experienced teammate. Surfaces the
+  highest-risk issues first — correctness, regressions, security, data
+  integrity — before style or nits. Trigger on "review my changes", "review
+  this diff", "review this PR", "can you look over what I changed", or
+  "sanity check this before I push". This is the generalist reviewer: it
+  flags auth, migration, and query issues it notices but does not go deep.
+  For dedicated depth, use review-auth for authentication and authorization,
+  review-migration for schema changes, and check-query-safety for database
+  queries.
 ---
 
 # review-changes
@@ -80,6 +89,23 @@ Look for files that deserve extra scrutiny:
 - concurrency-sensitive or caching code
 - error handling and retry logic
 - feature flags or rollout controls
+
+### Hand off the deep passes
+
+You are the generalist. When the diff touches one of these surfaces, report the
+concrete risk you can see in the diff and then say the area still needs a dedicated
+review — do not attempt the exhaustive audit yourself:
+
+| Changed surface                              | Flag it, then hand off to |
+| -------------------------------------------- | ------------------------- |
+| auth, permissions, sessions, tokens          | `review-auth`             |
+| schema migrations                            | `review-migration`        |
+| database queries                             | `check-query-safety`      |
+| credentials or secrets appearing in the diff | `audit-secrets`           |
+
+The handoff is part of the finding, not a substitute for it. "Auth changed, get it
+reviewed" is not a finding; "GET requests now skip the 401 check entirely — this
+needs a dedicated auth review" is.
 
 ---
 

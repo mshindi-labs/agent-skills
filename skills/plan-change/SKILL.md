@@ -1,6 +1,15 @@
 ---
 name: plan-change
-description: Produce a clear, implementation-ready plan for a requested change before writing code. Covers scope, constraints, options, recommended approach, phased work, risks, and verification.
+description: >
+  Produce a clear, implementation-ready plan for a requested change before any
+  code is written — covers scope, constraints, options, recommended approach,
+  phased work, risks, and verification. Writes no files and no code; the
+  deliverable is the plan itself. Use when the user says "how should I
+  approach this", "plan out this change", "what's the best way to implement
+  X", or "help me think through this before I start coding". Not for
+  generating boilerplate files — use scaffold-feature instead when the user
+  wants skeleton controller, service, or test files created rather than a
+  written plan.
 ---
 
 # plan-change

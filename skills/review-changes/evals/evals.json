@@ -1,0 +1,47 @@
+{
+  "skill_name": "review-changes",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Can you review this diff before I open the PR? This is the full diff, nothing else changed.\n\n```diff\ndiff --git a/src/routes/reports.ts b/src/routes/reports.ts\nindex 3f2a1c4..9b8e221 100644\n--- a/src/routes/reports.ts\n+++ b/src/routes/reports.ts\n@@ -12,13 +12,10 @@ import { externalReportsClient } from '../clients/externalReportsClient';\n // externalReportsClient.fetchForUser resolves to `null` when the user has no reports on record\n export async function getReportSummaries(userId: string) {\n   const reports = await externalReportsClient.fetchForUser(userId);\n\n-  if (!reports) {\n-    return [];\n-  }\n-\n   return reports.map((r) => ({\n     id: r.id,\n     total: r.total,\n     label: r.label.toUpperCase(),\n   }));\n }\n```\n\n```diff\ndiff --git a/src/middleware/authGuard.ts b/src/middleware/authGuard.ts\nindex 7a1b3aa..a44e100 100644\n--- a/src/middleware/authGuard.ts\n+++ b/src/middleware/authGuard.ts\n@@ -8,7 +8,7 @@ import { Request, Response, NextFunction } from 'express';\n\n export function requireAuth(req: Request, res: Response, next: NextFunction) {\n-  if (!req.headers.authorization) {\n+  if (!req.headers.authorization && req.method !== 'GET') {\n     return res.status(401).json({ error: 'Unauthorized' });\n   }\n   next();\n }\n```\n",
+      "expected_output": "Findings-first response (no lead-in praise/summary) that opens with the null-check removal in getReportSummaries (src/routes/reports.ts) as a concrete crash bug, calls out the missing test for that behavior, and flags authGuard.ts as a real auth regression that needs dedicated auth review rather than a full auth audit performed inline.",
+      "files": [],
+      "assertions": [
+        "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+        "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+        "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+        "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+        "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+        "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Quick review before I merge \u2014 added an export endpoint and a migration for it.\n\n```diff\ndiff --git a/migrations/0031_add_reports_owner_required.sql b/migrations/0031_add_reports_owner_required.sql\nnew file mode 100644\nindex 0000000..1a2b3c4\n--- /dev/null\n+++ b/migrations/0031_add_reports_owner_required.sql\n@@ -0,0 +1,2 @@\n+ALTER TABLE reports ADD COLUMN owner_id uuid NOT NULL;\n+\n```\n\n```diff\ndiff --git a/src/services/exportService.ts b/src/services/exportService.ts\nnew file mode 100644\nindex 0000000..5d6e7f8\n--- /dev/null\n+++ b/src/services/exportService.ts\n@@ -0,0 +1,9 @@\n+import { db } from '../db';\n+\n+export async function exportReportItems(reportIds: string[]) {\n+  const results = [];\n+  for (const id of reportIds) {\n+    const items = await db.reportItem.findMany({ where: { reportId: id } });\n+    results.push(...items);\n+  }\n+  return results;\n+}\n```\n\n```diff\ndiff --git a/src/services/exportService.test.ts b/src/services/exportService.test.ts\nnew file mode 100644\nindex 0000000..9a8b7c6\n--- /dev/null\n+++ b/src/services/exportService.test.ts\n@@ -0,0 +1,6 @@\n+import { exportReportItems } from './exportService';\n+\n+test('exports items for a report', async () => {\n+  const items = await exportReportItems(['report_1']);\n+  expect(items).toHaveLength(2);\n+});\n```\n",
+      "expected_output": "Findings-first response flagging the N+1 query loop in exportReportItems and the unsafe NOT NULL migration (no default, will fail against existing rows), noting the migration deserves dedicated schema review, pointing out the added test only covers a single report id, and not inventing any auth/IDOR finding since nothing auth-related changed.",
+      "files": [],
+      "assertions": [
+        "Opens the response with a severity-tagged finding rather than a summary or restatement of the diff",
+        "Flags the N+1 query pattern in exportReportItems (src/services/exportService.ts), explicitly naming the per-id database call inside the for loop as the issue rather than a generic 'looks slow' comment",
+        "Flags migrations/0031_add_reports_owner_required.sql as unsafe because it adds a NOT NULL column with no default, which will fail against any existing rows in the reports table",
+        "Notes that the migration warrants dedicated/deeper schema-migration review (e.g. points to a migration-focused review) rather than the response itself providing an exhaustive lock-duration or index-rebuild analysis",
+        "Points out that the added test in exportService.test.ts only exercises a single report id and does not cover the multi-id path where the N+1 pattern actually manifests",
+        "Does not raise any auth, authorization, or IDOR finding anywhere in the response, since no auth-related file was touched in this diff \u2014 restraint check"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Quick rename refactor before I merge, can you review?\n\n```diff\ndiff --git a/src/pricing/shipping.ts b/src/pricing/shipping.ts\nindex abc123..def456 100644\n--- a/src/pricing/shipping.ts\n+++ b/src/pricing/shipping.ts\n@@ -4,7 +4,7 @@ interface ShippingInput {\n   weightKg: number\n   distanceKm: number\n }\n\n-export function calculateShippingCost(input: ShippingInput): number {\n+export function calculateShippingEstimate(input: ShippingInput): number {\n   return input.weightKg * 0.5 + input.distanceKm * 0.1\n }\n```\n\n```diff\ndiff --git a/src/checkout/orderSummary.ts b/src/checkout/orderSummary.ts\nindex 111aaa..222bbb 100644\n--- a/src/checkout/orderSummary.ts\n+++ b/src/checkout/orderSummary.ts\n@@ -1,10 +1,10 @@\n-import { calculateShippingCost } from '../pricing/shipping'\n+import { calculateShippingEstimate } from '../pricing/shipping'\n\n export function buildOrderSummary(order: Order) {\n-  const shipping = calculateShippingCost({\n+  const shipping = calculateShippingEstimate({\n     weightKg: order.weightKg,\n     distanceKm: order.distanceKm,\n   })\n   return { ...order, shipping }\n }\n```\n\n```diff\ndiff --git a/src/pricing/shipping.test.ts b/src/pricing/shipping.test.ts\nnew file mode 100644\nindex 0000000..333ccc\n--- /dev/null\n+++ b/src/pricing/shipping.test.ts\n@@ -0,0 +1,6 @@\n+import { calculateShippingEstimate } from './shipping'\n+\n+test('calculates shipping estimate from weight and distance', () => {\n+  const estimate = calculateShippingEstimate({ weightKg: 2, distanceKm: 10 })\n+  expect(estimate).toBe(2)\n+})\n```\n",
+      "expected_output": "A short response stating explicitly that no significant issues were found in this pure rename (definition, call site, and a new test are all consistent), without manufacturing a severity-tagged finding, missing-test claim, or auth/migration comment to fill space.",
+      "files": [],
+      "assertions": [
+        "Explicitly states that no significant issues were found in the diff, rather than manufacturing a high or medium severity finding for this rename \u2014 restraint check",
+        "Does not claim missing or inadequate test coverage, since shipping.test.ts already covers the renamed function's behavior",
+        "Does not raise any auth, authorization, or migration-related finding, since neither category is touched by this diff \u2014 restraint check",
+        "Confirms the rename is applied consistently at both the definition (shipping.ts) and the call site (orderSummary.ts) without flagging a stale or leftover reference to calculateShippingCost",
+        "Does not open the response with unprompted praise (e.g. 'looks great', 'nice work') in place of or before the explicit no-significant-issues statement",
+        "Any residual risk or testing-gap note appears only as a short secondary remark after the explicit no-significant-issues statement, not as a leading high/medium severity finding"
+      ]
+    }
+  ]
+}

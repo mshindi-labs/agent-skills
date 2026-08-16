@@ -1,6 +1,12 @@
 ---
 name: ship-release-candidate
-description: Produce a thorough release candidate PR to main. Validates state, checks merge conflicts, infers the version bump from commit history, and drafts a release-focused PR body.
+description: >
+  Produce a thorough release candidate PR to main. Validates state, checks
+  merge conflicts, infers the version bump from commit history, and drafts a
+  release-focused PR body. Trigger on requests like "cut a release", "cut an
+  RC", "prep the release candidate", or "what version should this be". This
+  fires only when a branch bundles multiple changes into a versioned release
+  — for an ordinary single-change PR, use create-pr instead.
 ---
 
 # ship-release-candidate

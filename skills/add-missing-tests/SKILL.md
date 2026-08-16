@@ -1,6 +1,14 @@
 ---
 name: add-missing-tests
-description: Identify untested or under-tested behavior in a file or module and propose the most valuable tests to add. Use after a refactor, before a risky release, or during a coverage review.
+description: >
+  Identify untested or under-tested behavior in a file or module and propose
+  the most valuable tests to add. Use after a refactor, before a risky
+  release, or during a coverage review. Trigger on questions like "what tests
+  am I missing", "what's not covered here", "find the coverage gaps in this
+  file", "did I miss any test cases", or "what should I test before shipping
+  this". Produces a gap report and TODO-assertion test stubs only — it does
+  not write full test implementations or run the suite. For that, use
+  add-test-coverage instead.
 ---
 
 # add-missing-tests

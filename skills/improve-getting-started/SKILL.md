@@ -1,6 +1,14 @@
 ---
 name: improve-getting-started
-description: Audit and improve the developer onboarding experience. Finds gaps between what the README says and what actually works, then updates documentation so a new developer can go from clone to running tests with confidence.
+description: >
+  Audit and improve the developer onboarding experience -- finds gaps between
+  what the README says and what actually works (runtime versions, service
+  startup, migrations), then updates the docs so a new developer can go from
+  clone to running tests with confidence. Use when someone says "does the README
+  still work", "clone to running tests", "onboarding is broken", "our setup docs
+  are stale", or "can a new hire get this running". For checking whether env vars
+  themselves are fully documented or contain leaked secrets, defer to
+  align-env-checklist instead of auditing that here.
 ---
 
 # improve-getting-started

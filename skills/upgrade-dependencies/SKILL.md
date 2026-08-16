@@ -1,6 +1,14 @@
 ---
 name: upgrade-dependencies
-description: Safely plan and execute package or runtime version bumps. Audits outdated dependencies, classifies them by risk tier, reads changelogs for breaking changes, upgrades in safe batches, and verifies checks pass.
+description: >
+  Safely plan and execute package or runtime version bumps. Audits outdated
+  dependencies, classifies them by risk tier, reads changelogs for breaking
+  changes, upgrades in safe batches, and verifies checks pass. Trigger on
+  requests like "upgrade our dependencies", "bump these packages", "update to
+  the latest version", or "upgrade npm packages and make sure tests still
+  pass". This skill executes the upgrade and changes files — for a read-only
+  CVE and license report that touches nothing, use audit-dependencies
+  instead.
 ---
 
 # upgrade-dependencies

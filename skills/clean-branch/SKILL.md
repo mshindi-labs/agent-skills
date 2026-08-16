@@ -1,6 +1,11 @@
 ---
 name: clean-branch
-description: Identify and clean up stale local branches — merged, untracked, and abandoned. Always presents the list for confirmation before deleting anything.
+description: >
+  Identify and clean up stale local branches — merged, untracked, and
+  abandoned. Always presents the list for confirmation before deleting
+  anything. Trigger on requests like "clean up my branches", "delete merged
+  branches", "which branches can I delete", "prune stale branches", or "get
+  rid of branches I don't need anymore".
 ---
 
 # clean-branch

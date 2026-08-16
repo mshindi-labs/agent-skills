@@ -1,6 +1,15 @@
 ---
 name: explain-flow
-description: Explain how a feature, endpoint, job, script, or data flow works from entry point to side effects. Traces the real execution path through the codebase, not assumptions.
+description: >
+  Give a narrative, step-by-step trace of how ONE feature, endpoint, job, or
+  script works end to end, from entry point through to side effects — grounded
+  in the real execution path, not assumptions. Use when the user asks "how
+  does login work", "how is /api/orders POST processed", "how does this cron
+  job send reminders", "how do invoices get generated", or "walk me through
+  how X works". Not for a quick file:line pointer — use locate-implementation
+  when the user just wants "where is X" with no narrative. Not for whole-repo
+  orientation — use onboard-codebase when the user wants to understand the
+  whole project rather than one flow.
 ---
 
 # explain-flow

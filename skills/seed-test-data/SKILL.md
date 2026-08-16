@@ -1,6 +1,12 @@
 ---
 name: seed-test-data
-description: Generate realistic test fixtures and factory functions for a model or entity following the project's existing patterns. Use when adding tests that need non-trivial data or bootstrapping a test environment.
+description: >
+  Generate realistic test fixtures and factory functions for a model or
+  entity following the project's existing patterns. Use when adding tests
+  that need non-trivial data or bootstrapping a test environment. Trigger on
+  "I need test data for this", "generate a fixture for User", "make me a
+  factory function", "seed the database for tests", or "mock data for this
+  model".
 ---
 
 # seed-test-data

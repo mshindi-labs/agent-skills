@@ -1,6 +1,14 @@
 ---
 name: scaffold-feature
-description: Generate skeleton files for a new feature following the project's existing conventions — controller, service, repository, DTOs, tests. Use to start a new feature consistently without guessing the structure.
+description: >
+  Generate skeleton files for a new feature following the project's existing
+  conventions -- controller, service, repository, DTOs, tests. Use when someone
+  says "scaffold a new feature", "start a new feature", "set up the files for
+  this", "generate the boilerplate", or "create the skeleton for X", so the file
+  layout matches the codebase instead of guessing a framework default. Produces
+  files only -- no plan, no rollout strategy, no sequencing of work. For deciding
+  what to build and in what order before any files exist, use plan-change
+  instead.
 ---
 
 # scaffold-feature

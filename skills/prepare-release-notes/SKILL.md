@@ -1,6 +1,11 @@
 ---
 name: prepare-release-notes
-description: Turn a range of git commits into concise, accurate release notes. Groups changes by user impact, calls out breaking changes, upgrade steps, and migration requirements.
+description: >
+  Turn a range of git commits into concise, accurate release notes. Groups
+  changes by user impact, calls out breaking changes, upgrade steps, and
+  migration requirements. Trigger on requests like "write the changelog",
+  "what's new in this release", "release notes for v1.3.0", "summarize what
+  shipped", or "draft the changelog for this version".
 ---
 
 # prepare-release-notes

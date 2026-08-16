@@ -1,6 +1,15 @@
 ---
 name: triage-error
-description: Take a production error, stack trace, or alert and systematically locate the fault, assess blast radius, and recommend a mitigation path. Use during incidents or when investigating production alerts.
+description: >
+  Take a live production error, stack trace, or on-call alert and
+  systematically locate the fault site, assess blast radius, and recommend a
+  mitigation path — the deliverable is fault site plus blast radius plus
+  mitigation, not necessarily a code change. Use when the user says "prod is
+  down", "we're getting paged", "production is throwing errors", "customers
+  are seeing 500s", or "what's the blast radius", or pastes a stack trace
+  during an active incident. Not for a routine dev-time bug, failing test, or
+  code-review finding — use debug-issue instead, which produces a code fix
+  rather than an incident response.
 ---
 
 # triage-error

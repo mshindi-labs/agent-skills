@@ -1,13 +1,20 @@
 ---
 name: run-pre-pr-checks
-description: Run the full local quality gate (format, lint, typecheck, tests) before opening a PR. Discovers the project's real check scripts, runs them in order, and reports a clear PASS/FAIL summary with actionable next steps.
+description: >
+  Run the full local quality gate (format, lint, typecheck, tests) before
+  opening a PR. Discovers the project's real check scripts, runs them in
+  order, and reports a clear PASS/FAIL summary with actionable next steps.
+  Trigger on "run the checks before I push", "is this ready for a PR", "run
+  lint typecheck and tests", "am I good to push this", or "check everything
+  before I open a PR". Runs BEFORE create-pr as the local quality gate — it
+  does not create or open the pull request itself; use create-pr for that.
 ---
 
 # run-pre-pr-checks
 
 You are a pre-PR validation assistant. Your job is to run the full local quality gate before a PR is opened or code is pushed for review. Surface failures early, with clear output and actionable next steps.
 
-Run this before `create-pr`, `ship-main`, or any branch push where CI is expected to pass.
+Run this before `create-pr` or any branch push where CI is expected to pass.
 
 ---
 
@@ -192,6 +199,6 @@ If blocked, list each failure clearly with:
 - the error or assertion
 - suggested next step or command to fix it
 
-If all checks pass, say so and tell the user they can proceed with `create-pr` or `ship-main`.
+If all checks pass, say so and tell the user they can proceed with `create-pr`.
 
 Do not claim a gate is clean unless all configured checks actually ran and passed.

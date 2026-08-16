@@ -1,6 +1,13 @@
 ---
 name: commit-changes
-description: Create a clean, intentional git commit with Conventional Commits formatting. Inspects working tree, stages files explicitly, validates the message, and commits safely without AI attribution.
+description: >
+  Create a clean, intentional git commit with Conventional Commits formatting --
+  inspects the working tree, stages files explicitly, validates the message, and
+  commits safely without AI attribution. Use when someone says "commit this",
+  "commit my changes", "write a commit message", "make a clean commit", or "git
+  commit this". For fixing the message or contents of a commit that already
+  exists, use amend-safely instead -- this skill is for creating one new commit,
+  not editing the previous one.
 ---
 
 # commit-changes

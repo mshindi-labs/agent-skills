@@ -1,0 +1,8 @@
+[
+  { "query": "create a pull request", "should_trigger": true },
+  { "query": "open a PR for this branch", "should_trigger": true },
+  { "query": "ship this to main", "should_trigger": true },
+  { "query": "put this branch up for review", "should_trigger": true },
+  { "query": "commit my changes", "should_trigger": false },
+  { "query": "what does this function do?", "should_trigger": false }
+]

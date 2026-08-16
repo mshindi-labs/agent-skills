@@ -1,6 +1,13 @@
 ---
 name: fix-any-types
-description: Remove all uses of `any` from a TypeScript file and replace them with correct, narrow types. Infers types from usage, existing interfaces, and runtime shapes. Prefers unknown over any when a type cannot be determined.
+description: >
+  Remove all uses of `any` from a TypeScript file and replace them with correct,
+  narrow types, inferring from usage, existing interfaces, and runtime shapes.
+  Use when someone says "fix the any types", "get rid of these anys", "type this
+  properly", "stop using any here", or "tighten up the types in this file".
+  Prefers unknown over any when a type cannot be determined. Distinct from
+  functional-typescript, which covers broader FP patterns and general type design
+  -- reach for this skill specifically when `any` itself is the problem.
 ---
 
 # fix-any-types
