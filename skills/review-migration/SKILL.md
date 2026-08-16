@@ -45,28 +45,45 @@ For every statement in the migration, classify it by risk:
 | `RENAME TABLE`                                           | **High**    | Breaking for all references                                                                          |
 | `ALTER COLUMN` (type change)                             | **High**    | May fail or silently truncate data                                                                   |
 | `ALTER COLUMN` (type widening, e.g., VARCHAR(50) → TEXT) | Medium      | Usually safe but verify                                                                              |
-| `CREATE INDEX` (inline)                                  | Medium      | Takes `ACCESS EXCLUSIVE` lock for duration                                                           |
-| `CREATE INDEX CONCURRENTLY`                              | Low         | No locking, but cannot run inside a transaction                                                      |
+| `CREATE INDEX` (inline)                                  | Medium      | Takes `SHARE` — blocks writes for the whole build; reads keep working                                |
+| `CREATE INDEX CONCURRENTLY`                              | Low         | Takes `SHARE UPDATE EXCLUSIVE` — writes keep working; cannot run inside a transaction                |
 | `ADD CONSTRAINT` (CHECK, UNIQUE, FK)                     | Medium–High | May scan entire table; FK adds lock                                                                  |
 | `ADD CONSTRAINT NOT VALID`                               | Low         | Skips historical row validation                                                                      |
 | `VALIDATE CONSTRAINT`                                    | Medium      | Scans table but takes `SHARE UPDATE EXCLUSIVE`                                                       |
-| Backfill `UPDATE` on large table                         | **High**    | Locks table, potentially for minutes                                                                 |
+| Backfill `UPDATE` on large table                         | **High**    | One long transaction holding a row lock per matched row; heavy WAL and bloat — batch it              |
 | `TRUNCATE`                                               | **High**    | Destructive                                                                                          |
 
 ---
 
 ## Step 3 — Check for locking risks
 
-Identify any operation that will take an `ACCESS EXCLUSIVE` lock on a table:
+Name the lock each operation actually takes. Do not label every lock risk
+`ACCESS EXCLUSIVE` — the lock type is what tells the reader whether reads survive,
+and the wrong name points them at the wrong remedy.
+
+`ACCESS EXCLUSIVE` — blocks reads **and** writes:
 
 - `ALTER TABLE` (most variants)
-- `CREATE INDEX` without `CONCURRENTLY`
 - `ADD CONSTRAINT` (non-NOT VALID)
-- `DROP COLUMN` / `RENAME COLUMN`
+- `DROP COLUMN` / `RENAME COLUMN` / `DROP TABLE` / `TRUNCATE`
+
+`SHARE` — blocks writes for the whole build, reads keep working:
+
+- `CREATE INDEX` without `CONCURRENTLY`
+
+`SHARE UPDATE EXCLUSIVE` — reads and writes both keep working:
+
+- `CREATE INDEX CONCURRENTLY`
+- `VALIDATE CONSTRAINT`
+
+A bulk `UPDATE` or `DELETE` takes only `ROW EXCLUSIVE` on the table, so it does not
+block readers or writers of rows it does not touch. The risk is the row locks it
+holds until commit, plus WAL volume, table bloat, and replication lag — so the fix
+is batching, not a maintenance window.
 
 For each lock risk:
 
-- name the table that will be locked
+- name the table that will be locked and the lock type it takes
 - estimate whether the table is likely large (look for seed data, existing data comments, or history of backfills in adjacent migrations)
 - suggest the safe alternative where one exists (e.g., `CREATE INDEX CONCURRENTLY`, `ADD CONSTRAINT ... NOT VALID` + `VALIDATE CONSTRAINT` separately)
 
