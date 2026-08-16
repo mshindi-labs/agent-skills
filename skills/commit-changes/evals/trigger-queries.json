@@ -1,0 +1,11 @@
+[
+  { "query": "commit my changes", "should_trigger": true },
+  { "query": "commit this", "should_trigger": true },
+  {
+    "query": "write a commit message for what I changed",
+    "should_trigger": true
+  },
+  { "query": "make a clean commit of this work", "should_trigger": true },
+  { "query": "fix the message on my last commit", "should_trigger": false },
+  { "query": "open a pull request", "should_trigger": false }
+]
