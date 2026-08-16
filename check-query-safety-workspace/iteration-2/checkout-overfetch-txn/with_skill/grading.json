@@ -1,0 +1,40 @@
+{
+  "eval_name": "checkout-overfetch-txn",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `getAuthorName` as over-fetching \u2014 it loads the full post plus `author`, `comments`, and `tags` relations but uses only `author.name` \u2014 and recommends narrowing it with a `select` rather than the broad `include`",
+      "passed": true,
+      "evidence": "'[low] Unused relations loaded \u2014 getAuthorName ... Only post?.author.name is returned', with a nested select fix."
+    },
+    {
+      "text": "Flags the `order.create` followed by `inventory.update` in `placeOrder` as a missing transaction boundary, names the partial-failure risk, and recommends wrapping both writes in `prisma.$transaction([...])` or equivalent",
+      "passed": true,
+      "evidence": "'[high] Multi-table write without transaction \u2014 placeOrder', with a prisma.$transaction callback fix."
+    },
+    {
+      "text": "Does not flag `getOrderTotal` as over-fetching, since it already uses `select: { total: true }` to fetch only the field it uses \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "getOrderTotal is not flagged in the Over-fetching section."
+    },
+    {
+      "text": "Does not flag the `order.create` / `inventory.update` pair in `placeOrder` as an N+1 pattern, since there is no loop or per-item repeated query \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "'N+1 patterns (0) None. No loops containing queries.'"
+    },
+    {
+      "text": "Rates the missing transaction boundary above the over-fetch in severity (transaction medium or higher, over-fetch low), matching the skill's severity ordering rather than presenting the over-fetch as the more serious problem",
+      "passed": true,
+      "evidence": "Transaction [high] vs over-fetch [low]; summary calls the transaction 'the critical one' and the over-fetch 'a minor efficiency issue'."
+    },
+    {
+      "text": "Does not manufacture findings in the categories this file does not exercise \u2014 reports no SQL injection and no unbounded-query findings rather than stretching one of the three functions to fill those sections",
+      "passed": true,
+      "evidence": "'SQL injection risks (0)' and 'Unbounded queries (0)' both reported as empty."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "eval_name": "drop-narrow-backfill",
+  "configuration": "without_skill",
+  "pass_rate": 0.6667,
+  "passed": 4,
+  "failed": 2,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `DROP TABLE legacy_sessions;` as high risk and irreversible/destructive",
+      "passed": true,
+      "evidence": "'Irreversible table destruction \u2014 permanently discards the table and all its data.'"
+    },
+    {
+      "text": "Flags `ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;` as high risk, noting the type narrowing from NUMERIC(10,2) to INTEGER can truncate or lose precision on existing data",
+      "passed": true,
+      "evidence": "'truncating the fractional part: 10.99 becomes 10 ... silently destroys it'."
+    },
+    {
+      "text": "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill because it rewrites matched rows across a ~40 million row table in a single long transaction, and recommends batching it \u2014 it must NOT describe the UPDATE as taking a table-wide or ACCESS EXCLUSIVE lock that blocks all reads and writes",
+      "passed": true,
+      "evidence": "'Hold a long-running transaction, blocking autovacuum and increasing replication lag'; supplies a batching DO block. No table-lock claim."
+    },
+    {
+      "text": "Flags the absence of a down/rollback migration as a reversibility gap, specifically noting that `DROP TABLE legacy_sessions` cannot be safely reversed without a backup",
+      "passed": false,
+      "evidence": "Notes 'no rollback defined' but never says DROP TABLE cannot be reversed without a backup; recommends rename-and-wait instead."
+    },
+    {
+      "text": "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk \u2014 restraint / false-positive check",
+      "passed": false,
+      "evidence": "Flags audit_logs for missing indexes on actor_id and created_at (Low in the summary table)."
+    },
+    {
+      "text": "Gives an overall verdict indicating the migration needs changes before running or blocks deployment, not that it is safe to run",
+      "passed": true,
+      "evidence": "'Do not run this migration as-is.'"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "eval_name": "review-diff-before",
+  "configuration": "without_skill",
+  "pass_rate": 0.3333,
+  "passed": 2,
+  "failed": 4,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+      "passed": false,
+      "evidence": "Opens 'Two issues here, both worth blocking on:' and no finding carries a severity tag."
+    },
+    {
+      "text": "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+      "passed": true,
+      "evidence": "'The removed null guard was the only thing preventing reports.map(...) from throwing TypeError.'"
+    },
+    {
+      "text": "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+      "passed": false,
+      "evidence": "Never mentions tests."
+    },
+    {
+      "text": "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+      "passed": false,
+      "evidence": "Analyses the bypass itself and proposes optionalAuth, but never recommends a dedicated auth review."
+    },
+    {
+      "text": "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+      "passed": true,
+      "evidence": "'Changing the condition to && req.method !== GET makes requireAuth silently pass all GET requests without a token.'"
+    },
+    {
+      "text": "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments",
+      "passed": false,
+      "evidence": "Both are top-level but neither carries a severity tag."
+    }
+  ]
+}

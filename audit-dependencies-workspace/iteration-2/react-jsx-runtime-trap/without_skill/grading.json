@@ -1,0 +1,40 @@
+{
+  "eval_name": "react-jsx-runtime-trap",
+  "configuration": "without_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx as the evidence",
+      "passed": true,
+      "evidence": "'react-dom \u2014 needed. Explicitly imported in entry-client.tsx:2 (hydrateRoot from react-dom/client).'"
+    },
+    {
+      "text": "Does NOT list react as an unused dependency or removal candidate",
+      "passed": true,
+      "evidence": "'react \u2014 not dead weight.'"
+    },
+    {
+      "text": "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
+      "passed": true,
+      "evidence": "'\"jsx\": \"react-jsx\" activates React's automatic JSX runtime ... injecting import { jsx as _jsx } from react/jsx-runtime'."
+    },
+    {
+      "text": "Never claims that the react-dom import itself counts as evidence that 'react' is imported \u2014 treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+      "passed": true,
+      "evidence": "'A grep for 'react' in source files gives a false negative here' \u2014 treats the two packages as distinct."
+    },
+    {
+      "text": "Answers the user's specific doubt directly and early \u2014 react is not dead weight and should stay \u2014 rather than burying the verdict inside a generic full-audit report",
+      "passed": true,
+      "evidence": "Opens with 'All four dependencies are legitimate' and answers the react question in the first paragraph."
+    },
+    {
+      "text": "Does not invent a CVE or license finding for react or react-dom; where security is addressed at all, it notes that no audit output was supplied rather than asserting the packages are clean \u2014 restraint check",
+      "passed": true,
+      "evidence": "Reports no CVE or license finding at all; invents nothing."
+    }
+  ]
+}

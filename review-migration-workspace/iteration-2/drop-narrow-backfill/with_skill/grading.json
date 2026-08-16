@@ -1,0 +1,40 @@
+{
+  "eval_name": "drop-narrow-backfill",
+  "configuration": "with_skill",
+  "pass_rate": 0.8333,
+  "passed": 5,
+  "failed": 1,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `DROP TABLE legacy_sessions;` as high risk and irreversible/destructive",
+      "passed": true,
+      "evidence": "'[high] DROP TABLE legacy_sessions \u2014 All rows permanently deleted with no rollback path.'"
+    },
+    {
+      "text": "Flags `ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;` as high risk, noting the type narrowing from NUMERIC(10,2) to INTEGER can truncate or lose precision on existing data",
+      "passed": true,
+      "evidence": "'[high] ALTER COLUMN amount TYPE INTEGER ... 99.99 becomes 99 ... permanent monetary data destruction.'"
+    },
+    {
+      "text": "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill because it rewrites matched rows across a ~40 million row table in a single long transaction, and recommends batching it \u2014 it must NOT describe the UPDATE as taking a table-wide or ACCESS EXCLUSIVE lock that blocks all reads and writes",
+      "passed": true,
+      "evidence": "'Takes ROW EXCLUSIVE (not ACCESS EXCLUSIVE), so it does not block unrelated reads' \u2014 cites 40M rows, WAL, bloat, replication lag, prescribes 25k-50k batches."
+    },
+    {
+      "text": "Flags the absence of a down/rollback migration as a reversibility gap, specifically noting that `DROP TABLE legacy_sessions` cannot be safely reversed without a backup",
+      "passed": true,
+      "evidence": "'[high] No down migration exists for any destructive operation' \u2014 'unrecoverable without a backup taken before the migration runs.'"
+    },
+    {
+      "text": "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk \u2014 restraint / false-positive check",
+      "passed": false,
+      "evidence": "Flags '[low] actor_id \u2014 audit_logs' for a missing index. actor_id is not a declared foreign key, so this is outside the skill's Step 6 scope."
+    },
+    {
+      "text": "Gives an overall verdict indicating the migration needs changes before running or blocks deployment, not that it is safe to run",
+      "passed": true,
+      "evidence": "'Blocks deployment \u2014 do not run as-is.' with three enumerated blockers."
+    }
+  ]
+}

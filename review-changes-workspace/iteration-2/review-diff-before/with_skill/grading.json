@@ -1,0 +1,40 @@
+{
+  "eval_name": "review-diff-before",
+  "configuration": "with_skill",
+  "pass_rate": 0.8333,
+  "passed": 5,
+  "failed": 1,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+      "passed": true,
+      "evidence": "First finding is '1. [high] Null dereference crash for users with no reports'; the only preamble is a one-line scope note."
+    },
+    {
+      "text": "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+      "passed": true,
+      "evidence": "Quotes the comment documenting that fetchForUser resolves null and states reports.map(...) throws a TypeError and a 500."
+    },
+    {
+      "text": "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+      "passed": false,
+      "evidence": "Never mentions tests; the response ends on open questions with no testing section."
+    },
+    {
+      "text": "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+      "passed": true,
+      "evidence": "'This change needs a dedicated auth review (review-auth) before it ships' \u2014 the delegation that failed in both arms last run."
+    },
+    {
+      "text": "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+      "passed": true,
+      "evidence": "'The new condition && req.method !== GET means unauthenticated GET requests are let through without a 401.'"
+    },
+    {
+      "text": "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments",
+      "passed": true,
+      "evidence": "Both appear as top-level [high] findings, numbered 1 and 2."
+    }
+  ]
+}

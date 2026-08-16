@@ -1,0 +1,8 @@
+{
+  "cost_usd": 0.3280655,
+  "num_turns": 9,
+  "input_tokens": 11,
+  "output_tokens": 9300,
+  "cache_read_tokens": 260525,
+  "is_error": false
+}

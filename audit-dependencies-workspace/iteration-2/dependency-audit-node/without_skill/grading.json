@@ -1,0 +1,40 @@
+{
+  "eval_name": "dependency-audit-node",
+  "configuration": "without_skill",
+  "pass_rate": 0.8333,
+  "passed": 5,
+  "failed": 1,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and gives a concrete upgrade target or command (>=4.17.19 or later) rather than a vague 'update lodash' instruction",
+      "passed": true,
+      "evidence": "'CVE-2020-8203 \u2014 Prototype Pollution ... npm install lodash@4.17.21'."
+    },
+    {
+      "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+      "passed": true,
+      "evidence": "'AGPL-3.0 is a strong copyleft license ... Audit whether a commercial license is available ... or replace'."
+    },
+    {
+      "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+      "passed": true,
+      "evidence": "'No file in the repo imports moment ... npm uninstall moment'."
+    },
+    {
+      "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "Recognises tailwindcss is 'referenced exclusively in postcss.config.js'; recommends a devDependencies move, not removal as unused."
+    },
+    {
+      "text": "Orders the report security-first: the lodash CVE is presented above the license and unused-package findings, matching the skill's risk ordering",
+      "passed": true,
+      "evidence": "The lodash CVE is section 1, above the license and unused findings."
+    },
+    {
+      "text": "Uses the skill's sectioned report structure \u2014 security vulnerabilities, license risks, and unused production dependencies as named sections with severity-tagged entries, closing with the summary tallies and recommended immediate actions \u2014 rather than a flat prose list",
+      "passed": false,
+      "evidence": "Markdown headings plus a summary table; no per-category counts, no Summary tallies, no recommended-actions block."
+    }
+  ]
+}

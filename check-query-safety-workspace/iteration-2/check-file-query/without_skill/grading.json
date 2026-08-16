@@ -1,0 +1,40 @@
+{
+  "eval_name": "check-file-query",
+  "configuration": "without_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+      "passed": true,
+      "evidence": "'SQL Injection \u2014 Critical (line 5)' with the line quoted."
+    },
+    {
+      "text": "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding, as the skill requires of every injection finding",
+      "passed": true,
+      "evidence": "'req.params.id is interpolated directly into a template literal SQL string'."
+    },
+    {
+      "text": "Gives the parameterized rewrite of that exact query (placeholder plus bound value, e.g. `db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])`) rather than a generic 'use parameterized queries' remark",
+      "passed": true,
+      "evidence": "Gives db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])."
+    },
+    {
+      "text": "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern and proposes `include` on the initial order query or a single batched `findMany` with an `in` filter",
+      "passed": true,
+      "evidence": "'N+1 Query Problem \u2014 High (lines 9-12)' with the include fix."
+    },
+    {
+      "text": "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
+      "passed": true,
+      "evidence": "'Unbounded Query \u2014 Medium ... Add a limit and/or cursor-based pagination.'"
+    },
+    {
+      "text": "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "'Safe \u2014 getUserById ... This is fine \u2014 it uses a parameterized query correctly.'"
+    }
+  ]
+}

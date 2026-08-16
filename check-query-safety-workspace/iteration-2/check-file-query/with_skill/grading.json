@@ -1,0 +1,40 @@
+{
+  "eval_name": "check-file-query",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+      "passed": true,
+      "evidence": "'SQL injection risks (1) 1. [high] String interpolation in raw query \u2014 line 5' with the line quoted."
+    },
+    {
+      "text": "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding, as the skill requires of every injection finding",
+      "passed": true,
+      "evidence": "'Input source: req.params.id (route parameter, user-controlled)'."
+    },
+    {
+      "text": "Gives the parameterized rewrite of that exact query (placeholder plus bound value, e.g. `db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])`) rather than a generic 'use parameterized queries' remark",
+      "passed": true,
+      "evidence": "Fix line gives db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])."
+    },
+    {
+      "text": "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern and proposes `include` on the initial order query or a single batched `findMany` with an `in` filter",
+      "passed": true,
+      "evidence": "'[medium] Query inside loop \u2014 lines 9-11 ... Fix: add include: { items: true }'."
+    },
+    {
+      "text": "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
+      "passed": true,
+      "evidence": "'[medium] findMany without take ... Fix: add take: 100 (or your page size) and a cursor/skip'."
+    },
+    {
+      "text": "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "getUserById appears only under Over-fetching (SELECT *), never as an injection risk."
+    }
+  ]
+}

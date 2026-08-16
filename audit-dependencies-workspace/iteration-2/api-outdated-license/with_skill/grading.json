@@ -1,0 +1,40 @@
+{
+  "eval_name": "api-outdated-license",
+  "configuration": "with_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
+      "passed": true,
+      "evidence": "'acme-http-client: installed 2.1.0 -> latest 5.0.0 / Upgrade effort: significant (3 major versions) / v3 auth rewrite, v5 dropped callback API'."
+    },
+    {
+      "text": "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
+      "passed": true,
+      "evidence": "'geo-lookup@1.8.0 \u2014 LGPL-2.1 ... Risk: weak copyleft; generally acceptable when used as a dynamically-linked library ... get a legal sign-off'."
+    },
+    {
+      "text": "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
+      "passed": true,
+      "evidence": "'supertest@6.3.3 \u2014 only imported in tests/api.test.ts ... Action: move to devDependencies'."
+    },
+    {
+      "text": "Does NOT flag ts-node as an unused dependency \u2014 recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "'ts-node@10.9.2 is not imported as a module but IS referenced in the \"start\" script ... correctly placed in dependencies.'"
+    },
+    {
+      "text": "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it \u2014 keeps it in the outdated-dependencies category",
+      "passed": true,
+      "evidence": "Staleness stays under Significantly outdated; the security section says the audit could not run for lack of a lockfile."
+    },
+    {
+      "text": "Separates the findings into the skill's named categories \u2014 acme-http-client under significantly outdated, geo-lookup under license risks, supertest under dependency placement/unused \u2014 and closes with a summary tally rather than one undifferentiated list",
+      "passed": true,
+      "evidence": "Named sections with counts plus Summary tallies and Recommended immediate actions."
+    }
+  ]
+}
