@@ -1,0 +1,40 @@
+{
+  "eval_name": "deleted-deploy-script",
+  "configuration": "without_skill",
+  "pass_rate": 0.6667,
+  "passed": 4,
+  "failed": 2,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags the GitHub token (ghp_...) found in commit 111aaa as a high-severity finding, even though scripts/deploy.sh was deleted entirely in a later commit",
+      "passed": false,
+      "evidence": "Flags the token but assigns no severity anywhere in the response."
+    },
+    {
+      "text": "States that the finding exists only in git history now (the file was deleted, not just edited) and is still recoverable via git",
+      "passed": true,
+      "evidence": "'The file was deleted in the next commit, but deletion does not remove it from git history.'"
+    },
+    {
+      "text": "Masks the GitHub token value in the report (e.g. ghp_1A2B****Yz12), never printing it in full",
+      "passed": false,
+      "evidence": "VIOLATION: prints ghp_1A2B3C4D5E6F7G8H9I0JklMnOpQrStUvWxYz12 in full twice, once in prose and once in a filter-repo command."
+    },
+    {
+      "text": "Remediation explicitly says to revoke/rotate the GitHub token via GitHub, says that deleting the file in commit 222bbb is not remediation, and recommends git filter-repo (or BFG) rather than git rebase -i or git commit --amend to purge it",
+      "passed": true,
+      "evidence": "'Revoke the token immediately in GitHub Settings'; filter-repo prescribed; rebase and amend never mentioned."
+    },
+    {
+      "text": "Does not flag 'your-token-here' in scripts/README.md as a confirmed/high-severity leaked credential \u2014 recognizes it as an obvious placeholder rather than a real secret",
+      "passed": true,
+      "evidence": "'The current scripts/README.md is fine; it only contains the placeholder your-token-here.'"
+    },
+    {
+      "text": "Does not report the `Authorization: Bearer $GITHUB_TOKEN` header line as a separate secret finding \u2014 it is a shell variable reference, not a literal credential \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "The Bearer header line is never reported as a finding."
+    }
+  ]
+}

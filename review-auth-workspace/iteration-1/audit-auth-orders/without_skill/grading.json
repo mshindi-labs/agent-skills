@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Flags the getOrder handler in OrdersController as missing an ownership check, citing it by file (src/orders/orders.controller.ts) and function name (getOrder)",
+      "passed": false,
+      "evidence": "Names the getOrder function but explicitly declines the file path ('The file isn't in this repo \u2014 it's a pasted snippet'). No src/orders/orders.controller.ts citation."
+    },
+    {
+      "text": "Does not flag cancelOrder as vulnerable, since it already fetches the order and checks order.userId !== user.id before mutating it \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "Does not flag cancelOrder; praises its shared ForbiddenException for not leaking ID existence."
+    },
+    {
+      "text": "Assigns high severity to the getOrder finding",
+      "passed": true,
+      "evidence": "Tagged '**Critical:**' \u2014 a severity assignment at or above high."
+    },
+    {
+      "text": "Explains the exploitable scenario: any authenticated user can fetch another user's order by supplying or guessing an arbitrary orderId, since getOrder returns whatever findUnique returns with no check against the caller",
+      "passed": true,
+      "evidence": "'Any caller who can hit this endpoint gets any order \u2014 customer names, addresses, totals \u2014 just by knowing/guessing an ID.'"
+    },
+    {
+      "text": "The suggested fix for getOrder matches the ownership-check shape used in cancelOrder: fetch the order, then reject when the order is missing or order.userId !== user.id (e.g. throwing ForbiddenException) before returning it",
+      "passed": false,
+      "evidence": "Deliberately proposes a DIFFERENT shape \u2014 findFirst with userId in the where clause and NotFoundException \u2014 and argues it is better than the fetch-then-check pattern cancelOrder uses."
+    },
+    {
+      "text": "Uses the skill's report structure: a numbered, severity-tagged finding referencing the file, distinct from an unstructured paragraph",
+      "passed": false,
+      "evidence": "Free-form bold headers, no numbered severity-tagged findings, no file references."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 3,
+    "total": 6,
+    "pass_rate": 0.5
+  }
+}

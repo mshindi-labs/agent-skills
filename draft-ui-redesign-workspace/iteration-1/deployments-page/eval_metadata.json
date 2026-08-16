@@ -1,0 +1,13 @@
+{
+  "eval_id": 3,
+  "eval_name": "deployments-page",
+  "prompt": "Redesign brief needed for our deployments page. Give me something I can paste into Stitch.\n\n```tsx\nexport default function Deployments({ deployments }) {\n  return (\n    <div className=\"deployments\">\n      <h1>Deployments</h1>\n      {deployments.map((d) => (\n        <div className=\"row\" key={d.id}>\n          <span>{d.id}</span>\n          <span>{d.status}</span>\n          <span>{d.branch}</span>\n          <span>{d.created_at}</span>\n          <button onClick={() => rollback(d.id)}>Rollback</button>\n        </div>\n      ))}\n    </div>\n  )\n}\n```\n\nThe page is server-rendered from `GET /api/deployments`:\n\n```json\n{\n  \"deployments\": [\n    {\n      \"id\": \"dpl_7Kq2\",\n      \"status\": \"ready\",\n      \"branch\": \"main\",\n      \"commit_sha\": \"9f3c1ab\",\n      \"commit_message\": \"fix: handle null region in edge config\",\n      \"author\": \"bmulumia\",\n      \"created_at\": \"2026-03-14T11:02:44Z\",\n      \"duration_ms\": 84200,\n      \"environment\": \"production\",\n      \"url\": \"https://app-9f3c1ab.example.dev\"\n    }\n  ]\n}\n```",
+  "assertions": [
+    "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)",
+    "Preserves the per-row Rollback action and treats it as a destructive action in the redesign",
+    "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains",
+    "The generated prompt specifies loading, empty, and error states",
+    "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required",
+    "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions"
+  ]
+}

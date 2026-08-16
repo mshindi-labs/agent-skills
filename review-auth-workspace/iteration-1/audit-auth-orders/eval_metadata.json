@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "audit-auth-orders",
+  "prompt": "Can you audit auth on this orders controller before we ship it?\n\n```typescript\n// src/orders/orders.controller.ts\n@Injectable()\nexport class OrdersController {\n  constructor(private readonly db: PrismaService) {}\n\n  // GET /orders/:orderId\n  async getOrder(orderId: string, user: User) {\n    return this.db.order.findUnique({ where: { id: orderId } });\n  }\n\n  // POST /orders/:orderId/cancel\n  async cancelOrder(orderId: string, user: User) {\n    const order = await this.db.order.findUnique({ where: { id: orderId } });\n    if (!order || order.userId !== user.id) {\n      throw new ForbiddenException();\n    }\n    return this.db.order.update({\n      where: { id: orderId },\n      data: { status: 'cancelled' },\n    });\n  }\n}\n```\n",
+  "assertions": [
+    "Flags the getOrder handler in OrdersController as missing an ownership check, citing it by file (src/orders/orders.controller.ts) and function name (getOrder)",
+    "Does not flag cancelOrder as vulnerable, since it already fetches the order and checks order.userId !== user.id before mutating it \u2014 restraint / false-positive check",
+    "Assigns high severity to the getOrder finding",
+    "Explains the exploitable scenario: any authenticated user can fetch another user's order by supplying or guessing an arbitrary orderId, since getOrder returns whatever findUnique returns with no check against the caller",
+    "The suggested fix for getOrder matches the ownership-check shape used in cancelOrder: fetch the order, then reject when the order is missing or order.userId !== user.id (e.g. throwing ForbiddenException) before returning it",
+    "Uses the skill's report structure: a numbered, severity-tagged finding referencing the file, distinct from an unstructured paragraph"
+  ]
+}

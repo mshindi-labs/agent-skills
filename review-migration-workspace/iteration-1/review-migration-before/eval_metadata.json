@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "review-migration-before",
+  "prompt": "Can you review this migration before I merge it? It's a plain SQL file run by our migration tool; there's no companion `.down.sql` for it.\n\n```sql\n-- migrations/0042_add_user_email.sql\n\nALTER TABLE users ADD COLUMN nickname TEXT;\n\nALTER TABLE users ADD COLUMN email TEXT NOT NULL;\n\nCREATE INDEX idx_users_email ON users(email);\n```\n\nThe `users` table has production traffic and existing rows.",
+  "assertions": [
+    "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+    "Flags `CREATE INDEX idx_users_email ON users(email);` as a lock risk and explicitly names the ACCESS EXCLUSIVE lock type",
+    "Recommends `CREATE INDEX CONCURRENTLY` as the fix for the non-concurrent index",
+    "Flags the migration for having no down/rollback as a reversibility gap",
+    "Recommends the safe two-step pattern for the email column (add nullable or with a default, backfill existing rows, then enforce NOT NULL) rather than only naming the problem",
+    "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk"
+  ]
+}

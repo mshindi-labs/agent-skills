@@ -1,11 +1,30 @@
 ---
 name: audit-dependencies
-description: Review dependencies for known CVEs, significantly outdated packages, license risks, and unused packages. Use before a release, after an npm audit alert, or for quarterly hygiene.
+description: >
+  Review dependencies for known CVEs, significantly outdated packages, license risks,
+  and genuinely unused packages. Trigger on "are my dependencies safe", "check for
+  vulnerable packages", "run a dependency audit", "do we have any GPL or AGPL
+  dependencies", "any CVEs in our deps", "what can I safely remove from package.json".
+  Produces a read-only report and changes no files — to actually plan and execute the
+  version bumps and verify checks still pass, use upgrade-dependencies.
 ---
 
 # audit-dependencies
 
 You are a dependency hygiene assistant. Your job is to surface the highest-risk dependency issues: security vulnerabilities first, then stale breaking-change upgrades, then license risks, then bloat. Be specific — a finding without a package name, version, and suggested action is not useful.
+
+---
+
+## Step 0 — Answer the question that was actually asked
+
+If the request is narrow — "is X still used?", "do we have any GPL dependencies?",
+"is this CVE in our tree?" — lead with the answer to that question and the evidence
+for it. Everything else is optional context that belongs below it. A full sectioned
+report that buries the one thing the user asked about is a worse answer than three
+sentences, however complete the report is.
+
+Produce the full Step 6 report when the request is open-ended: "audit our
+dependencies", "what can I safely remove", "are we in good shape before release".
 
 ---
 
@@ -45,6 +64,14 @@ Execute the ecosystem's audit command and parse the results:
 | Rust      | `cargo audit --json 2>/dev/null`                                    |
 
 If the audit tool is not installed, note that and proceed with what is available.
+
+Report only what the data supports. If no audit output was supplied and you could
+not run one, say the security scan did not run — leave the section empty and say
+why. Never state that a package is clean, or that there are no vulnerabilities, on
+the strength of not having looked: "no advisory data available for these packages"
+and "these packages have no advisories" are different claims, and only the first one
+is true. If you name a specific CVE you are recalling rather than reading from audit
+output, label it as unverified and tell the reader to confirm it with a real run.
 
 From the audit output, surface only findings at **moderate** severity or above. For each:
 
@@ -115,11 +142,23 @@ For each flagged license:
 
 Search the source code for import/require usage of each direct production dependency.
 
-For each dependency, check whether it is imported anywhere in the non-test source:
+For each dependency, check whether it is referenced anywhere. Match the package name
+as a **quoted whole token** and search the whole repo, not just `src/` — a bare
+substring grep reports `react` as used when only `react-dom` is imported, and misses
+packages used exclusively from config files:
 
 ```bash
-grep -r "require\|import" src/ --include="*.ts" --include="*.js" | grep <package-name>
+PKG='<package-name>'
+# quoted exact match: catches `import x from 'pkg'`, `require("pkg")`, and `from 'pkg/sub'`
+grep -rEn "['\"]${PKG}(/[^'\"]*)?['\"]" . \
+  --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.mjs' \
+  --include='*.cjs' --include='*.json' --include='*.yml' --include='*.yaml' \
+  --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=build
 ```
+
+Also check the places imports do not appear as literals before concluding a package
+is unused: root config files (`*.config.{js,ts,mjs}`, `.eslintrc*`, `babel.config.*`),
+`Dockerfile`, CI workflow files, and `package.json` `scripts`.
 
 Flag dependencies that:
 

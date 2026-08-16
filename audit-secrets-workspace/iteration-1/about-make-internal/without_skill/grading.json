@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+      "passed": false,
+      "evidence": "Reports the AWS pair as '**Live today, in the working tree**' but never states it is also present throughout git history; the history discussion covers only the RSA key."
+    },
+    {
+      "text": "Identifies the RSA private key block as a finding present ONLY in git history \u2014 explicitly notes it was removed from the current working tree in a later commit",
+      "passed": true,
+      "evidence": "'**Only in history, invisible today \u2014 this is the one that matters**', with the introducing and removing commits and a git show command proving reachability."
+    },
+    {
+      "text": "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+      "passed": false,
+      "evidence": "Prints the full AWS key pair verbatim in a fenced block and the PEM header with body; no masking anywhere."
+    },
+    {
+      "text": "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+      "passed": true,
+      "evidence": "'If that RSA key or those AWS creds were ever real ... rotate them \u2014 history rewrite only stops future clones from getting them.'"
+    },
+    {
+      "text": "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+      "passed": true,
+      "evidence": "Recommends 'git filter-repo --path config/credentials.txt --invert-paths'; never names rebase -i or commit --amend."
+    },
+    {
+      "text": "The response never prints the full RSA private key body or the full AWS secret access key value anywhere, even while explaining the finding",
+      "passed": false,
+      "evidence": "Same violation, more severe: full secret values reproduced in the report."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 3,
+    "total": 6,
+    "pass_rate": 0.5
+  }
+}

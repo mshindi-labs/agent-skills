@@ -1,0 +1,40 @@
+{
+  "eval_name": "react-jsx-runtime-trap",
+  "configuration": "with_skill",
+  "pass_rate": 0.6667,
+  "passed": 4,
+  "failed": 2,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx as the evidence",
+      "passed": true,
+      "evidence": "'react-dom \u2014 used directly: src/entry-client.tsx imports hydrateRoot from react-dom/client. Confirmed live.'"
+    },
+    {
+      "text": "Does NOT list react as an unused dependency or removal candidate",
+      "passed": true,
+      "evidence": "'Unused production dependencies (0)'."
+    },
+    {
+      "text": "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
+      "passed": true,
+      "evidence": "'tsconfig.json sets \"jsx\": \"react-jsx\", which instructs the TypeScript compiler and Vite to automatically inject import { jsx } from react/jsx-runtime'."
+    },
+    {
+      "text": "Never claims that the react-dom import itself counts as evidence that 'react' is imported \u2014 treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+      "passed": true,
+      "evidence": "'a naive substring grep would find \"react\" inside every react-dom/client import and report a false positive'; applies the quoted-whole-token grep."
+    },
+    {
+      "text": "Answers the user's specific doubt directly and early \u2014 react is not dead weight and should stay \u2014 rather than burying the verdict inside a generic full-audit report",
+      "passed": false,
+      "evidence": "VIOLATION: opens with two vite CVE findings and 'Significantly outdated (2)'. The answer to the user's actual question sits under 'Unused production dependencies (0)', well down a full-format audit report."
+    },
+    {
+      "text": "Does not invent a CVE or license finding for react or react-dom; where security is addressed at all, it notes that no audit output was supplied rather than asserting the packages are clean \u2014 restraint check",
+      "passed": false,
+      "evidence": "VIOLATION: reports nine vite/esbuild advisories that were never supplied in the prompt, and asserts 'License risks (0) ... all clear' rather than noting that no audit output was provided."
+    }
+  ]
+}

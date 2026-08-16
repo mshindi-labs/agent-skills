@@ -1,6 +1,11 @@
 ---
 name: setup-commit-hooks-and-release
-description: Set up Husky commit hooks, commitlint, lint-staged, semantic-release, and a GitHub Actions release workflow from scratch in a Node.js project.
+description: >
+  Set up Husky commit hooks, commitlint, lint-staged, semantic-release, and a
+  GitHub Actions release workflow from scratch in a Node.js project. Trigger
+  on requests like "set up conventional commits", "enforce commit message
+  format", "automate versioning and changelogs", or "add a release pipeline"
+  — even when the user doesn't know these tool names by heart.
 ---
 
 # setup-commit-hooks-and-release

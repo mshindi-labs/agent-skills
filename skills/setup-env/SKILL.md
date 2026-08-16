@@ -1,6 +1,13 @@
 ---
 name: setup-env
-description: Validate the local environment against .env.example, detect missing or mismatched variables, and generate a .env.stub with annotated placeholders. Use when onboarding or after a dependency adds new env vars.
+description: >
+  Generate a fillable .env.stub for the variables missing from your own local
+  setup, and check that .gitignore covers your secrets. Use when someone says
+  "set up the project locally", "I just cloned this repo", "get my local env
+  running", "why won't the app start", or "what env vars do I need" -- this is
+  about getting your own machine working, not a generic onboarding audit. Not for
+  auditing whether the codebase's env documentation is complete or scanning for
+  leaked secrets -- use align-env-checklist for that.
 ---
 
 # setup-env

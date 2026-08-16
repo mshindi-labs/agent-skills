@@ -1,6 +1,15 @@
 ---
 name: onboard-codebase
-description: Produce a structured orientation guide for a codebase — entry points, architecture layers, conventions, test strategy, and local gotchas. Use when ramping up on a new repo or context-switching after time away.
+description: >
+  Produce a structured, whole-repo orientation guide — entry points,
+  architecture layers, conventions, test strategy, and local gotchas — for
+  ramping up on a new codebase or context-switching back into one after time
+  away. Use when the user says "help me get up to speed on this repo", "give
+  me the lay of the land", "onboard me to this codebase", "I'm new here, where
+  do I start", or wants a tour of the whole project. Not for a single feature
+  or endpoint — use explain-flow instead when the user wants a narrative trace
+  of one flow, such as "how login works", rather than orientation to the
+  entire repository.
 ---
 
 # onboard-codebase

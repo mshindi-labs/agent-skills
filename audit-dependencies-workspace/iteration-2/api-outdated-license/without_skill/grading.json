@@ -1,0 +1,40 @@
+{
+  "eval_name": "api-outdated-license",
+  "configuration": "without_skill",
+  "pass_rate": 1.0,
+  "passed": 6,
+  "failed": 0,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
+      "passed": true,
+      "evidence": "'Majors behind: 3 ... v3: auth rewrite ... v5: callback API dropped ... requires a migration, not just a version bump'."
+    },
+    {
+      "text": "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
+      "passed": true,
+      "evidence": "'LGPL-2.1 permits use in proprietary software but requires that the LGPL-covered library remain replaceable' \u2014 correctly weak copyleft."
+    },
+    {
+      "text": "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
+      "passed": true,
+      "evidence": "'supertest is listed under dependencies but is only imported in tests/api.test.ts. Move it to devDependencies.'"
+    },
+    {
+      "text": "Does NOT flag ts-node as an unused dependency \u2014 recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "'ts-node is in dependencies and is invoked by the start script' \u2014 flagged as hygiene, not as unused."
+    },
+    {
+      "text": "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it \u2014 keeps it in the outdated-dependencies category",
+      "passed": true,
+      "evidence": "Keeps the staleness as version drift; makes no CVE claim."
+    },
+    {
+      "text": "Separates the findings into the skill's named categories \u2014 acme-http-client under significantly outdated, geo-lookup under license risks, supertest under dependency placement/unused \u2014 and closes with a summary tally rather than one undifferentiated list",
+      "passed": true,
+      "evidence": "Sections for version drift, placement, hygiene and license, closing with a five-row summary table."
+    }
+  ]
+}

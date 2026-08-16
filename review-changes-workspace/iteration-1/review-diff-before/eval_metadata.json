@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "review-diff-before",
+  "prompt": "Can you review this diff before I open the PR? This is the full diff, nothing else changed.\n\n```diff\ndiff --git a/src/routes/reports.ts b/src/routes/reports.ts\nindex 3f2a1c4..9b8e221 100644\n--- a/src/routes/reports.ts\n+++ b/src/routes/reports.ts\n@@ -12,13 +12,10 @@ import { externalReportsClient } from '../clients/externalReportsClient';\n // externalReportsClient.fetchForUser resolves to `null` when the user has no reports on record\n export async function getReportSummaries(userId: string) {\n   const reports = await externalReportsClient.fetchForUser(userId);\n\n-  if (!reports) {\n-    return [];\n-  }\n-\n   return reports.map((r) => ({\n     id: r.id,\n     total: r.total,\n     label: r.label.toUpperCase(),\n   }));\n }\n```\n\n```diff\ndiff --git a/src/middleware/authGuard.ts b/src/middleware/authGuard.ts\nindex 7a1b3aa..a44e100 100644\n--- a/src/middleware/authGuard.ts\n+++ b/src/middleware/authGuard.ts\n@@ -8,7 +8,7 @@ import { Request, Response, NextFunction } from 'express';\n\n export function requireAuth(req: Request, res: Response, next: NextFunction) {\n-  if (!req.headers.authorization) {\n+  if (!req.headers.authorization && req.method !== 'GET') {\n     return res.status(401).json({ error: 'Unauthorized' });\n   }\n   next();\n }\n```\n",
+  "assertions": [
+    "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+    "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+    "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+    "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+    "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+    "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments"
+  ]
+}

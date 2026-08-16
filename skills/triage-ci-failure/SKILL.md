@@ -1,6 +1,13 @@
 ---
 name: triage-ci-failure
-description: Diagnose a failing CI pipeline run by reading job logs, classifying the failure type, mapping it to a local reproduction command, and recommending the smallest safe fix.
+description: >
+  Diagnose a failing CI pipeline run: read the job logs, classify the failure type, map
+  it to a local reproduction command, and recommend the smallest safe fix. Trigger on
+  "CI is failing", "why did the build fail", "the check failed on my PR", "build is
+  red", "pipeline broke", "it passes locally but fails in CI". Falls back to asking for
+  pasted logs when the gh CLI is unavailable. For a static, pre-emptive audit of CI
+  config files rather than a live failure, use check-ci-health; when a single named test
+  is red and CI is otherwise fine, use fix-failing-test.
 ---
 
 # triage-ci-failure
@@ -20,7 +27,15 @@ Capture:
 - which specific job or step failed
 - the exact error message, assertion, or exit code
 
-If the user provides a GitHub Actions run URL, fetch the relevant job log using:
+If the user provides a GitHub Actions run URL, first confirm `gh` is available and
+authenticated — if it is not, do not retry or stall, just ask the user to paste the
+failing job's log output and continue from there:
+
+```bash
+gh auth status || echo "gh unavailable — ask the user to paste the failing job log"
+```
+
+With `gh` working, fetch the relevant job log using:
 
 ```bash
 gh run view <run-id> --log-failed

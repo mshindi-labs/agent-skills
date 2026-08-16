@@ -1,6 +1,13 @@
 ---
 name: check-ci-health
-description: Inspect CI configuration files for trigger misconfigurations, security risks, caching gaps, and slow-path inefficiencies. Use when CI behaves unexpectedly or before adding a new workflow.
+description: >
+  Inspect CI configuration files for trigger misconfigurations, security
+  risks, caching gaps, and slow-path inefficiencies. Use when CI behaves
+  unexpectedly or before adding a new workflow. Trigger on "is our CI config
+  secure", "review our GitHub Actions workflow", "audit our CI setup", "why
+  is our CI so slow", or "check our pipeline for security issues". This is a
+  static, pre-emptive audit of CI config files, not a live-failure diagnosis
+  — when an actual run is failing, use triage-ci-failure instead.
 ---
 
 # check-ci-health

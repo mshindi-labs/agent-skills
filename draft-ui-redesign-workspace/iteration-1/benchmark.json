@@ -1,0 +1,355 @@
+{
+  "metadata": {
+    "skill_name": "draft-ui-redesign",
+    "skill_path": "/home/mshindi-labs/dev/mshindi-labs/agent-skills/skills/draft-ui-redesign",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-opus-5",
+    "timestamp": "2026-08-16T00:00:00Z",
+    "evals_run": [1, 2, 3],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "fintech-transactions",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 140.7,
+        "tokens": 219008,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name",
+          "passed": true,
+          "evidence": "Cites Stripe (transaction table: right-aligned tabular amounts, 44px rows, status dot not pill), Mercury (money-as-typography for the summary strip), Ramp (amount in context via counterparty/payment method). Each name carries a named mechanic."
+        },
+        {
+          "text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)",
+          "passed": true,
+          "evidence": "Content inventory lists date, description, amount+currency, status for all three example rows; audit table maps each to created_at / description / amount_cents / status."
+        },
+        {
+          "text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)",
+          "passed": true,
+          "evidence": "Section 'In the response but not rendered' lists currency (mis-rendered as hardcoded $), counterparty.name/id, payment_method, and has_more with no pagination control."
+        },
+        {
+          "text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see",
+          "passed": true,
+          "evidence": "Prompt block opens with 'Product and user' and carries its own example values; no file paths, no reference to the audit or other document sections."
+        },
+        {
+          "text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking",
+          "passed": true,
+          "evidence": "GET /api/transactions/summary (new) with total_in_cents/total_out_cents/pending_count/currency, 'Non-breaking: new endpoint', and 'Degrades to: the summary strip is omitted entirely until this ships'."
+        },
+        {
+          "text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions",
+          "passed": true,
+          "evidence": "No existing field altered. Prompt explicitly forbids replacing row-click navigation with inline expansion, and the invariants list pins amount_cents/100 and raw status values."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "fintech-transactions",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 107.6,
+        "tokens": 122256,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name",
+          "passed": false,
+          "evidence": "No industry benchmark named anywhere. Design direction is given as raw hex values and font choices with no product reference or borrowed mechanic."
+        },
+        {
+          "text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)",
+          "passed": true,
+          "evidence": "DATA block covers date, description, amount_cents+currency, status \u2014 all four rendered fields preserved."
+        },
+        {
+          "text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)",
+          "passed": false,
+          "evidence": "Uses counterparty and payment_method in the prompt but never identifies them as currently-unrendered free wins, and turns has_more into an invented cursor-paginated 'Load more' feature rather than flagging it."
+        },
+        {
+          "text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see",
+          "passed": true,
+          "evidence": "The fenced block is self-contained \u2014 audience, data, states, visual direction and an ASCII wireframe, with no reference to the codebase."
+        },
+        {
+          "text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking",
+          "passed": false,
+          "evidence": "No API section at all. No endpoint, shape, or non-breaking note proposed, despite the prompt introducing pagination and filter controls that need backing data."
+        },
+        {
+          "text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions",
+          "passed": true,
+          "evidence": "No existing field in GET /api/transactions is removed, renamed, or retyped."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "issues-list",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 182.0,
+        "tokens": 293685,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name",
+          "passed": true,
+          "evidence": "Three Linear mechanics named: grouped collapsible sections with per-group counts, restrained status-dot colour with priority glyph, and arrow-key/Enter row navigation scoped to the existing router.push."
+        },
+        {
+          "text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign",
+          "passed": true,
+          "evidence": "Filter control preserved with exactly All / Open / Closed; invariant pins it to the same ?status= query param."
+        },
+        {
+          "text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt",
+          "passed": true,
+          "evidence": "States section records loading, empty and error as 'not handled' today, notes useSWR already exposes isLoading and error, and the prompt specifies all three."
+        },
+        {
+          "text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API",
+          "passed": true,
+          "evidence": "Lists priority, labels, updated_at, comment_count, assignee.avatar_url and id as fetched-but-unrendered \u2014 'the cheapest lever in this redesign'."
+        },
+        {
+          "text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id",
+          "passed": true,
+          "evidence": "Header states 'Presentation-only redesign'; invariant: 'Clicking (or keyboard-selecting) an issue row still calls router.push('/issues/:id')'."
+        },
+        {
+          "text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)",
+          "passed": true,
+          "evidence": "Single addition: optional `counts` field on the existing endpoint, 'existing consumers that only read issues are unaffected', degrades to group headers with no count."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "issues-list",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 126.5,
+        "tokens": 126419,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name",
+          "passed": false,
+          "evidence": "Names Linear ('Target feel: Linear's issue list') but the borrowed qualities are adjectives \u2014 dense, fast to scan, quiet colour. Grouping and keyboard shortcuts are explicitly placed out of scope, so no listed mechanic is borrowed."
+        },
+        {
+          "text": "Preserves the existing status filter and its three options (all, open, closed) in the redesign",
+          "passed": true,
+          "evidence": "'One filter control with exactly three states: All / Open / Closed. Single-select. No multi-select, no additional filter fields.'"
+        },
+        {
+          "text": "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt",
+          "passed": true,
+          "evidence": "'Handle empty state (filter matches nothing) and the brief moment before data arrives, gracefully \u2014 these situations already occur today, just unstyled.'"
+        },
+        {
+          "text": "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API",
+          "passed": true,
+          "evidence": "Explicit paragraph: 'Priority, avatar, labels, updated_at, and comment_count are already returned by the API but unused \u2014 surfacing them is a visual improvement, not a behavior change.'"
+        },
+        {
+          "text": "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id",
+          "passed": true,
+          "evidence": "'This is a pure visual/UX polish pass \u2014 the underlying behavior, data, and interactions must not change'; row click still navigates to the issue detail page (path not spelled out, behaviour preserved)."
+        },
+        {
+          "text": "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)",
+          "passed": true,
+          "evidence": "Vacuously satisfied \u2014 no API additions proposed. Non-discriminating on this run."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "deployments-page",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 125.9,
+        "tokens": 213725,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)",
+          "passed": true,
+          "evidence": "Vercel (status as loudest element, monospace copy-on-click commit metadata), Planetscale (safe destructive actions), Supabase (progressive depth, dense row expanding to detail) \u2014 each with the mechanic spelled out and tied to this page."
+        },
+        {
+          "text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign",
+          "passed": true,
+          "evidence": "Rollback kept as a per-row action; prompt applies Planetscale's mechanic \u2014 confirmation step naming the deployment before proceeding. Invariant: 'still calls rollback(d.id) with the same deployment id, only gated behind a confirmation step'."
+        },
+        {
+          "text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains",
+          "passed": true,
+          "evidence": "All six unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) listed in the audit and placed in the prompt's content inventory. Neither proposed API duplicates data already returned."
+        },
+        {
+          "text": "The generated prompt specifies loading, empty, and error states",
+          "passed": true,
+          "evidence": "States paragraph specifies skeleton loading, empty state, an error state for a failed list fetch explicitly distinguished from a row with status 'error', plus the 15-20 row dense case."
+        },
+        {
+          "text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required",
+          "passed": true,
+          "evidence": "Two additions, under the cap of three: optional error_summary field ('existing consumers ignore it') and new GET /api/deployments/:id/logs ('no existing consumer affected'). Both carry Degrades-to lines."
+        },
+        {
+          "text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions",
+          "passed": true,
+          "evidence": "Five checkable invariants covering rollback wiring, no hidden rows, unchanged field meaning, empty-vs-error distinction, and all ten response fields staying visible."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "deployments-page",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 74.6,
+        "tokens": 137985,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)",
+          "passed": true,
+          "evidence": "'developer tool aesthetic \u2014 think Vercel/Netlify/Railway' alongside monospace commit SHAs and a guarded destructive rollback \u2014 a named product plus borrowed mechanics."
+        },
+        {
+          "text": "Preserves the per-row Rollback action and treats it as a destructive action in the redesign",
+          "passed": true,
+          "evidence": "Rollback retained in an overflow menu and called out as guarded/destructive with confirmation on click, replacing the bare inline button."
+        },
+        {
+          "text": "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains",
+          "passed": true,
+          "evidence": "Closing note identifies commit_message, author, duration_ms, environment and url as already returned but unshown, and folds them into the brief."
+        },
+        {
+          "text": "The generated prompt specifies loading, empty, and error states",
+          "passed": false,
+          "evidence": "Specifies empty state and skeleton/loading rows, but no error state for a failed fetch anywhere in the prompt."
+        },
+        {
+          "text": "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required",
+          "passed": false,
+          "evidence": "Neither proposes labelled API additions nor states that none are required, while introducing a 'View logs' action and branch/environment/status filters that have no backing data in the current response."
+        },
+        {
+          "text": "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions",
+          "passed": false,
+          "evidence": "No invariants checklist produced."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 149.5333,
+        "stddev": 29.0744,
+        "min": 125.9,
+        "max": 182.0
+      },
+      "tokens": {
+        "mean": 242139.3333,
+        "stddev": 44717.942,
+        "min": 213725,
+        "max": 293685
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6111,
+        "stddev": 0.1924,
+        "min": 0.5,
+        "max": 0.8333
+      },
+      "time_seconds": {
+        "mean": 102.9,
+        "stddev": 26.2673,
+        "min": 74.6,
+        "max": 126.5
+      },
+      "tokens": {
+        "mean": 128886.6667,
+        "stddev": 8149.6868,
+        "min": 122256,
+        "max": 137985
+      }
+    }
+  },
+  "notes": [
+    "Executor runs were isolated `claude -p` subprocesses, one fresh context per run.",
+    "with_skill injected SKILL.md plus both reference files as a preamble; without_skill received the raw prompt only.",
+    "Baselines inherited the session's ambient frontend-design plugin skill, so without_skill is a strong baseline rather than a naive one.",
+    "Graded inline against evals.json assertions by claude-opus-5."
+  ]
+}

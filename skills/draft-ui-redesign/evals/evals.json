@@ -1,0 +1,47 @@
+{
+  "skill_name": "draft-ui-redesign",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our billing dashboard's transactions page looks like a 2014 admin template and I want it redesigned. Here's the component:\n\n```tsx\nexport function TransactionsPage() {\n  const { data, isLoading, error } = useQuery(['transactions'], () =>\n    fetch('/api/transactions').then((r) => r.json())\n  )\n\n  if (isLoading) return <div className=\"spinner\" />\n  if (error) return <div>Something went wrong</div>\n  if (!data.transactions.length) return <p>No transactions.</p>\n\n  return (\n    <div className=\"container\">\n      <h1>Transactions</h1>\n      <table className=\"table table-striped\">\n        <thead>\n          <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>\n        </thead>\n        <tbody>\n          {data.transactions.map((t) => (\n            <tr key={t.id} onClick={() => navigate(`/transactions/${t.id}`)}>\n              <td>{new Date(t.created_at).toLocaleDateString()}</td>\n              <td>{t.description}</td>\n              <td>${(t.amount_cents / 100).toFixed(2)}</td>\n              <td><span className={`badge badge-${t.status}`}>{t.status}</span></td>\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    </div>\n  )\n}\n```\n\nAnd this is what `GET /api/transactions` returns:\n\n```json\n{\n  \"transactions\": [\n    {\n      \"id\": \"txn_1a2b3c\",\n      \"created_at\": \"2026-03-14T09:22:11Z\",\n      \"description\": \"Acme Corp - invoice #4471\",\n      \"amount_cents\": 248000,\n      \"currency\": \"USD\",\n      \"status\": \"succeeded\",\n      \"counterparty\": { \"name\": \"Acme Corp\", \"id\": \"cus_9x8y\" },\n      \"payment_method\": \"card_visa_4242\"\n    }\n  ],\n  \"has_more\": true\n}\n```\n\nCan you put together a prompt I can paste into a design tool to get a proper modern version of this page?",
+      "expected_output": "An audit of the current page, fintech benchmarks (Stripe/Mercury/Ramp) each with a named mechanic, a self-contained paste-ready generation prompt whose content inventory covers every rendered field plus the unrendered ones already in the response, and additive-only API proposals marked non-breaking",
+      "files": [],
+      "assertions": [
+        "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name",
+        "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)",
+        "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)",
+        "The prompt block is self-contained — it does not reference file paths, the codebase, or other sections of the document a design tool cannot see",
+        "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking",
+        "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "This is our issues list. It works but it's ugly and feels slow compared to Linear. I want to hand a design tool a really good prompt to redesign it — but nothing about how it behaves should change.\n\n```tsx\nexport function IssuesList() {\n  const [status, setStatus] = useState('all')\n  const { data } = useSWR(`/api/issues?status=${status}`)\n\n  return (\n    <div>\n      <h2>Issues</h2>\n      <select value={status} onChange={(e) => setStatus(e.target.value)}>\n        <option value=\"all\">All</option>\n        <option value=\"open\">Open</option>\n        <option value=\"closed\">Closed</option>\n      </select>\n      <ul>\n        {data?.issues.map((i) => (\n          <li key={i.id} onClick={() => router.push(`/issues/${i.id}`)}>\n            <strong>{i.title}</strong>\n            <span>{i.status}</span>\n            <span>{i.assignee?.name ?? 'Unassigned'}</span>\n          </li>\n        ))}\n      </ul>\n    </div>\n  )\n}\n```\n\n`GET /api/issues?status=` returns:\n\n```json\n{\n  \"issues\": [\n    {\n      \"id\": \"ISS-142\",\n      \"title\": \"Webhook retries drop the idempotency key\",\n      \"status\": \"open\",\n      \"priority\": 2,\n      \"assignee\": { \"id\": \"u_88\", \"name\": \"Priya Raman\", \"avatar_url\": \"https://cdn.example.dev/u_88.png\" },\n      \"labels\": [\"bug\", \"webhooks\"],\n      \"updated_at\": \"2026-03-12T16:04:00Z\",\n      \"comment_count\": 7\n    }\n  ]\n}\n```",
+      "expected_output": "An audit noting the missing loading and empty states, Linear/Height benchmarks with named mechanics, a self-contained prompt that keeps the status filter and row navigation, and use of already-returned fields before proposing any new API",
+      "files": [],
+      "assertions": [
+        "Names Linear or Height together with a specific borrowed mechanic (grouped lists with counts, keyboard navigation or command palette, inline editing, or optimistic updates) rather than only the product name",
+        "Preserves the existing status filter and its three options (all, open, closed) in the redesign",
+        "Flags that the component has no loading state and no empty state today, and specifies both in the generated prompt",
+        "Surfaces response data that is already returned but unrendered (priority, labels, updated_at, comment_count, or avatar_url) as usable without any new API",
+        "States explicitly that the redesign is presentation-only and preserves row-click navigation to /issues/:id",
+        "Any proposed API addition is additive-only and states what the design renders before it ships (graceful degradation)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Redesign brief needed for our deployments page. Give me something I can paste into Stitch.\n\n```tsx\nexport default function Deployments({ deployments }) {\n  return (\n    <div className=\"deployments\">\n      <h1>Deployments</h1>\n      {deployments.map((d) => (\n        <div className=\"row\" key={d.id}>\n          <span>{d.id}</span>\n          <span>{d.status}</span>\n          <span>{d.branch}</span>\n          <span>{d.created_at}</span>\n          <button onClick={() => rollback(d.id)}>Rollback</button>\n        </div>\n      ))}\n    </div>\n  )\n}\n```\n\nThe page is server-rendered from `GET /api/deployments`:\n\n```json\n{\n  \"deployments\": [\n    {\n      \"id\": \"dpl_7Kq2\",\n      \"status\": \"ready\",\n      \"branch\": \"main\",\n      \"commit_sha\": \"9f3c1ab\",\n      \"commit_message\": \"fix: handle null region in edge config\",\n      \"author\": \"bmulumia\",\n      \"created_at\": \"2026-03-14T11:02:44Z\",\n      \"duration_ms\": 84200,\n      \"environment\": \"production\",\n      \"url\": \"https://app-9f3c1ab.example.dev\"\n    }\n  ]\n}\n```",
+      "expected_output": "A status-first redesign prompt drawing on Vercel/Railway mechanics, using the six already-returned but unrendered fields instead of proposing new APIs for them, keeping the Rollback action as a guarded destructive action, and ending with a checkable invariants list",
+      "files": [],
+      "assertions": [
+        "Names Vercel, Railway, Supabase, or Planetscale together with a specific borrowed mechanic (status-first rows, monospaced commit metadata, inline expandable logs, or typed confirmation on destructive actions)",
+        "Preserves the per-row Rollback action and treats it as a destructive action in the redesign",
+        "Uses the already-returned but unrendered fields (commit_sha, commit_message, author, duration_ms, environment, url) rather than proposing new APIs for data the response already contains",
+        "The generated prompt specifies loading, empty, and error states",
+        "Proposes at most three API additions, each marked non-breaking, or states that no API changes are required",
+        "Produces a behavioural invariants checklist with specific checkable items derived from the current page's interactions"
+      ]
+    }
+  ]
+}

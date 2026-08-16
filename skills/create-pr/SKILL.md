@@ -1,15 +1,33 @@
 ---
 name: create-pr
-description: Create a pull request from the current branch to a specified target branch. Validates state, commits pending work, pushes safely, and opens the PR using gh pr create.
+description: >
+  Open a pull request from the current branch to any target branch, defaulting to the
+  repository's main branch. Validates branch state, commits pending work safely, pushes,
+  and opens the PR with gh pr create. Use this for every PR regardless of target —
+  feature branches to main, and also to dev, staging, or release lines. Trigger on
+  "open a PR", "ship this", "ship it to main", "create a pull request", "raise a PR for
+  this branch", "merge this into main", "put this up for review". Run run-pre-pr-checks
+  first if the local quality gate has not passed yet; use ship-release-candidate instead
+  when the branch bundles multiple changes into a versioned release.
 ---
 
 # create-pr
 
-If the user did not specify a target branch, **ask before continuing**:
+Determine `TARGET_BRANCH`:
+
+- If the user named a branch, use it.
+- If the user said "ship it", "open a PR", or similar without naming a branch, default
+  to the repository's main branch — detect it rather than assuming the name:
+
+```bash
+git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' \
+  || echo main
+```
+
+- Only ask when the repo has several plausible integration branches (for example both
+  `develop` and `main` receive feature work) and the intent is genuinely ambiguous:
 
 > "Which branch should this PR target? (for example `dev`, `staging`, or `main`)"
-
-Treat the branch name provided by the user as `TARGET_BRANCH`.
 
 ---
 
@@ -47,6 +65,8 @@ git diff --staged
 git status -sb
 git fetch origin
 git log --oneline --decorate -5
+git log origin/$TARGET_BRANCH..HEAD --oneline
+git diff --stat origin/$TARGET_BRANCH...HEAD
 ```
 
 Record:

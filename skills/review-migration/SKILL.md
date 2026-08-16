@@ -1,6 +1,15 @@
 ---
 name: review-migration
-description: Analyze a database migration for safety, reversibility, locking risks, and data-loss potential before it runs in production. Use before merging any schema change.
+description: >
+  Analyze a database migration file for safety, reversibility, locking risks,
+  and data-loss potential before it runs in production. Use when the user asks
+  "is this migration safe", "will this lock the table", "can I roll this
+  back", "will this cause downtime", or wants a schema migration reviewed
+  before merging — CREATE TABLE, ADD COLUMN, DROP COLUMN, ALTER COLUMN, or an
+  index or constraint change. Distinct from check-query-safety, which reviews
+  runtime application queries (N+1s, unbounded scans, injection) rather than
+  schema migration files — use that skill instead when the concern is query
+  performance, not a migration.
 ---
 
 # review-migration
@@ -36,28 +45,54 @@ For every statement in the migration, classify it by risk:
 | `RENAME TABLE`                                           | **High**    | Breaking for all references                                                                          |
 | `ALTER COLUMN` (type change)                             | **High**    | May fail or silently truncate data                                                                   |
 | `ALTER COLUMN` (type widening, e.g., VARCHAR(50) → TEXT) | Medium      | Usually safe but verify                                                                              |
-| `CREATE INDEX` (inline)                                  | Medium      | Takes `ACCESS EXCLUSIVE` lock for duration                                                           |
-| `CREATE INDEX CONCURRENTLY`                              | Low         | No locking, but cannot run inside a transaction                                                      |
+| `CREATE INDEX` (inline)                                  | Medium      | Takes `SHARE` — blocks writes for the whole build; reads keep working                                |
+| `CREATE INDEX CONCURRENTLY`                              | Low         | Takes `SHARE UPDATE EXCLUSIVE` — writes keep working; cannot run inside a transaction                |
 | `ADD CONSTRAINT` (CHECK, UNIQUE, FK)                     | Medium–High | May scan entire table; FK adds lock                                                                  |
 | `ADD CONSTRAINT NOT VALID`                               | Low         | Skips historical row validation                                                                      |
 | `VALIDATE CONSTRAINT`                                    | Medium      | Scans table but takes `SHARE UPDATE EXCLUSIVE`                                                       |
-| Backfill `UPDATE` on large table                         | **High**    | Locks table, potentially for minutes                                                                 |
+| Backfill `UPDATE` on large table                         | **High**    | One long transaction holding a row lock per matched row; heavy WAL and bloat — batch it              |
 | `TRUNCATE`                                               | **High**    | Destructive                                                                                          |
 
 ---
 
 ## Step 3 — Check for locking risks
 
-Identify any operation that will take an `ACCESS EXCLUSIVE` lock on a table:
+Name the lock each operation actually takes. Do not label every lock risk
+`ACCESS EXCLUSIVE` — the lock type is what tells the reader whether reads survive,
+and the wrong name points them at the wrong remedy.
+
+`ACCESS EXCLUSIVE` — blocks reads **and** writes:
 
 - `ALTER TABLE` (most variants)
-- `CREATE INDEX` without `CONCURRENTLY`
 - `ADD CONSTRAINT` (non-NOT VALID)
-- `DROP COLUMN` / `RENAME COLUMN`
+- `DROP COLUMN` / `RENAME COLUMN` / `DROP TABLE` / `TRUNCATE`
+
+The lock type is not the finding on its own — how long it is held is. A nullable
+`ADD COLUMN`, or an `ADD COLUMN` with a non-volatile default on Postgres 11+, takes
+`ACCESS EXCLUSIVE` only for the catalogue update: milliseconds, no scan, no rewrite.
+Do not report those as lock risks. Report the lock when the statement holds it
+across a table scan or a full rewrite — a type change, a constraint validation, an
+index build — and say which of the two it is.
+
+`SHARE` — blocks writes for the whole build, reads keep working:
+
+- `CREATE INDEX` without `CONCURRENTLY`
+
+`SHARE UPDATE EXCLUSIVE` — reads and writes both keep working:
+
+- `CREATE INDEX CONCURRENTLY`
+- `VALIDATE CONSTRAINT`
+
+A bulk `UPDATE` or `DELETE` takes only `ROW EXCLUSIVE` on the table, so it does not
+block readers or writers of rows it does not touch. The risk is the row locks it
+holds until commit, plus WAL volume, table bloat, and replication lag — so the fix
+is batching, not a maintenance window. The mild lock does not make it a mild
+finding: on a large table an unbatched backfill stays **high** severity, as the risk
+table above rates it. Do not downgrade it just because it is not lock-blocking.
 
 For each lock risk:
 
-- name the table that will be locked
+- name the table that will be locked and the lock type it takes
 - estimate whether the table is likely large (look for seed data, existing data comments, or history of backfills in adjacent migrations)
 - suggest the safe alternative where one exists (e.g., `CREATE INDEX CONCURRENTLY`, `ADD CONSTRAINT ... NOT VALID` + `VALIDATE CONSTRAINT` separately)
 

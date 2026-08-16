@@ -1,6 +1,13 @@
 ---
 name: amend-safely
-description: Amend the most recent commit's message, staged content, or both, with guardrails against rewriting shared history. Use to fix a commit before it has been pushed.
+description: >
+  Fix the most recent commit — its message, its staged content, or both — with hard
+  guardrails against rewriting history that has already been shared. Trigger on "undo my
+  last commit", "fix the commit message", "I forgot a file in my last commit", "reword
+  the last commit", "amend that". Checks whether the commit has been pushed before
+  touching anything, and refuses to quietly force-push over a shared branch. Only for
+  commits that are still local or on your own unshared branch — once a commit is merged
+  or others have pulled it, use revert-change-safely instead.
 ---
 
 # amend-safely
@@ -58,10 +65,27 @@ Check if the current commit exists on the remote:
 git log --oneline @{u}..HEAD 2>/dev/null || echo "no upstream"
 ```
 
-If the command fails or returns output showing the commit has no upstream tracking:
+Interpret the output exactly as follows — this determines whether amending is safe,
+so do not guess:
 
-- run `git ls-remote origin HEAD` and compare
-- or check `git status -sb` for `ahead/behind` indicators
+- **Non-empty output that includes HEAD's subject** — the commit is local-only and
+  has not been pushed. Safe to amend directly.
+- **Empty output** — HEAD already matches the upstream tip. The commit **has been
+  pushed**. Go to the warning below.
+- **`no upstream`** — the branch has no tracking ref, so the check above proved
+  nothing. Confirm against the remote explicitly:
+
+```bash
+# Compare the CURRENT branch against the remote — not `git ls-remote origin HEAD`,
+# which resolves the remote's default branch (usually main) and will silently
+# report the wrong answer on any feature branch.
+git ls-remote origin "$(git rev-parse --abbrev-ref HEAD)"
+git rev-parse HEAD
+```
+
+If those two hashes match, the commit is on the remote — treat it as pushed.
+If `git ls-remote` returns nothing, the branch does not exist on the remote and the
+commit is local-only.
 
 **If the commit has already been pushed to the remote:**
 

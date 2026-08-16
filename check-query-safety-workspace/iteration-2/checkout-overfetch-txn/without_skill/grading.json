@@ -1,0 +1,40 @@
+{
+  "eval_name": "checkout-overfetch-txn",
+  "configuration": "without_skill",
+  "pass_rate": 0.8333,
+  "passed": 5,
+  "failed": 1,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `getAuthorName` as over-fetching \u2014 it loads the full post plus `author`, `comments`, and `tags` relations but uses only `author.name` \u2014 and recommends narrowing it with a `select` rather than the broad `include`",
+      "passed": true,
+      "evidence": "'Over-fetching in getAuthorName ... comments and tags are fetched but never used', with a select fix."
+    },
+    {
+      "text": "Flags the `order.create` followed by `inventory.update` in `placeOrder` as a missing transaction boundary, names the partial-failure risk, and recommends wrapping both writes in `prisma.$transaction([...])` or equivalent",
+      "passed": true,
+      "evidence": "'Non-atomic writes in placeOrder ... Wrap both in a transaction', with prisma.$transaction."
+    },
+    {
+      "text": "Does not flag `getOrderTotal` as over-fetching, since it already uses `select: { total: true }` to fetch only the field it uses \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "'getOrderTotal is fine \u2014 it already uses select correctly.'"
+    },
+    {
+      "text": "Does not flag the `order.create` / `inventory.update` pair in `placeOrder` as an N+1 pattern, since there is no loop or per-item repeated query \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "Never characterises placeOrder as an N+1."
+    },
+    {
+      "text": "Rates the missing transaction boundary above the over-fetch in severity (transaction medium or higher, over-fetch low), matching the skill's severity ordering rather than presenting the over-fetch as the more serious problem",
+      "passed": false,
+      "evidence": "No severity labels anywhere, and the over-fetch is presented first as issue 1 with the transaction second \u2014 the opposite of the skill's ordering."
+    },
+    {
+      "text": "Does not manufacture findings in the categories this file does not exercise \u2014 reports no SQL injection and no unbounded-query findings rather than stretching one of the three functions to fill those sections",
+      "passed": true,
+      "evidence": "Adds a concurrency guard finding but invents no injection or unbounded-query finding."
+    }
+  ]
+}

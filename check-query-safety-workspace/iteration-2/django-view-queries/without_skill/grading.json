@@ -1,0 +1,40 @@
+{
+  "eval_name": "django-view-queries",
+  "configuration": "without_skill",
+  "pass_rate": 0.8333,
+  "passed": 5,
+  "failed": 1,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags `cursor.execute(f\"SELECT id, name FROM users WHERE name LIKE '%{term}%'\")` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+      "passed": true,
+      "evidence": "'Critical \u2014 SQL injection (search_users, line 12)' with the f-string quoted."
+    },
+    {
+      "text": "Names `request.GET.get(\"q\")` (the `term` variable) as the untrusted input source, and gives the parameterized rewrite that keeps the wildcards in the bound parameter (e.g. `cursor.execute(\"... WHERE name LIKE %s\", [f\"%{term}%\"])`) rather than leaving the `%` characters inside the SQL string",
+      "passed": true,
+      "evidence": "Same correct rewrite with the wildcards bound: [f\"%{term}%\"]."
+    },
+    {
+      "text": "Flags the `for order in orders:` loop calling `OrderItem.objects.filter(order_id=order.id)` as an N+1 query pattern and proposes `prefetch_related` (or `select_related`) on the initial `Order.objects.filter(...)` call",
+      "passed": true,
+      "evidence": "'Medium \u2014 N+1 queries ... Replace with a single prefetch'."
+    },
+    {
+      "text": "Flags `User.objects.all()` in `get_recent_signups` as an unbounded query and proposes a concrete limit/slice or pagination as the fix",
+      "passed": true,
+      "evidence": "'Add .order_by('-date_joined')[:100] or wire it through a paginator.'"
+    },
+    {
+      "text": "Does not flag `cursor.execute(\"SELECT email FROM users WHERE id = %s\", [user_id])` in `get_user_email` as an injection risk \u2014 restraint / false-positive check",
+      "passed": true,
+      "evidence": "'get_user_email (line 17) is clean: it uses %s parameterization correctly.'"
+    },
+    {
+      "text": "Identifies the data-access stack as the Django ORM plus raw `connection.cursor()` calls, and frames the fixes in Django idioms (`prefetch_related`, queryset slicing, `%s` placeholders) rather than generic or Node-flavoured SQL advice",
+      "passed": false,
+      "evidence": "Uses Django idioms but never identifies the data-access stack; no ORM-detection step."
+    }
+  ]
+}

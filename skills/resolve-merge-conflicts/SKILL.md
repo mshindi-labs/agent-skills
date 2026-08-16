@@ -1,6 +1,13 @@
 ---
 name: resolve-merge-conflicts
-description: Resolve git conflict markers correctly by understanding both sides' intent, never silently discarding work, and verifying the result compiles and tests pass before continuing the merge or rebase.
+description: >
+  Resolve git conflict markers correctly by understanding both sides' intent,
+  never silently discarding work, and verifying the result compiles and tests
+  pass before continuing the merge or rebase. Trigger on requests like "fix
+  these merge conflicts", "resolve the conflicts", "there are conflict
+  markers in this file", "merge is failing", or "rebase conflict" — anywhere
+  conflict markers already exist in the working tree right now. For syncing a
+  branch before conflicts show up, use sync-branch-safely instead.
 ---
 
 # resolve-merge-conflicts

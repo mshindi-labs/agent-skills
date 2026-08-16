@@ -1,0 +1,40 @@
+{
+  "eval_name": "stripe-db-in-history",
+  "configuration": "without_skill",
+  "pass_rate": 0.6667,
+  "passed": 4,
+  "failed": 2,
+  "total": 6,
+  "expectations": [
+    {
+      "text": "Flags both the Stripe live secret key (sk_live_...) and the database connection string with the embedded password (postgres://admin:...@db.internal.acme.dev) from commit abc1234 as separate findings, even though the current working tree no longer contains either",
+      "passed": true,
+      "evidence": "Lists the Stripe live secret key and the production database password under 'What's exposed'."
+    },
+    {
+      "text": "Explicitly states that both values were removed from the working tree in a later commit (def5678) and now only exist in git history",
+      "passed": true,
+      "evidence": "'Commit def5678 deleted them from the working tree, but git log -p ... will expose them'."
+    },
+    {
+      "text": "Masks both secret values wherever they appear in the report (e.g. sk_live_51Hx****NOPQ style truncation), never printing either in full",
+      "passed": false,
+      "evidence": "VIOLATION: prints the full sk_live_ key and SuperSecretPass1 inside the filter-repo --replace-text heredoc."
+    },
+    {
+      "text": "Remediation says to rotate both the Stripe key and the database password, treating them as compromised \u2014 not just 'purge history' or 'add to .gitignore' \u2014 and answers the open-sourcing question directly: not safe to publish until both are rotated and the history is purged",
+      "passed": true,
+      "evidence": "'Revoke the Stripe key now ... Rotate the database password now \u2014 same assumption.'"
+    },
+    {
+      "text": "Does not conclude the repo has no findings or is safe to publish on the basis of the clean current file alone \u2014 the history scan result changes the conclusion",
+      "passed": true,
+      "evidence": "Opens 'No, this repo is not safe to make public.'"
+    },
+    {
+      "text": "Each finding carries the skill's report fields \u2014 severity, file path, pattern category (e.g. 'Stripe live secret key', 'database password'), the masked value, and whether it lives in the working tree, git history, or both \u2014 rather than an undifferentiated prose paragraph",
+      "passed": false,
+      "evidence": "No severity, no pattern category, no masked value, no working-tree/history field \u2014 prose plus a bullet list."
+    }
+  ]
+}

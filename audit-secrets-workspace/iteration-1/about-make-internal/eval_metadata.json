@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "about-make-internal",
+  "prompt": "I'm about to make this internal scratch project public. Before I do, run a secrets audit on it \u2014 I don't just want a scan of what's sitting in the files right now, I want to know if anything sensitive ever touched a commit, even if it looks clean today. The repo is at the path given in the fixture.",
+  "assertions": [
+    "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+    "Identifies the RSA private key block as a finding present ONLY in git history \u2014 explicitly notes it was removed from the current working tree in a later commit",
+    "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+    "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+    "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+    "The response never prints the full RSA private key body or the full AWS secret access key value anywhere, even while explaining the finding"
+  ]
+}

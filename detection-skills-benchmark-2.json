@@ -1,0 +1,1324 @@
+{
+  "metadata": {
+    "suite": "detection-skills iteration-2 (rewritten assertions)",
+    "skills": [
+      "audit-dependencies",
+      "audit-secrets",
+      "check-query-safety",
+      "review-changes",
+      "review-migration"
+    ],
+    "evals": 13,
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-opus-5",
+    "environment": {
+      "sandbox": "/tmp/eval-rerun/<skill>/eval-N/<arm> \u2014 outside the repo",
+      "config_dir": "credentials-only CLAUDE_CONFIG_DIR: no hooks, plugins, global skills or CLAUDE.md",
+      "skill_tool": "disabled in both arms (--disable-slash-commands); the with_skill arm reads ./skill/SKILL.md"
+    },
+    "timestamp": "2026-08-16T12:00:00Z"
+  },
+  "runs": [
+    {
+      "skill": "review-migration",
+      "eval_name": "review-migration-before",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 69.3,
+        "cost_usd": 0.29085375,
+        "output_tokens": 3437
+      },
+      "expectations": [
+        {
+          "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+          "passed": true,
+          "evidence": "'[high] ADD COLUMN email TEXT NOT NULL' \u2014 'will fail outright on a table with existing rows', quotes the Postgres error."
+        },
+        {
+          "text": "Describes `CREATE INDEX idx_users_email ON users(email);` as a lock risk that blocks writes to `users` for the duration of the build while reads keep working (a SHARE lock), and recommends `CREATE INDEX CONCURRENTLY` as the fix \u2014 it must NOT claim the index build takes an ACCESS EXCLUSIVE lock",
+          "passed": true,
+          "evidence": "'Takes a SHARE lock for the entire index build. This blocks all writes (INSERT, UPDATE, DELETE)'; recommends CONCURRENTLY and names SHARE UPDATE EXCLUSIVE. Never claims ACCESS EXCLUSIVE for the index."
+        },
+        {
+          "text": "Flags the absent down/rollback migration as a reversibility gap",
+          "passed": true,
+          "evidence": "'Reversibility gaps \u2014 [medium] No .down.sql exists.'"
+        },
+        {
+          "text": "Gives the ordered three-step fix for the email column \u2014 add it nullable or with a default, backfill existing rows, then apply NOT NULL \u2014 rather than only naming the problem",
+          "passed": true,
+          "evidence": "Three numbered SQL steps: add nullable, backfill UPDATE, ALTER COLUMN SET NOT NULL."
+        },
+        {
+          "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk \u2014 restraint / false-positive check",
+          "passed": false,
+          "evidence": "VIOLATION: flags 'ALTER TABLE users ADD COLUMN nickname TEXT' as '[medium]' under Lock risks, calling it ACCESS EXCLUSIVE. The skill's own risk table rates a nullable ADD COLUMN Low."
+        },
+        {
+          "text": "Uses the skill's sectioned report structure: findings grouped under named risk categories (data-loss, lock, reversibility, backfill, index) with a severity tag per finding and a closing overall verdict, rather than one flat run of prose",
+          "passed": true,
+          "evidence": "Data-loss risks / Lock risks / Reversibility gaps / Missing backfills / Missing indexes / Summary, each finding severity-tagged, verdict 'Blocks deployment as written.'"
+        }
+      ]
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "review-migration-before",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 35.9,
+        "cost_usd": 0.166871,
+        "output_tokens": 1494
+      },
+      "expectations": [
+        {
+          "text": "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
+          "passed": true,
+          "evidence": "'Critical \u2014 ADD COLUMN email TEXT NOT NULL will fail on a non-empty table'."
+        },
+        {
+          "text": "Describes `CREATE INDEX idx_users_email ON users(email);` as a lock risk that blocks writes to `users` for the duration of the build while reads keep working (a SHARE lock), and recommends `CREATE INDEX CONCURRENTLY` as the fix \u2014 it must NOT claim the index build takes an ACCESS EXCLUSIVE lock",
+          "passed": true,
+          "evidence": "'acquires a ShareLock, which blocks INSERT/UPDATE/DELETE for the duration'; recommends CONCURRENTLY. Correct lock, so the old ACCESS EXCLUSIVE assertion was penalising this."
+        },
+        {
+          "text": "Flags the absent down/rollback migration as a reversibility gap",
+          "passed": false,
+          "evidence": "Never mentions the missing down migration or reversibility anywhere."
+        },
+        {
+          "text": "Gives the ordered three-step fix for the email column \u2014 add it nullable or with a default, backfill existing rows, then apply NOT NULL \u2014 rather than only naming the problem",
+          "passed": true,
+          "evidence": "Three numbered steps: nullable, backfill, SET NOT NULL."
+        },
+        {
+          "text": "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "nickname is not flagged."
+        },
+        {
+          "text": "Uses the skill's sectioned report structure: findings grouped under named risk categories (data-loss, lock, reversibility, backfill, index) with a severity tag per finding and a closing overall verdict, rather than one flat run of prose",
+          "passed": false,
+          "evidence": "Flat numbered list plus a corrected-migration block; no named risk sections."
+        }
+      ]
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "rails-add-org-to-projects",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 44.4,
+        "cost_usd": 0.20652530000000002,
+        "output_tokens": 1914
+      },
+      "expectations": [
+        {
+          "text": "Flags `rename_column :projects, :owner, :legacy_owner` as high risk because it breaks any application code not yet deployed to use the new column name",
+          "passed": true,
+          "evidence": "'[high] rename_column' \u2014 'any application code still referencing the column as owner will break', expand/contract prescribed."
+        },
+        {
+          "text": "Flags `add_foreign_key :projects, :organizations, column: :organization_id` as adding a foreign key on `organization_id` with no corresponding index on that column, and recommends adding one",
+          "passed": true,
+          "evidence": "'Missing indexes \u2014 [low] organization_id foreign key column has no index', with add_index ... algorithm: :concurrently."
+        },
+        {
+          "text": "Flags the `down` method as an incomplete reversibility gap because it only removes `organization_id` and does not reverse the `rename_column` or `add_foreign_key`/`add_index` calls from `up`",
+          "passed": true,
+          "evidence": "'[high] down does not reverse rename_column or add_foreign_key', with a corrected down method."
+        },
+        {
+          "text": "Does not flag `add_index :projects, :status, algorithm: :concurrently` as a lock risk, correctly treating the CONCURRENTLY-qualified index build as low risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Says CONCURRENTLY 'is the right choice and takes only SHARE UPDATE EXCLUSIVE (reads and writes keep working)'; the [medium] it attaches is for the missing disable_ddl_transaction!, not for locking."
+        },
+        {
+          "text": "Reasons explicitly from the stated table size \u2014 that `projects` has millions of rows \u2014 when rating the risk or recommending how to run the migration, rather than giving size-independent generic advice",
+          "passed": true,
+          "evidence": "'On a multi-million-row table this scan can take minutes', repeated for the FK and the rename."
+        },
+        {
+          "text": "Gives an overall verdict that the migration needs changes before running (not that it is safe to run), given the rename and reversibility gap",
+          "passed": true,
+          "evidence": "'Blocks deployment as written.' with a five-row severity table."
+        }
+      ]
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "rails-add-org-to-projects",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 33.7,
+        "cost_usd": 0.16986700000000002,
+        "output_tokens": 1676
+      },
+      "expectations": [
+        {
+          "text": "Flags `rename_column :projects, :owner, :legacy_owner` as high risk because it breaks any application code not yet deployed to use the new column name",
+          "passed": true,
+          "evidence": "'rename_column is a breaking change for live traffic ... not safely zero-downtime'."
+        },
+        {
+          "text": "Flags `add_foreign_key :projects, :organizations, column: :organization_id` as adding a foreign key on `organization_id` with no corresponding index on that column, and recommends adding one",
+          "passed": false,
+          "evidence": "Never mentions that organization_id needs an index; the revised migration adds no index on the FK column."
+        },
+        {
+          "text": "Flags the `down` method as an incomplete reversibility gap because it only removes `organization_id` and does not reverse the `rename_column` or `add_foreign_key`/`add_index` calls from `up`",
+          "passed": true,
+          "evidence": "'down is incomplete' with a corrected method."
+        },
+        {
+          "text": "Does not flag `add_index :projects, :status, algorithm: :concurrently` as a lock risk, correctly treating the CONCURRENTLY-qualified index build as low risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Treats concurrently only as a transaction-block error, not a lock risk."
+        },
+        {
+          "text": "Reasons explicitly from the stated table size \u2014 that `projects` has millions of rows \u2014 when rating the risk or recommending how to run the migration, rather than giving size-independent generic advice",
+          "passed": true,
+          "evidence": "'On millions of rows this blocks all reads and writes for the duration'."
+        },
+        {
+          "text": "Gives an overall verdict that the migration needs changes before running (not that it is safe to run), given the rename and reversibility gap",
+          "passed": true,
+          "evidence": "'The disable_ddl_transaction! + incomplete down are the two I'd fix before running this anywhere.'"
+        }
+      ]
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "drop-narrow-backfill",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 49.9,
+        "cost_usd": 0.19791709999999996,
+        "output_tokens": 2046
+      },
+      "expectations": [
+        {
+          "text": "Flags `DROP TABLE legacy_sessions;` as high risk and irreversible/destructive",
+          "passed": true,
+          "evidence": "'[high] DROP TABLE legacy_sessions \u2014 All rows permanently deleted with no rollback path.'"
+        },
+        {
+          "text": "Flags `ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;` as high risk, noting the type narrowing from NUMERIC(10,2) to INTEGER can truncate or lose precision on existing data",
+          "passed": true,
+          "evidence": "'[high] ALTER COLUMN amount TYPE INTEGER ... 99.99 becomes 99 ... permanent monetary data destruction.'"
+        },
+        {
+          "text": "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill because it rewrites matched rows across a ~40 million row table in a single long transaction, and recommends batching it \u2014 it must NOT describe the UPDATE as taking a table-wide or ACCESS EXCLUSIVE lock that blocks all reads and writes",
+          "passed": true,
+          "evidence": "'Takes ROW EXCLUSIVE (not ACCESS EXCLUSIVE), so it does not block unrelated reads' \u2014 cites 40M rows, WAL, bloat, replication lag, prescribes 25k-50k batches."
+        },
+        {
+          "text": "Flags the absence of a down/rollback migration as a reversibility gap, specifically noting that `DROP TABLE legacy_sessions` cannot be safely reversed without a backup",
+          "passed": true,
+          "evidence": "'[high] No down migration exists for any destructive operation' \u2014 'unrecoverable without a backup taken before the migration runs.'"
+        },
+        {
+          "text": "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk \u2014 restraint / false-positive check",
+          "passed": false,
+          "evidence": "Flags '[low] actor_id \u2014 audit_logs' for a missing index. actor_id is not a declared foreign key, so this is outside the skill's Step 6 scope."
+        },
+        {
+          "text": "Gives an overall verdict indicating the migration needs changes before running or blocks deployment, not that it is safe to run",
+          "passed": true,
+          "evidence": "'Blocks deployment \u2014 do not run as-is.' with three enumerated blockers."
+        }
+      ]
+    },
+    {
+      "skill": "review-migration",
+      "eval_name": "drop-narrow-backfill",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 45.1,
+        "cost_usd": 0.07046290000000001,
+        "output_tokens": 1997
+      },
+      "expectations": [
+        {
+          "text": "Flags `DROP TABLE legacy_sessions;` as high risk and irreversible/destructive",
+          "passed": true,
+          "evidence": "'Irreversible table destruction \u2014 permanently discards the table and all its data.'"
+        },
+        {
+          "text": "Flags `ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;` as high risk, noting the type narrowing from NUMERIC(10,2) to INTEGER can truncate or lose precision on existing data",
+          "passed": true,
+          "evidence": "'truncating the fractional part: 10.99 becomes 10 ... silently destroys it'."
+        },
+        {
+          "text": "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill because it rewrites matched rows across a ~40 million row table in a single long transaction, and recommends batching it \u2014 it must NOT describe the UPDATE as taking a table-wide or ACCESS EXCLUSIVE lock that blocks all reads and writes",
+          "passed": true,
+          "evidence": "'Hold a long-running transaction, blocking autovacuum and increasing replication lag'; supplies a batching DO block. No table-lock claim."
+        },
+        {
+          "text": "Flags the absence of a down/rollback migration as a reversibility gap, specifically noting that `DROP TABLE legacy_sessions` cannot be safely reversed without a backup",
+          "passed": false,
+          "evidence": "Notes 'no rollback defined' but never says DROP TABLE cannot be reversed without a backup; recommends rename-and-wait instead."
+        },
+        {
+          "text": "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk \u2014 restraint / false-positive check",
+          "passed": false,
+          "evidence": "Flags audit_logs for missing indexes on actor_id and created_at (Low in the summary table)."
+        },
+        {
+          "text": "Gives an overall verdict indicating the migration needs changes before running or blocks deployment, not that it is safe to run",
+          "passed": true,
+          "evidence": "'Do not run this migration as-is.'"
+        }
+      ]
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "check-file-query",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 40.2,
+        "cost_usd": 0.0930518,
+        "output_tokens": 2002
+      },
+      "expectations": [
+        {
+          "text": "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+          "passed": true,
+          "evidence": "'SQL injection risks (1) 1. [high] String interpolation in raw query \u2014 line 5' with the line quoted."
+        },
+        {
+          "text": "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding, as the skill requires of every injection finding",
+          "passed": true,
+          "evidence": "'Input source: req.params.id (route parameter, user-controlled)'."
+        },
+        {
+          "text": "Gives the parameterized rewrite of that exact query (placeholder plus bound value, e.g. `db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])`) rather than a generic 'use parameterized queries' remark",
+          "passed": true,
+          "evidence": "Fix line gives db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])."
+        },
+        {
+          "text": "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern and proposes `include` on the initial order query or a single batched `findMany` with an `in` filter",
+          "passed": true,
+          "evidence": "'[medium] Query inside loop \u2014 lines 9-11 ... Fix: add include: { items: true }'."
+        },
+        {
+          "text": "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
+          "passed": true,
+          "evidence": "'[medium] findMany without take ... Fix: add take: 100 (or your page size) and a cursor/skip'."
+        },
+        {
+          "text": "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "getUserById appears only under Over-fetching (SELECT *), never as an injection risk."
+        }
+      ]
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "check-file-query",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 27.8,
+        "cost_usd": 0.0605909,
+        "output_tokens": 1303
+      },
+      "expectations": [
+        {
+          "text": "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+          "passed": true,
+          "evidence": "'SQL Injection \u2014 Critical (line 5)' with the line quoted."
+        },
+        {
+          "text": "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding, as the skill requires of every injection finding",
+          "passed": true,
+          "evidence": "'req.params.id is interpolated directly into a template literal SQL string'."
+        },
+        {
+          "text": "Gives the parameterized rewrite of that exact query (placeholder plus bound value, e.g. `db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])`) rather than a generic 'use parameterized queries' remark",
+          "passed": true,
+          "evidence": "Gives db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])."
+        },
+        {
+          "text": "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern and proposes `include` on the initial order query or a single batched `findMany` with an `in` filter",
+          "passed": true,
+          "evidence": "'N+1 Query Problem \u2014 High (lines 9-12)' with the include fix."
+        },
+        {
+          "text": "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
+          "passed": true,
+          "evidence": "'Unbounded Query \u2014 Medium ... Add a limit and/or cursor-based pagination.'"
+        },
+        {
+          "text": "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'Safe \u2014 getUserById ... This is fine \u2014 it uses a parameterized query correctly.'"
+        }
+      ]
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "checkout-overfetch-txn",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 29.1,
+        "cost_usd": 0.08475469999999999,
+        "output_tokens": 1438
+      },
+      "expectations": [
+        {
+          "text": "Flags `getAuthorName` as over-fetching \u2014 it loads the full post plus `author`, `comments`, and `tags` relations but uses only `author.name` \u2014 and recommends narrowing it with a `select` rather than the broad `include`",
+          "passed": true,
+          "evidence": "'[low] Unused relations loaded \u2014 getAuthorName ... Only post?.author.name is returned', with a nested select fix."
+        },
+        {
+          "text": "Flags the `order.create` followed by `inventory.update` in `placeOrder` as a missing transaction boundary, names the partial-failure risk, and recommends wrapping both writes in `prisma.$transaction([...])` or equivalent",
+          "passed": true,
+          "evidence": "'[high] Multi-table write without transaction \u2014 placeOrder', with a prisma.$transaction callback fix."
+        },
+        {
+          "text": "Does not flag `getOrderTotal` as over-fetching, since it already uses `select: { total: true }` to fetch only the field it uses \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "getOrderTotal is not flagged in the Over-fetching section."
+        },
+        {
+          "text": "Does not flag the `order.create` / `inventory.update` pair in `placeOrder` as an N+1 pattern, since there is no loop or per-item repeated query \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'N+1 patterns (0) None. No loops containing queries.'"
+        },
+        {
+          "text": "Rates the missing transaction boundary above the over-fetch in severity (transaction medium or higher, over-fetch low), matching the skill's severity ordering rather than presenting the over-fetch as the more serious problem",
+          "passed": true,
+          "evidence": "Transaction [high] vs over-fetch [low]; summary calls the transaction 'the critical one' and the over-fetch 'a minor efficiency issue'."
+        },
+        {
+          "text": "Does not manufacture findings in the categories this file does not exercise \u2014 reports no SQL injection and no unbounded-query findings rather than stretching one of the three functions to fill those sections",
+          "passed": true,
+          "evidence": "'SQL injection risks (0)' and 'Unbounded queries (0)' both reported as empty."
+        }
+      ]
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "checkout-overfetch-txn",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 17.3,
+        "cost_usd": 0.05319189999999999,
+        "output_tokens": 800
+      },
+      "expectations": [
+        {
+          "text": "Flags `getAuthorName` as over-fetching \u2014 it loads the full post plus `author`, `comments`, and `tags` relations but uses only `author.name` \u2014 and recommends narrowing it with a `select` rather than the broad `include`",
+          "passed": true,
+          "evidence": "'Over-fetching in getAuthorName ... comments and tags are fetched but never used', with a select fix."
+        },
+        {
+          "text": "Flags the `order.create` followed by `inventory.update` in `placeOrder` as a missing transaction boundary, names the partial-failure risk, and recommends wrapping both writes in `prisma.$transaction([...])` or equivalent",
+          "passed": true,
+          "evidence": "'Non-atomic writes in placeOrder ... Wrap both in a transaction', with prisma.$transaction."
+        },
+        {
+          "text": "Does not flag `getOrderTotal` as over-fetching, since it already uses `select: { total: true }` to fetch only the field it uses \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'getOrderTotal is fine \u2014 it already uses select correctly.'"
+        },
+        {
+          "text": "Does not flag the `order.create` / `inventory.update` pair in `placeOrder` as an N+1 pattern, since there is no loop or per-item repeated query \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Never characterises placeOrder as an N+1."
+        },
+        {
+          "text": "Rates the missing transaction boundary above the over-fetch in severity (transaction medium or higher, over-fetch low), matching the skill's severity ordering rather than presenting the over-fetch as the more serious problem",
+          "passed": false,
+          "evidence": "No severity labels anywhere, and the over-fetch is presented first as issue 1 with the transaction second \u2014 the opposite of the skill's ordering."
+        },
+        {
+          "text": "Does not manufacture findings in the categories this file does not exercise \u2014 reports no SQL injection and no unbounded-query findings rather than stretching one of the three functions to fill those sections",
+          "passed": true,
+          "evidence": "Adds a concurrency guard finding but invents no injection or unbounded-query finding."
+        }
+      ]
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "django-view-queries",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 35.8,
+        "cost_usd": 0.08819369999999999,
+        "output_tokens": 1644
+      },
+      "expectations": [
+        {
+          "text": "Flags `cursor.execute(f\"SELECT id, name FROM users WHERE name LIKE '%{term}%'\")` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+          "passed": true,
+          "evidence": "'[high] f-string interpolation in raw query \u2014 search_users' with the line quoted."
+        },
+        {
+          "text": "Names `request.GET.get(\"q\")` (the `term` variable) as the untrusted input source, and gives the parameterized rewrite that keeps the wildcards in the bound parameter (e.g. `cursor.execute(\"... WHERE name LIKE %s\", [f\"%{term}%\"])`) rather than leaving the `%` characters inside the SQL string",
+          "passed": true,
+          "evidence": "'Input source: request.GET.get(\"q\")'; fix is cursor.execute(\"... LIKE %s\", [f\"%{term}%\"]) \u2014 wildcards in the bound parameter."
+        },
+        {
+          "text": "Flags the `for order in orders:` loop calling `OrderItem.objects.filter(order_id=order.id)` as an N+1 query pattern and proposes `prefetch_related` (or `select_related`) on the initial `Order.objects.filter(...)` call",
+          "passed": true,
+          "evidence": "'[medium] Query inside loop \u2014 get_orders_with_items ... Fix: prefetch_related(\"orderitem_set\")'."
+        },
+        {
+          "text": "Flags `User.objects.all()` in `get_recent_signups` as an unbounded query and proposes a concrete limit/slice or pagination as the fix",
+          "passed": true,
+          "evidence": "'[medium] No limit, no filter \u2014 get_recent_signups', fix adds a 30-day cutoff and [:100]."
+        },
+        {
+          "text": "Does not flag `cursor.execute(\"SELECT email FROM users WHERE id = %s\", [user_id])` in `get_user_email` as an injection risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'get_user_email uses %s parameterization correctly \u2014 that pattern is safe.'"
+        },
+        {
+          "text": "Identifies the data-access stack as the Django ORM plus raw `connection.cursor()` calls, and frames the fixes in Django idioms (`prefetch_related`, queryset slicing, `%s` placeholders) rather than generic or Node-flavoured SQL advice",
+          "passed": true,
+          "evidence": "'Step 1 \u2014 ORM detection: Django ORM (objects.filter, objects.all) plus raw SQL via connection.cursor()'; fixes use prefetch_related, .only(), queryset slicing."
+        }
+      ]
+    },
+    {
+      "skill": "check-query-safety",
+      "eval_name": "django-view-queries",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 32.6,
+        "cost_usd": 0.0797425,
+        "output_tokens": 1616
+      },
+      "expectations": [
+        {
+          "text": "Flags `cursor.execute(f\"SELECT id, name FROM users WHERE name LIKE '%{term}%'\")` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+          "passed": true,
+          "evidence": "'Critical \u2014 SQL injection (search_users, line 12)' with the f-string quoted."
+        },
+        {
+          "text": "Names `request.GET.get(\"q\")` (the `term` variable) as the untrusted input source, and gives the parameterized rewrite that keeps the wildcards in the bound parameter (e.g. `cursor.execute(\"... WHERE name LIKE %s\", [f\"%{term}%\"])`) rather than leaving the `%` characters inside the SQL string",
+          "passed": true,
+          "evidence": "Same correct rewrite with the wildcards bound: [f\"%{term}%\"]."
+        },
+        {
+          "text": "Flags the `for order in orders:` loop calling `OrderItem.objects.filter(order_id=order.id)` as an N+1 query pattern and proposes `prefetch_related` (or `select_related`) on the initial `Order.objects.filter(...)` call",
+          "passed": true,
+          "evidence": "'Medium \u2014 N+1 queries ... Replace with a single prefetch'."
+        },
+        {
+          "text": "Flags `User.objects.all()` in `get_recent_signups` as an unbounded query and proposes a concrete limit/slice or pagination as the fix",
+          "passed": true,
+          "evidence": "'Add .order_by('-date_joined')[:100] or wire it through a paginator.'"
+        },
+        {
+          "text": "Does not flag `cursor.execute(\"SELECT email FROM users WHERE id = %s\", [user_id])` in `get_user_email` as an injection risk \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'get_user_email (line 17) is clean: it uses %s parameterization correctly.'"
+        },
+        {
+          "text": "Identifies the data-access stack as the Django ORM plus raw `connection.cursor()` calls, and frames the fixes in Django idioms (`prefetch_related`, queryset slicing, `%s` placeholders) rather than generic or Node-flavoured SQL advice",
+          "passed": false,
+          "evidence": "Uses Django idioms but never identifies the data-access stack; no ORM-detection step."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "dependency-audit-node",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 91.9,
+        "cost_usd": 0.1377368,
+        "output_tokens": 4805
+      },
+      "expectations": [
+        {
+          "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and gives a concrete upgrade target or command (>=4.17.19 or later) rather than a vague 'update lodash' instruction",
+          "passed": true,
+          "evidence": "'[high] lodash@4.17.15 \u2014 CVE-2020-8203 ... Fix: upgrade to >=4.17.19 \u2014 run: npm install lodash@^4.17.21'."
+        },
+        {
+          "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+          "passed": true,
+          "evidence": "'pdf-stamp@2.1.0 \u2014 AGPL-3.0 (direct production dependency) ... requires distributing complete source code ... over a network'; action is legal review or a named MIT alternative."
+        },
+        {
+          "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+          "passed": true,
+          "evidence": "'moment \u2014 no import or require found in any source, config, or script file ... Action: remove'."
+        },
+        {
+          "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Step 5 records 'tailwindcss: used in postcss.config.js (config plugin)'; it is absent from the unused section."
+        },
+        {
+          "text": "Orders the report security-first: the lodash CVE is presented above the license and unused-package findings, matching the skill's risk ordering",
+          "passed": true,
+          "evidence": "Security vulnerabilities is the first section, above License risks and Unused."
+        },
+        {
+          "text": "Uses the skill's sectioned report structure \u2014 security vulnerabilities, license risks, and unused production dependencies as named sections with severity-tagged entries, closing with the summary tallies and recommended immediate actions \u2014 rather than a flat prose list",
+          "passed": true,
+          "evidence": "Full sectioned report with per-section counts, severity tags, Summary tallies, and Recommended immediate actions."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "dependency-audit-node",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 34.9,
+        "cost_usd": 0.0647899,
+        "output_tokens": 1480
+      },
+      "expectations": [
+        {
+          "text": "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and gives a concrete upgrade target or command (>=4.17.19 or later) rather than a vague 'update lodash' instruction",
+          "passed": true,
+          "evidence": "'CVE-2020-8203 \u2014 Prototype Pollution ... npm install lodash@4.17.21'."
+        },
+        {
+          "text": "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
+          "passed": true,
+          "evidence": "'AGPL-3.0 is a strong copyleft license ... Audit whether a commercial license is available ... or replace'."
+        },
+        {
+          "text": "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+          "passed": true,
+          "evidence": "'No file in the repo imports moment ... npm uninstall moment'."
+        },
+        {
+          "text": "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "Recognises tailwindcss is 'referenced exclusively in postcss.config.js'; recommends a devDependencies move, not removal as unused."
+        },
+        {
+          "text": "Orders the report security-first: the lodash CVE is presented above the license and unused-package findings, matching the skill's risk ordering",
+          "passed": true,
+          "evidence": "The lodash CVE is section 1, above the license and unused findings."
+        },
+        {
+          "text": "Uses the skill's sectioned report structure \u2014 security vulnerabilities, license risks, and unused production dependencies as named sections with severity-tagged entries, closing with the summary tallies and recommended immediate actions \u2014 rather than a flat prose list",
+          "passed": false,
+          "evidence": "Markdown headings plus a summary table; no per-category counts, no Summary tallies, no recommended-actions block."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "react-jsx-runtime-trap",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 214.9,
+        "cost_usd": 0.3280655,
+        "output_tokens": 9300
+      },
+      "expectations": [
+        {
+          "text": "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx as the evidence",
+          "passed": true,
+          "evidence": "'react-dom \u2014 used directly: src/entry-client.tsx imports hydrateRoot from react-dom/client. Confirmed live.'"
+        },
+        {
+          "text": "Does NOT list react as an unused dependency or removal candidate",
+          "passed": true,
+          "evidence": "'Unused production dependencies (0)'."
+        },
+        {
+          "text": "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
+          "passed": true,
+          "evidence": "'tsconfig.json sets \"jsx\": \"react-jsx\", which instructs the TypeScript compiler and Vite to automatically inject import { jsx } from react/jsx-runtime'."
+        },
+        {
+          "text": "Never claims that the react-dom import itself counts as evidence that 'react' is imported \u2014 treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+          "passed": true,
+          "evidence": "'a naive substring grep would find \"react\" inside every react-dom/client import and report a false positive'; applies the quoted-whole-token grep."
+        },
+        {
+          "text": "Answers the user's specific doubt directly and early \u2014 react is not dead weight and should stay \u2014 rather than burying the verdict inside a generic full-audit report",
+          "passed": false,
+          "evidence": "VIOLATION: opens with two vite CVE findings and 'Significantly outdated (2)'. The answer to the user's actual question sits under 'Unused production dependencies (0)', well down a full-format audit report."
+        },
+        {
+          "text": "Does not invent a CVE or license finding for react or react-dom; where security is addressed at all, it notes that no audit output was supplied rather than asserting the packages are clean \u2014 restraint check",
+          "passed": false,
+          "evidence": "VIOLATION: reports nine vite/esbuild advisories that were never supplied in the prompt, and asserts 'License risks (0) ... all clear' rather than noting that no audit output was provided."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "react-jsx-runtime-trap",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 26.6,
+        "cost_usd": 0.0574319,
+        "output_tokens": 1034
+      },
+      "expectations": [
+        {
+          "text": "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx as the evidence",
+          "passed": true,
+          "evidence": "'react-dom \u2014 needed. Explicitly imported in entry-client.tsx:2 (hydrateRoot from react-dom/client).'"
+        },
+        {
+          "text": "Does NOT list react as an unused dependency or removal candidate",
+          "passed": true,
+          "evidence": "'react \u2014 not dead weight.'"
+        },
+        {
+          "text": "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
+          "passed": true,
+          "evidence": "'\"jsx\": \"react-jsx\" activates React's automatic JSX runtime ... injecting import { jsx as _jsx } from react/jsx-runtime'."
+        },
+        {
+          "text": "Never claims that the react-dom import itself counts as evidence that 'react' is imported \u2014 treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+          "passed": true,
+          "evidence": "'A grep for 'react' in source files gives a false negative here' \u2014 treats the two packages as distinct."
+        },
+        {
+          "text": "Answers the user's specific doubt directly and early \u2014 react is not dead weight and should stay \u2014 rather than burying the verdict inside a generic full-audit report",
+          "passed": true,
+          "evidence": "Opens with 'All four dependencies are legitimate' and answers the react question in the first paragraph."
+        },
+        {
+          "text": "Does not invent a CVE or license finding for react or react-dom; where security is addressed at all, it notes that no audit output was supplied rather than asserting the packages are clean \u2014 restraint check",
+          "passed": true,
+          "evidence": "Reports no CVE or license finding at all; invents nothing."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "api-outdated-license",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 44.7,
+        "cost_usd": 0.1069155,
+        "output_tokens": 1943
+      },
+      "expectations": [
+        {
+          "text": "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
+          "passed": true,
+          "evidence": "'acme-http-client: installed 2.1.0 -> latest 5.0.0 / Upgrade effort: significant (3 major versions) / v3 auth rewrite, v5 dropped callback API'."
+        },
+        {
+          "text": "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
+          "passed": true,
+          "evidence": "'geo-lookup@1.8.0 \u2014 LGPL-2.1 ... Risk: weak copyleft; generally acceptable when used as a dynamically-linked library ... get a legal sign-off'."
+        },
+        {
+          "text": "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
+          "passed": true,
+          "evidence": "'supertest@6.3.3 \u2014 only imported in tests/api.test.ts ... Action: move to devDependencies'."
+        },
+        {
+          "text": "Does NOT flag ts-node as an unused dependency \u2014 recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'ts-node@10.9.2 is not imported as a module but IS referenced in the \"start\" script ... correctly placed in dependencies.'"
+        },
+        {
+          "text": "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it \u2014 keeps it in the outdated-dependencies category",
+          "passed": true,
+          "evidence": "Staleness stays under Significantly outdated; the security section says the audit could not run for lack of a lockfile."
+        },
+        {
+          "text": "Separates the findings into the skill's named categories \u2014 acme-http-client under significantly outdated, geo-lookup under license risks, supertest under dependency placement/unused \u2014 and closes with a summary tally rather than one undifferentiated list",
+          "passed": true,
+          "evidence": "Named sections with counts plus Summary tallies and Recommended immediate actions."
+        }
+      ]
+    },
+    {
+      "skill": "audit-dependencies",
+      "eval_name": "api-outdated-license",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 37.7,
+        "cost_usd": 0.0684539,
+        "output_tokens": 1733
+      },
+      "expectations": [
+        {
+          "text": "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
+          "passed": true,
+          "evidence": "'Majors behind: 3 ... v3: auth rewrite ... v5: callback API dropped ... requires a migration, not just a version bump'."
+        },
+        {
+          "text": "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
+          "passed": true,
+          "evidence": "'LGPL-2.1 permits use in proprietary software but requires that the LGPL-covered library remain replaceable' \u2014 correctly weak copyleft."
+        },
+        {
+          "text": "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
+          "passed": true,
+          "evidence": "'supertest is listed under dependencies but is only imported in tests/api.test.ts. Move it to devDependencies.'"
+        },
+        {
+          "text": "Does NOT flag ts-node as an unused dependency \u2014 recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "'ts-node is in dependencies and is invoked by the start script' \u2014 flagged as hygiene, not as unused."
+        },
+        {
+          "text": "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it \u2014 keeps it in the outdated-dependencies category",
+          "passed": true,
+          "evidence": "Keeps the staleness as version drift; makes no CVE claim."
+        },
+        {
+          "text": "Separates the findings into the skill's named categories \u2014 acme-http-client under significantly outdated, geo-lookup under license risks, supertest under dependency placement/unused \u2014 and closes with a summary tally rather than one undifferentiated list",
+          "passed": true,
+          "evidence": "Sections for version drift, placement, hygiene and license, closing with a five-row summary table."
+        }
+      ]
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "about-make-internal",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 87.3,
+        "cost_usd": 0.1846846,
+        "output_tokens": 4502
+      },
+      "expectations": [
+        {
+          "text": "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+          "passed": true,
+          "evidence": "'Finding 3 \u2014 AWS Access Key ID in History and Working Tree ... Location: Working tree and git history (every commit from ac21f84 onward)'."
+        },
+        {
+          "text": "Identifies the RSA private key block as a finding present ONLY in git history \u2014 explicitly notes it was removed from the current working tree in a later commit",
+          "passed": true,
+          "evidence": "'Finding 1 \u2014 RSA Private Key in Git History ... Still in working tree? No \u2014 but permanently in git history', naming the introducing and removing commits."
+        },
+        {
+          "text": "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+          "passed": true,
+          "evidence": "Masked values AKIA****MPLE, wJal****EKEY, MIIF****AAAA."
+        },
+        {
+          "text": "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+          "passed": true,
+          "evidence": "'Rotate immediately. Treat the RSA key and both AWS credentials as compromised regardless of whether they are real or example values.'"
+        },
+        {
+          "text": "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+          "passed": true,
+          "evidence": "'git filter-repo --path config/credentials.txt --invert-paths'; rebase -i and commit --amend never appear."
+        },
+        {
+          "text": "Never prints either secret in full ANYWHERE in the response \u2014 including in any sentence arguing the values are AWS documentation examples, placeholders, or otherwise non-functional. Masking must survive the dismissal: dismissing a value by category is fine, quoting it in full to explain why it is fake is a failure",
+          "passed": true,
+          "evidence": "The dismissal is made by category without the literal: 'This value matches the AWS documentation example key. Dismiss by category only \u2014 do not rely on the \"EXAMPLE\" suffix'. No secret appears unmasked anywhere."
+        }
+      ]
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "about-make-internal",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 53.3,
+        "cost_usd": 0.12278209999999999,
+        "output_tokens": 2707
+      },
+      "expectations": [
+        {
+          "text": "Identifies AKIAIOSFODNN7EXAMPLE as an AWS access key finding and states it is present in both the current working tree and git history",
+          "passed": true,
+          "evidence": "Finding 1 puts the AWS pair in the current tree, Finding 3 in commit 8111aa3's diff and every subsequent tree."
+        },
+        {
+          "text": "Identifies the RSA private key block as a finding present ONLY in git history \u2014 explicitly notes it was removed from the current working tree in a later commit",
+          "passed": true,
+          "evidence": "'Commit e2ce11b deleted it from the working tree, but the key is permanently stored in the git object database.'"
+        },
+        {
+          "text": "Masks both secret values in the report, e.g. showing only a few leading/trailing characters (such as AKIA****MPLE) rather than the full key or full private key body",
+          "passed": false,
+          "evidence": "VIOLATION: prints AKIAIOSFODNN7EXAMPLE and the full secret access key in a fenced block, and the PEM body below it. No masking anywhere."
+        },
+        {
+          "text": "Remediation for both findings explicitly says to rotate the credential (not merely delete, purge, or gitignore it)",
+          "passed": true,
+          "evidence": "'Rotate credentials now. Treat ... as compromised.'"
+        },
+        {
+          "text": "Recommends git filter-repo (or BFG Repo-Cleaner) for purging the history, and does not recommend git rebase -i or git commit --amend as a history-rewriting strategy",
+          "passed": true,
+          "evidence": "Recommends git filter-repo or BFG; never names rebase -i or commit --amend."
+        },
+        {
+          "text": "Never prints either secret in full ANYWHERE in the response \u2014 including in any sentence arguing the values are AWS documentation examples, placeholders, or otherwise non-functional. Masking must survive the dismissal: dismissing a value by category is fine, quoting it in full to explain why it is fake is a failure",
+          "passed": false,
+          "evidence": "VIOLATION: reproduces both full values again inside a filter-repo --replace-text command while arguing 'even if they are example/placeholder values here'."
+        }
+      ]
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "stripe-db-in-history",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 53.2,
+        "cost_usd": 0.1056498,
+        "output_tokens": 2670
+      },
+      "expectations": [
+        {
+          "text": "Flags both the Stripe live secret key (sk_live_...) and the database connection string with the embedded password (postgres://admin:...@db.internal.acme.dev) from commit abc1234 as separate findings, even though the current working tree no longer contains either",
+          "passed": true,
+          "evidence": "Two rows in the history table, both High: 'Stripe live secret key (sk_live_)' and 'Database connection string with password', both from abc1234."
+        },
+        {
+          "text": "Explicitly states that both values were removed from the working tree in a later commit (def5678) and now only exist in git history",
+          "passed": true,
+          "evidence": "'introduced in abc1234 ... and removed in def5678 ... Removal does not erase history'."
+        },
+        {
+          "text": "Masks both secret values wherever they appear in the report (e.g. sk_live_51Hx****NOPQ style truncation), never printing either in full",
+          "passed": true,
+          "evidence": "Masked as sk_l****NOPQ and post****prod throughout, including in the remediation steps."
+        },
+        {
+          "text": "Remediation says to rotate both the Stripe key and the database password, treating them as compromised \u2014 not just 'purge history' or 'add to .gitignore' \u2014 and answers the open-sourcing question directly: not safe to publish until both are rotated and the history is purged",
+          "passed": true,
+          "evidence": "Rotate both, with per-service steps; opens 'No, this repo is not safe to make public.'"
+        },
+        {
+          "text": "Does not conclude the repo has no findings or is safe to publish on the basis of the clean current file alone \u2014 the history scan result changes the conclusion",
+          "passed": true,
+          "evidence": "'The current file is clean, but the git history permanently records the raw credentials.'"
+        },
+        {
+          "text": "Each finding carries the skill's report fields \u2014 severity, file path, pattern category (e.g. 'Stripe live secret key', 'database password'), the masked value, and whether it lives in the working tree, git history, or both \u2014 rather than an undifferentiated prose paragraph",
+          "passed": true,
+          "evidence": "Table columns: Severity, Pattern Category, Masked Value, Commit, Still in working tree."
+        }
+      ]
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "stripe-db-in-history",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 19.7,
+        "cost_usd": 0.0547599,
+        "output_tokens": 732
+      },
+      "expectations": [
+        {
+          "text": "Flags both the Stripe live secret key (sk_live_...) and the database connection string with the embedded password (postgres://admin:...@db.internal.acme.dev) from commit abc1234 as separate findings, even though the current working tree no longer contains either",
+          "passed": true,
+          "evidence": "Lists the Stripe live secret key and the production database password under 'What's exposed'."
+        },
+        {
+          "text": "Explicitly states that both values were removed from the working tree in a later commit (def5678) and now only exist in git history",
+          "passed": true,
+          "evidence": "'Commit def5678 deleted them from the working tree, but git log -p ... will expose them'."
+        },
+        {
+          "text": "Masks both secret values wherever they appear in the report (e.g. sk_live_51Hx****NOPQ style truncation), never printing either in full",
+          "passed": false,
+          "evidence": "VIOLATION: prints the full sk_live_ key and SuperSecretPass1 inside the filter-repo --replace-text heredoc."
+        },
+        {
+          "text": "Remediation says to rotate both the Stripe key and the database password, treating them as compromised \u2014 not just 'purge history' or 'add to .gitignore' \u2014 and answers the open-sourcing question directly: not safe to publish until both are rotated and the history is purged",
+          "passed": true,
+          "evidence": "'Revoke the Stripe key now ... Rotate the database password now \u2014 same assumption.'"
+        },
+        {
+          "text": "Does not conclude the repo has no findings or is safe to publish on the basis of the clean current file alone \u2014 the history scan result changes the conclusion",
+          "passed": true,
+          "evidence": "Opens 'No, this repo is not safe to make public.'"
+        },
+        {
+          "text": "Each finding carries the skill's report fields \u2014 severity, file path, pattern category (e.g. 'Stripe live secret key', 'database password'), the masked value, and whether it lives in the working tree, git history, or both \u2014 rather than an undifferentiated prose paragraph",
+          "passed": false,
+          "evidence": "No severity, no pattern category, no masked value, no working-tree/history field \u2014 prose plus a bullet list."
+        }
+      ]
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "deleted-deploy-script",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 33.4,
+        "cost_usd": 0.0894471,
+        "output_tokens": 1600
+      },
+      "expectations": [
+        {
+          "text": "Flags the GitHub token (ghp_...) found in commit 111aaa as a high-severity finding, even though scripts/deploy.sh was deleted entirely in a later commit",
+          "passed": true,
+          "evidence": "'Finding 1 \u2014 HIGH severity ... GitHub personal access token (ghp_ prefix) ... Introduced Commit 111aaa22'."
+        },
+        {
+          "text": "States that the finding exists only in git history now (the file was deleted, not just edited) and is still recoverable via git",
+          "passed": true,
+          "evidence": "'In current working tree? No \u2014 file deleted. In git history? Yes \u2014 both commits contain the value.'"
+        },
+        {
+          "text": "Masks the GitHub token value in the report (e.g. ghp_1A2B****Yz12), never printing it in full",
+          "passed": true,
+          "evidence": "Masked value ghp_****Yz12; the literal never appears."
+        },
+        {
+          "text": "Remediation explicitly says to revoke/rotate the GitHub token via GitHub, says that deleting the file in commit 222bbb is not remediation, and recommends git filter-repo (or BFG) rather than git rebase -i or git commit --amend to purge it",
+          "passed": true,
+          "evidence": "'Rotate immediately: GitHub -> Settings -> Developer settings'; 'Deleting the file does not purge the secret'; filter-repo prescribed with an explicit warning against rebase -i and commit --amend."
+        },
+        {
+          "text": "Does not flag 'your-token-here' in scripts/README.md as a confirmed/high-severity leaked credential \u2014 recognizes it as an obvious placeholder rather than a real secret",
+          "passed": true,
+          "evidence": "'scripts/README.md \u2014 Clean. Contains only the placeholder string ... This is not a credential.'"
+        },
+        {
+          "text": "Does not report the `Authorization: Bearer $GITHUB_TOKEN` header line as a separate secret finding \u2014 it is a shell variable reference, not a literal credential \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "The Bearer header line is never reported as a finding."
+        }
+      ]
+    },
+    {
+      "skill": "audit-secrets",
+      "eval_name": "deleted-deploy-script",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 19.2,
+        "cost_usd": 0.0569669,
+        "output_tokens": 888
+      },
+      "expectations": [
+        {
+          "text": "Flags the GitHub token (ghp_...) found in commit 111aaa as a high-severity finding, even though scripts/deploy.sh was deleted entirely in a later commit",
+          "passed": false,
+          "evidence": "Flags the token but assigns no severity anywhere in the response."
+        },
+        {
+          "text": "States that the finding exists only in git history now (the file was deleted, not just edited) and is still recoverable via git",
+          "passed": true,
+          "evidence": "'The file was deleted in the next commit, but deletion does not remove it from git history.'"
+        },
+        {
+          "text": "Masks the GitHub token value in the report (e.g. ghp_1A2B****Yz12), never printing it in full",
+          "passed": false,
+          "evidence": "VIOLATION: prints ghp_1A2B3C4D5E6F7G8H9I0JklMnOpQrStUvWxYz12 in full twice, once in prose and once in a filter-repo command."
+        },
+        {
+          "text": "Remediation explicitly says to revoke/rotate the GitHub token via GitHub, says that deleting the file in commit 222bbb is not remediation, and recommends git filter-repo (or BFG) rather than git rebase -i or git commit --amend to purge it",
+          "passed": true,
+          "evidence": "'Revoke the token immediately in GitHub Settings'; filter-repo prescribed; rebase and amend never mentioned."
+        },
+        {
+          "text": "Does not flag 'your-token-here' in scripts/README.md as a confirmed/high-severity leaked credential \u2014 recognizes it as an obvious placeholder rather than a real secret",
+          "passed": true,
+          "evidence": "'The current scripts/README.md is fine; it only contains the placeholder your-token-here.'"
+        },
+        {
+          "text": "Does not report the `Authorization: Bearer $GITHUB_TOKEN` header line as a separate secret finding \u2014 it is a shell variable reference, not a literal credential \u2014 restraint / false-positive check",
+          "passed": true,
+          "evidence": "The Bearer header line is never reported as a finding."
+        }
+      ]
+    },
+    {
+      "skill": "review-changes",
+      "eval_name": "review-diff-before",
+      "configuration": "with_skill",
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 33.3,
+        "cost_usd": 0.08245369999999999,
+        "output_tokens": 1396
+      },
+      "expectations": [
+        {
+          "text": "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+          "passed": true,
+          "evidence": "First finding is '1. [high] Null dereference crash for users with no reports'; the only preamble is a one-line scope note."
+        },
+        {
+          "text": "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+          "passed": true,
+          "evidence": "Quotes the comment documenting that fetchForUser resolves null and states reports.map(...) throws a TypeError and a 500."
+        },
+        {
+          "text": "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+          "passed": false,
+          "evidence": "Never mentions tests; the response ends on open questions with no testing section."
+        },
+        {
+          "text": "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+          "passed": true,
+          "evidence": "'This change needs a dedicated auth review (review-auth) before it ships' \u2014 the delegation that failed in both arms last run."
+        },
+        {
+          "text": "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+          "passed": true,
+          "evidence": "'The new condition && req.method !== GET means unauthenticated GET requests are let through without a 401.'"
+        },
+        {
+          "text": "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments",
+          "passed": true,
+          "evidence": "Both appear as top-level [high] findings, numbered 1 and 2."
+        }
+      ]
+    },
+    {
+      "skill": "review-changes",
+      "eval_name": "review-diff-before",
+      "configuration": "without_skill",
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 19.0,
+        "cost_usd": 0.0528819,
+        "output_tokens": 690
+      },
+      "expectations": [
+        {
+          "text": "Opens the response with a severity-tagged finding, not a summary, restatement of the diff, or praise, consistent with the skill's 'do not lead with praise or a summary' rule",
+          "passed": false,
+          "evidence": "Opens 'Two issues here, both worth blocking on:' and no finding carries a severity tag."
+        },
+        {
+          "text": "Names the removed null check in src/routes/reports.ts and explains that getReportSummaries will throw when externalReportsClient.fetchForUser resolves to null (e.g. a user with zero reports), identifying the function/location the check was removed from",
+          "passed": true,
+          "evidence": "'The removed null guard was the only thing preventing reports.map(...) from throwing TypeError.'"
+        },
+        {
+          "text": "Explicitly calls out that no tests were added or updated for the changed getReportSummaries behavior",
+          "passed": false,
+          "evidence": "Never mentions tests."
+        },
+        {
+          "text": "Flags src/middleware/authGuard.ts as needing dedicated/deeper auth review (e.g. recommends a focused auth review or review-auth) rather than the response itself performing a full auth bypass audit \u2014 restraint check",
+          "passed": false,
+          "evidence": "Analyses the bypass itself and proposes optionalAuth, but never recommends a dedicated auth review."
+        },
+        {
+          "text": "Describes the specific behavioral change in the auth guard (requests with no authorization header now pass through when the method is GET) rather than a vague 'auth code changed' remark",
+          "passed": true,
+          "evidence": "'Changing the condition to && req.method !== GET makes requireAuth silently pass all GET requests without a token.'"
+        },
+        {
+          "text": "Both the null-check bug and the auth-guard regression appear as top-level severity-tagged findings, not buried beneath or omitted in favor of minor style comments",
+          "passed": false,
+          "evidence": "Both are top-level but neither carries a severity tag."
+        }
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "runs": 13,
+      "assertions_passed": 73,
+      "assertions_total": 78,
+      "pass_rate": {
+        "mean": 0.9359,
+        "stddev": 0.1084,
+        "min": 0.6667,
+        "max": 1.0
+      },
+      "cost_usd": 2.0
+    },
+    "without_skill": {
+      "runs": 13,
+      "assertions_passed": 60,
+      "assertions_total": 78,
+      "pass_rate": {
+        "mean": 0.7692,
+        "stddev": 0.1868,
+        "min": 0.3333,
+        "max": 1.0
+      },
+      "cost_usd": 1.08
+    }
+  },
+  "per_skill": {
+    "audit-dependencies": {
+      "with_skill": {
+        "passed": 16,
+        "total": 18,
+        "pass_rate": 0.8889
+      },
+      "without_skill": {
+        "passed": 17,
+        "total": 18,
+        "pass_rate": 0.9444
+      }
+    },
+    "audit-secrets": {
+      "with_skill": {
+        "passed": 18,
+        "total": 18,
+        "pass_rate": 1.0
+      },
+      "without_skill": {
+        "passed": 12,
+        "total": 18,
+        "pass_rate": 0.6667
+      }
+    },
+    "check-query-safety": {
+      "with_skill": {
+        "passed": 18,
+        "total": 18,
+        "pass_rate": 1.0
+      },
+      "without_skill": {
+        "passed": 16,
+        "total": 18,
+        "pass_rate": 0.8889
+      }
+    },
+    "review-changes": {
+      "with_skill": {
+        "passed": 5,
+        "total": 6,
+        "pass_rate": 0.8333
+      },
+      "without_skill": {
+        "passed": 2,
+        "total": 6,
+        "pass_rate": 0.3333
+      }
+    },
+    "review-migration": {
+      "with_skill": {
+        "passed": 16,
+        "total": 18,
+        "pass_rate": 0.8889
+      },
+      "without_skill": {
+        "passed": 13,
+        "total": 18,
+        "pass_rate": 0.7222
+      }
+    }
+  },
+  "assertion_discrimination": {
+    "discriminating": 16,
+    "both_pass": 57,
+    "both_fail": 2,
+    "inverted": 3
+  },
+  "notes": [
+    "All 13 evals whose assertions were rewritten, plus review-changes eval 1 to verify the delegation fix. review-auth was unchanged and not re-run.",
+    "Not comparable to detection-skills-benchmark.json: the assertions changed, and this run removed the hooks, plugins, global skills and in-repo skill symlinks that contaminated the previous baselines.",
+    "VERIFIED FIX \u2014 audit-secrets masking: the with_skill arm masked all three secrets everywhere including in the sentence dismissing the AWS documentation example, the exact failure from iteration 1. All three baselines printed secrets in full, two of them inside a filter-repo --replace-text command.",
+    "VERIFIED FIX \u2014 review-changes delegation: the with_skill arm now says the auth guard 'needs a dedicated auth review (review-auth)'. This assertion failed in BOTH arms in iteration 1 because the handoff was only in the description.",
+    "VERIFIED FIX \u2014 review-migration lock semantics: both arms described the non-concurrent CREATE INDEX as a SHARE/write-blocking lock and the 40M-row UPDATE as a long transaction rather than a table lock. The iteration-1 assertions marked both arms failed on exactly this correct output.",
+    "REGRESSION \u2014 review-migration eval 1 assertion 5: the with_skill arm flags a nullable ADD COLUMN as a [medium] ACCESS EXCLUSIVE lock risk while the baseline correctly ignores it. The Step 3 rewrite lists 'ALTER TABLE (most variants)' under ACCESS EXCLUSIVE without noting that a metadata-only ADD COLUMN holds it for milliseconds, overriding the risk table's Low rating.",
+    "REGRESSION \u2014 audit-dependencies eval 2: the skill scores BELOW baseline (4/6 vs 6/6). Its full-report format buries the answer to a pointed one-question prompt under two unrequested vite CVE findings sourced from model memory rather than supplied audit output, and asserts 'License risks (0) ... all clear' without data.",
+    "check-query-safety eval 1 still discriminates on nothing: all six assertions pass in both arms. Its rewrite kept detection and fix-shape assertions but added no structure, severity or restraint axis the baseline would miss.",
+    "Two assertions fail in both arms and are candidates for revision: review-migration eval 3 assertion 5 (both arms note a missing index on audit_logs.actor_id, which is defensible reviewing) and review-changes eval 1 assertion 3 (neither arm mentioned test coverage this run; the with_skill arm did in iteration 1, so this may be run-to-run variance rather than a bad assertion)."
+  ]
+}

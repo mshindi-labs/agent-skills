@@ -1,6 +1,14 @@
 ---
 name: draft-adr
-description: Capture a technical decision in a durable ADR document covering context, options considered, the decision, and its consequences. Best used after plan-change or when any significant architectural choice is made.
+description: >
+  Capture a technical decision in a durable ADR document covering context,
+  options considered, the decision, and its consequences. Use when someone says
+  "document this decision", "why did we choose X over Y", "record the reasoning
+  behind this", "write up why we did this", or asks for an ADR, decision record,
+  or design rationale after a choice has been made -- most users will not say
+  "ADR" outright. Best used after plan-change: plan-change decides what to do
+  before code is written, draft-adr records why, once the decision is settled,
+  for future maintainers.
 ---
 
 # draft-adr

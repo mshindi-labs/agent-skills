@@ -1,6 +1,15 @@
 ---
 name: debug-issue
-description: Systematically debug a bug by gathering evidence, tracing the failing path end-to-end, forming ranked hypotheses, and proposing the safest minimal fix. Does not edit code before having evidence.
+description: >
+  Systematically debug a dev-time bug, failing test, or code-review finding by
+  gathering evidence, tracing the failing path end-to-end, forming ranked
+  hypotheses, and proposing the safest minimal code fix — does not edit code
+  before having evidence. Use when the user says "why is this failing", "this
+  test keeps failing", "why does this throw", "this isn't working", or "help
+  me debug this", with a stack trace from local development or CI. Not for a
+  live production incident, on-call page, or pasted prod stack trace during an
+  active outage — use triage-error instead, which prioritizes fault site and
+  blast radius over a code fix.
 ---
 
 # debug-issue

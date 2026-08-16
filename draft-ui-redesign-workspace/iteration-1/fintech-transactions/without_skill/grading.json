@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Names at least one fintech benchmark (Stripe, Mercury, Ramp, or Wise) together with a specific borrowed mechanic, not just the product name",
+      "passed": false,
+      "evidence": "No industry benchmark named anywhere. Design direction is given as raw hex values and font choices with no product reference or borrowed mechanic."
+    },
+    {
+      "text": "The generated prompt's content inventory preserves all four currently rendered data points (date, description, amount, status)",
+      "passed": true,
+      "evidence": "DATA block covers date, description, amount_cents+currency, status \u2014 all four rendered fields preserved."
+    },
+    {
+      "text": "Identifies data already in the API response but not rendered today (currency, counterparty, payment_method, or has_more pagination)",
+      "passed": false,
+      "evidence": "Uses counterparty and payment_method in the prompt but never identifies them as currently-unrendered free wins, and turns has_more into an invented cursor-paginated 'Load more' feature rather than flagging it."
+    },
+    {
+      "text": "The prompt block is self-contained \u2014 it does not reference file paths, the codebase, or other sections of the document a design tool cannot see",
+      "passed": true,
+      "evidence": "The fenced block is self-contained \u2014 audience, data, states, visual direction and an ASCII wireframe, with no reference to the codebase."
+    },
+    {
+      "text": "Proposes at least one additive API change with a method and path (or an optional field on the existing endpoint) plus a response shape, explicitly marked non-breaking",
+      "passed": false,
+      "evidence": "No API section at all. No endpoint, shape, or non-breaking note proposed, despite the prompt introducing pagination and filter controls that need backing data."
+    },
+    {
+      "text": "Does not propose removing, renaming, or changing the type of any existing field in GET /api/transactions",
+      "passed": true,
+      "evidence": "No existing field in GET /api/transactions is removed, renamed, or retyped."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 3,
+    "total": 6,
+    "pass_rate": 0.5
+  }
+}
