@@ -1,6 +1,13 @@
 ---
 name: add-test-coverage
-description: Identify high-risk untested code paths and add focused, meaningful tests for them. Prioritizes business logic, edge cases, and error handling over coverage percentage.
+description: >
+  Add focused, meaningful tests for high-risk untested code paths, then actually run
+  them and verify they fail when the behaviour breaks. Prioritizes business logic, edge
+  cases, and error handling over coverage percentage. Trigger on "add tests for this",
+  "write the missing tests", "this file has no tests", "cover this with tests", "improve
+  coverage here". Writes complete, runnable tests and executes them — for a read-only
+  report of what is untested plus TODO stubs without writing real tests, use add-
+  missing-tests.
 ---
 
 # add-test-coverage
@@ -140,7 +147,10 @@ go test ./path/to/package/...
 Verify:
 
 - the new tests pass
-- the tests actually fail when the behavior is broken (delete or invert the key assertion temporarily to confirm)
+- the tests actually fail when the behavior is broken — temporarily invert the key
+  assertion, confirm the test goes red, then **restore the original assertion and
+  re-run to confirm it is green again**. Never finish with an inverted or deleted
+  assertion still in the file.
 - no unrelated tests were affected
 
 ---

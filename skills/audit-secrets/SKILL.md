@@ -1,6 +1,14 @@
 ---
 name: audit-secrets
-description: Scan the working tree and recent git history for accidentally committed secrets, tokens, and credentials before they leave the machine. Use before any push or PR.
+description: >
+  Scan the working tree and recent git history for accidentally committed secrets,
+  tokens, API keys, private keys, and credentials before they leave the machine. Trigger
+  on "did I commit a key", "check for leaked credentials", "did I leak an API key", "is
+  there a secret in this diff", "scan for secrets before I push", "I think I pushed a
+  password". This skill owns the credential pattern set for the whole repo, including
+  the git-history pass where a secret survives after the file is deleted — other skills
+  delegate their secret checks here rather than reimplementing them. Always says to
+  rotate a exposed credential, not merely remove it.
 ---
 
 # audit-secrets
@@ -61,11 +69,16 @@ Exclude:
 
 ## Step 3 — Scan recent git history
 
-Check the last 20 commits for the same patterns:
+Check recent history for **the same patterns as Step 2**. Do not hand-type a shorter
+list here — a secret matching only a pattern you dropped becomes invisible to the pass
+that matters most, since history survives deleting the file:
 
 ```bash
-git log -p --all --since="90 days ago" -20 -- . | grep -E "(password|secret|token|api_key|private_key|AKIA|sk_live|gh[pousr]_)"
+git log -p --all --since="90 days ago" -20 -- . | grep -E \
+  "BEGIN (RSA|EC|DSA|OPENSSH|PGP) PRIVATE KEY|eyJ[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|aws_secret_access_key|gh[pousr]_[A-Za-z0-9]{36,}|sk_live_|pk_live_|rk_live_|SK[0-9a-fA-F]{32}|://[^:]+:[^@]{6,}@|Bearer [A-Za-z0-9._~+/-]{20,}|api_key|password|passwd|secret|token|credential|private_key|auth_key"
 ```
+
+If Step 2's pattern list is ever edited, edit this command to match.
 
 For any match found in history:
 
