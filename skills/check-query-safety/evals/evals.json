@@ -4,43 +4,43 @@
     {
       "id": 1,
       "prompt": "Can you check this file for query safety issues before we ship it?\n\n```typescript\nimport { PrismaClient } from '@prisma/client';\nconst prisma = new PrismaClient();\n\nexport async function getUserOrders(req: Request) {\n  const rows = await db.query(`SELECT * FROM orders WHERE user_id = ${req.params.id}`);\n\n  const orders = await prisma.order.findMany({ where: { userId: req.params.id } });\n\n  for (const order of orders) {\n    const items = await db.orderItem.findMany({ where: { orderId: order.id } });\n    order.items = items;\n  }\n\n  return orders;\n}\n\nexport async function listEvents() {\n  return prisma.event.findMany();\n}\n\nexport async function getUserById(userId: string) {\n  return db.query('SELECT * FROM users WHERE id = $1', [userId]);\n}\n```",
-      "expected_output": "A report flagging the template-literal query interpolating req.params.id as a SQL injection risk with the parameterized fix, the for-loop calling orderItem.findMany per order as an N+1 with an include/batched fix, and prisma.event.findMany() as unbounded with a concrete take value — while leaving the already-parameterized getUserById query unflagged.",
+      "expected_output": "A report flagging the template-literal query interpolating req.params.id as a SQL injection risk with the parameterized fix, the for-loop calling orderItem.findMany per order as an N+1 with an include/batched fix, and prisma.event.findMany() as unbounded with a concrete take value \u2014 while leaving the already-parameterized getUserById query unflagged.",
       "files": [],
       "assertions": [
-        "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk and quotes the vulnerable line in the finding",
-        "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding",
-        "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern",
-        "Proposes a fix for the N+1 using `include` on the initial order query or a single batched `findMany` with an `in` filter, rather than the per-order query",
+        "Flags the line `db.query(\\`SELECT * FROM orders WHERE user_id = ${req.params.id}\\`)` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+        "Names `req.params.id` as the untrusted/user-controlled input source for the injection finding, as the skill requires of every injection finding",
+        "Gives the parameterized rewrite of that exact query (placeholder plus bound value, e.g. `db.query('SELECT * FROM orders WHERE user_id = $1', [req.params.id])`) rather than a generic 'use parameterized queries' remark",
+        "Identifies the `for (const order of orders)` loop calling `db.orderItem.findMany` as an N+1 query pattern and proposes `include` on the initial order query or a single batched `findMany` with an `in` filter",
         "Flags `prisma.event.findMany()` in `listEvents` as unbounded and proposes a concrete `take` value or pagination as the fix",
-        "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk"
+        "Does not flag `db.query('SELECT * FROM users WHERE id = $1', [userId])` in `getUserById` as an injection risk \u2014 restraint / false-positive check"
       ]
     },
     {
       "id": 2,
       "prompt": "Review this file for query issues. It's the checkout module.\n\n```typescript\nimport { prisma } from '../db';\n\nexport async function getAuthorName(postId: string) {\n  const post = await prisma.post.findUnique({\n    where: { id: postId },\n    include: { author: true, comments: true, tags: true },\n  });\n  return post?.author.name;\n}\n\nexport async function placeOrder(orderData: OrderInput) {\n  const order = await prisma.order.create({ data: orderData });\n  await prisma.inventory.update({\n    where: { id: orderData.inventoryId },\n    data: { quantity: { decrement: 1 } },\n  });\n  return order;\n}\n\nexport async function getOrderTotal(orderId: string) {\n  const order = await prisma.order.findUnique({\n    where: { id: orderId },\n    select: { total: true },\n  });\n  return order?.total;\n}\n```",
-      "expected_output": "A report flagging getAuthorName as over-fetching (loads post plus author/comments/tags to use only author.name, with a select-based fix), and placeOrder's order.create + inventory.update as a missing transaction boundary needing $transaction — while leaving getOrderTotal's already-minimal select unflagged and not misreading placeOrder as an N+1.",
+      "expected_output": "A report flagging getAuthorName as over-fetching (loads post plus author/comments/tags to use only author.name, with a select-based fix), and placeOrder's order.create + inventory.update as a missing transaction boundary needing $transaction \u2014 while leaving getOrderTotal's already-minimal select unflagged and not misreading placeOrder as an N+1.",
       "files": [],
       "assertions": [
-        "Flags `getAuthorName` as over-fetching, noting it loads the full post plus `author`, `comments`, and `tags` relations but only uses `author.name`",
-        "Recommends narrowing the query with a `select` (e.g. selecting only the author's name) instead of the broad `include`",
-        "Flags the `order.create` followed by `inventory.update` in `placeOrder` as missing a transaction boundary, noting the partial-failure risk if the inventory update fails after the order is created",
-        "Recommends wrapping the two writes in `prisma.$transaction([...])` (or equivalent) as the fix",
-        "Does not flag `getOrderTotal` as over-fetching, since it already uses `select: { total: true }` to fetch only the field it uses",
-        "Does not flag the `order.create` / `inventory.update` pair in `placeOrder` as an N+1 pattern, since there is no loop or per-item repeated query"
+        "Flags `getAuthorName` as over-fetching \u2014 it loads the full post plus `author`, `comments`, and `tags` relations but uses only `author.name` \u2014 and recommends narrowing it with a `select` rather than the broad `include`",
+        "Flags the `order.create` followed by `inventory.update` in `placeOrder` as a missing transaction boundary, names the partial-failure risk, and recommends wrapping both writes in `prisma.$transaction([...])` or equivalent",
+        "Does not flag `getOrderTotal` as over-fetching, since it already uses `select: { total: true }` to fetch only the field it uses \u2014 restraint / false-positive check",
+        "Does not flag the `order.create` / `inventory.update` pair in `placeOrder` as an N+1 pattern, since there is no loop or per-item repeated query \u2014 restraint / false-positive check",
+        "Rates the missing transaction boundary above the over-fetch in severity (transaction medium or higher, over-fetch low), matching the skill's severity ordering rather than presenting the over-fetch as the more serious problem",
+        "Does not manufacture findings in the categories this file does not exercise \u2014 reports no SQL injection and no unbounded-query findings rather than stretching one of the three functions to fill those sections"
       ]
     },
     {
       "id": 3,
       "prompt": "Please check this Django view/data-access module for query safety before code review.\n\n```python\nfrom django.db import connection\n\ndef get_recent_signups(request):\n    return User.objects.all()\n\ndef get_orders_with_items(user_id):\n    orders = Order.objects.filter(user_id=user_id)\n    result = []\n    for order in orders:\n        items = OrderItem.objects.filter(order_id=order.id)\n        result.append({\"order\": order, \"items\": list(items)})\n    return result\n\ndef search_users(request):\n    term = request.GET.get(\"q\")\n    with connection.cursor() as cursor:\n        cursor.execute(f\"SELECT id, name FROM users WHERE name LIKE '%{term}%'\")\n        return cursor.fetchall()\n\ndef get_user_email(user_id):\n    with connection.cursor() as cursor:\n        cursor.execute(\"SELECT email FROM users WHERE id = %s\", [user_id])\n        return cursor.fetchone()\n```",
-      "expected_output": "A report flagging the f-string cursor.execute in search_users as SQL injection sourced from request.GET's q param, the per-order OrderItem.objects.filter loop as an N+1 fixed with prefetch_related, and User.objects.all() as unbounded needing a limit/pagination — while leaving the parameterized get_user_email query unflagged.",
+      "expected_output": "A report flagging the f-string cursor.execute in search_users as SQL injection sourced from request.GET's q param, the per-order OrderItem.objects.filter loop as an N+1 fixed with prefetch_related, and User.objects.all() as unbounded needing a limit/pagination \u2014 while leaving the parameterized get_user_email query unflagged.",
       "files": [],
       "assertions": [
-        "Flags `cursor.execute(f\"SELECT id, name FROM users WHERE name LIKE '%{term}%'\")` as a SQL injection risk and quotes the vulnerable line",
-        "Names `request.GET.get(\"q\")` (the `term` variable) as the untrusted input source for the injection finding",
-        "Flags the `for order in orders:` loop calling `OrderItem.objects.filter(order_id=order.id)` as an N+1 query pattern and identifies the loop as the location",
-        "Proposes `prefetch_related` (or `select_related`) on the initial `Order.objects.filter(...)` call as the fix for the N+1",
+        "Flags `cursor.execute(f\"SELECT id, name FROM users WHERE name LIKE '%{term}%'\")` as a SQL injection risk, quotes the vulnerable line, and tags it high severity",
+        "Names `request.GET.get(\"q\")` (the `term` variable) as the untrusted input source, and gives the parameterized rewrite that keeps the wildcards in the bound parameter (e.g. `cursor.execute(\"... WHERE name LIKE %s\", [f\"%{term}%\"])`) rather than leaving the `%` characters inside the SQL string",
+        "Flags the `for order in orders:` loop calling `OrderItem.objects.filter(order_id=order.id)` as an N+1 query pattern and proposes `prefetch_related` (or `select_related`) on the initial `Order.objects.filter(...)` call",
         "Flags `User.objects.all()` in `get_recent_signups` as an unbounded query and proposes a concrete limit/slice or pagination as the fix",
-        "Does not flag `cursor.execute(\"SELECT email FROM users WHERE id = %s\", [user_id])` in `get_user_email` as an injection risk"
+        "Does not flag `cursor.execute(\"SELECT email FROM users WHERE id = %s\", [user_id])` in `get_user_email` as an injection risk \u2014 restraint / false-positive check",
+        "Identifies the data-access stack as the Django ORM plus raw `connection.cursor()` calls, and frames the fixes in Django idioms (`prefetch_related`, queryset slicing, `%s` placeholders) rather than generic or Node-flavoured SQL advice"
       ]
     }
   ]

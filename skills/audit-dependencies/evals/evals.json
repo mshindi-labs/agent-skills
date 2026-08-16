@@ -7,26 +7,26 @@
       "expected_output": "A report flagging lodash@4.17.15 for CVE-2020-8203 with an upgrade target of >=4.17.19, flagging pdf-stamp as an AGPL-3.0 production dependency needing legal review, and flagging moment as an unused production dependency (zero references anywhere). tailwindcss is NOT flagged as unused because postcss.config.js requires it even though no source file imports it.",
       "files": [],
       "assertions": [
-        "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and recommends upgrading to >=4.17.19 or later",
+        "Flags lodash@4.17.15 for the prototype pollution CVE (CVE-2020-8203) and gives a concrete upgrade target or command (>=4.17.19 or later) rather than a vague 'update lodash' instruction",
         "Flags pdf-stamp as an AGPL-3.0 production dependency, noting the copyleft/network-use risk and recommending legal review or substitution",
-        "Flags moment as an unused production dependency — no import found anywhere in source or config — and recommends removing it",
-        "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly",
-        "Does NOT flag pdf-stamp or lodash as unused, since both have a genuine import in src/",
-        "Gives a concrete upgrade command or version target for lodash rather than a vague 'update lodash' instruction"
+        "Flags moment as an unused production dependency \u2014 no import found anywhere in source or config \u2014 and recommends removing it",
+        "Does NOT flag tailwindcss as unused, because it is required via require('tailwindcss') in postcss.config.js even though no source file imports it directly \u2014 restraint / false-positive check",
+        "Orders the report security-first: the lodash CVE is presented above the license and unused-package findings, matching the skill's risk ordering",
+        "Uses the skill's sectioned report structure \u2014 security vulnerabilities, license risks, and unused production dependencies as named sections with severity-tagged entries, closing with the summary tallies and recommended immediate actions \u2014 rather than a flat prose list"
       ]
     },
     {
       "id": 2,
-      "prompt": "Quick dependency check on this frontend app before we ship. I especially want you to double-check that `react` itself isn't secretly dead weight — I have a feeling our grep-based tooling might get confused by `react-dom`.\n\n`package.json`:\n```json\n{\n  \"name\": \"acme-dashboard\",\n  \"dependencies\": {\n    \"react\": \"18.2.0\",\n    \"react-dom\": \"18.2.0\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"5.1.4\",\n    \"typescript\": \"5.4.2\"\n  }\n}\n```\n\n`tsconfig.json` (excerpt):\n```json\n{\n  \"compilerOptions\": {\n    \"jsx\": \"react-jsx\",\n    \"target\": \"ES2022\"\n  }\n}\n```\n\nEvery file in the repo that mentions 'react' or 'react-dom' as a string:\n\n`src/entry-client.tsx`:\n```tsx\nimport { hydrateRoot } from 'react-dom/client'\nimport { App } from './App'\n\nhydrateRoot(document.getElementById('root')!, <App />)\n```\n\n`src/App.tsx`:\n```tsx\nexport function App() {\n  return <main><h1>Dashboard</h1></main>\n}\n```\n\nNo file anywhere in the repo contains a literal import from 'react' (not 'react-dom') — the project uses the automatic JSX runtime.",
+      "prompt": "Quick dependency check on this frontend app before we ship. I especially want you to double-check that `react` itself isn't secretly dead weight \u2014 I have a feeling our grep-based tooling might get confused by `react-dom`.\n\n`package.json`:\n```json\n{\n  \"name\": \"acme-dashboard\",\n  \"dependencies\": {\n    \"react\": \"18.2.0\",\n    \"react-dom\": \"18.2.0\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"5.1.4\",\n    \"typescript\": \"5.4.2\"\n  }\n}\n```\n\n`tsconfig.json` (excerpt):\n```json\n{\n  \"compilerOptions\": {\n    \"jsx\": \"react-jsx\",\n    \"target\": \"ES2022\"\n  }\n}\n```\n\nEvery file in the repo that mentions 'react' or 'react-dom' as a string:\n\n`src/entry-client.tsx`:\n```tsx\nimport { hydrateRoot } from 'react-dom/client'\nimport { App } from './App'\n\nhydrateRoot(document.getElementById('root')!, <App />)\n```\n\n`src/App.tsx`:\n```tsx\nexport function App() {\n  return <main><h1>Dashboard</h1></main>\n}\n```\n\nNo file anywhere in the repo contains a literal import from 'react' (not 'react-dom') \u2014 the project uses the automatic JSX runtime.",
       "expected_output": "A report confirming react-dom is used (literal import in entry-client.tsx) and explicitly NOT flagging react as unused, reasoning from tsconfig.json's \"jsx\": \"react-jsx\" setting (the automatic JSX runtime requires react even without a literal import string) rather than from any overlap between the substrings 'react' and 'react-dom'.",
       "files": [],
       "assertions": [
-        "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx",
+        "Confirms react-dom is used, citing the literal import of 'react-dom/client' in src/entry-client.tsx as the evidence",
         "Does NOT list react as an unused dependency or removal candidate",
         "Explains that react is required because of the JSX transform (citing tsconfig.json's \"jsx\": \"react-jsx\" setting or automatic-runtime JSX compilation) even though no file literally imports from 'react'",
-        "Never claims that the react-dom import itself counts as evidence that 'react' is imported — treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
-        "States that no unused production dependencies were found, since both react and react-dom are justified",
-        "Does not report any security vulnerability or license finding for react or react-dom, since none was supplied in the prompt"
+        "Never claims that the react-dom import itself counts as evidence that 'react' is imported \u2014 treats react and react-dom as distinct package tokens rather than one being a substring match for the other",
+        "Answers the user's specific doubt directly and early \u2014 react is not dead weight and should stay \u2014 rather than burying the verdict inside a generic full-audit report",
+        "Does not invent a CVE or license finding for react or react-dom; where security is addressed at all, it notes that no audit output was supplied rather than asserting the packages are clean \u2014 restraint check"
       ]
     },
     {
@@ -38,9 +38,9 @@
         "Flags acme-http-client as significantly outdated (installed 2.1.0, latest 5.0.0), labels the upgrade effort as significant given the multi-major jump, and mentions the breaking changes in v3 and/or v5",
         "Flags geo-lookup's LGPL-2.1 license as worth a legal review, correctly identifying it as weak copyleft rather than conflating it with a stronger AGPL/GPL-level risk",
         "Flags supertest as listed under dependencies but only referenced from tests/api.test.ts, and recommends moving it to devDependencies",
-        "Does NOT flag ts-node as an unused dependency — recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module",
-        "Does NOT flag geo-lookup or acme-http-client as unused, since both are imported in src/index.ts",
-        "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it — keeps it in the outdated-dependencies category"
+        "Does NOT flag ts-node as an unused dependency \u2014 recognizes it is referenced in package.json's scripts.start even though no source file imports it as a module \u2014 restraint / false-positive check",
+        "Does not present the acme-http-client staleness finding as a security vulnerability/CVE, since no CVE or advisory data was given for it \u2014 keeps it in the outdated-dependencies category",
+        "Separates the findings into the skill's named categories \u2014 acme-http-client under significantly outdated, geo-lookup under license risks, supertest under dependency placement/unused \u2014 and closes with a summary tally rather than one undifferentiated list"
       ]
     }
   ]

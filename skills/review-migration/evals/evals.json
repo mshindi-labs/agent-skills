@@ -4,42 +4,42 @@
     {
       "id": 1,
       "prompt": "Can you review this migration before I merge it? It's a plain SQL file run by our migration tool; there's no companion `.down.sql` for it.\n\n```sql\n-- migrations/0042_add_user_email.sql\n\nALTER TABLE users ADD COLUMN nickname TEXT;\n\nALTER TABLE users ADD COLUMN email TEXT NOT NULL;\n\nCREATE INDEX idx_users_email ON users(email);\n```\n\nThe `users` table has production traffic and existing rows.",
-      "expected_output": "A risk report flagging the NOT NULL column with no default as high risk (fails on existing rows, needs the nullable-then-backfill-then-NOT NULL pattern), the non-concurrent CREATE INDEX as a lock risk naming ACCESS EXCLUSIVE with CONCURRENTLY as the fix, and the missing down migration as a reversibility gap — while leaving the nullable nickname column alone as safe.",
+      "expected_output": "A risk report flagging the NOT NULL column with no default as high risk (fails on existing rows, needs the nullable-then-backfill-then-NOT NULL pattern), the non-concurrent CREATE INDEX as a lock risk that blocks writes for the duration of the build (a SHARE lock, not ACCESS EXCLUSIVE) with CONCURRENTLY as the fix, and the missing down migration as a reversibility gap \u2014 while leaving the nullable nickname column alone as safe.",
       "files": [],
       "assertions": [
         "Flags `ALTER TABLE users ADD COLUMN email TEXT NOT NULL;` as high risk, explicitly because it has no default and will fail against existing rows in the table",
-        "Flags `CREATE INDEX idx_users_email ON users(email);` as a lock risk and explicitly names the ACCESS EXCLUSIVE lock type",
-        "Recommends `CREATE INDEX CONCURRENTLY` as the fix for the non-concurrent index",
-        "Flags the migration for having no down/rollback as a reversibility gap",
-        "Recommends the safe two-step pattern for the email column (add nullable or with a default, backfill existing rows, then enforce NOT NULL) rather than only naming the problem",
-        "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk"
+        "Describes `CREATE INDEX idx_users_email ON users(email);` as a lock risk that blocks writes to `users` for the duration of the build while reads keep working (a SHARE lock), and recommends `CREATE INDEX CONCURRENTLY` as the fix \u2014 it must NOT claim the index build takes an ACCESS EXCLUSIVE lock",
+        "Flags the absent down/rollback migration as a reversibility gap",
+        "Gives the ordered three-step fix for the email column \u2014 add it nullable or with a default, backfill existing rows, then apply NOT NULL \u2014 rather than only naming the problem",
+        "Does not flag `ALTER TABLE users ADD COLUMN nickname TEXT;` (nullable, no default) as a risk \u2014 restraint / false-positive check",
+        "Uses the skill's sectioned report structure: findings grouped under named risk categories (data-loss, lock, reversibility, backfill, index) with a severity tag per finding and a closing overall verdict, rather than one flat run of prose"
       ]
     },
     {
       "id": 2,
       "prompt": "Review this Rails migration before I run it against production. The `projects` table has millions of rows.\n\n```ruby\nclass AddOrgToProjects < ActiveRecord::Migration[7.0]\n  def up\n    add_column :projects, :organization_id, :bigint\n    add_foreign_key :projects, :organizations, column: :organization_id\n    rename_column :projects, :owner, :legacy_owner\n    add_index :projects, :status, algorithm: :concurrently\n  end\n\n  def down\n    remove_column :projects, :organization_id\n  end\nend\n```",
-      "expected_output": "A risk report flagging rename_column as high risk/breaking for undeployed app code, the foreign key column organization_id as missing a supporting index, and the down method as an incomplete reversibility gap since it doesn't reverse the rename or the foreign key/index — while confirming the CONCURRENTLY-qualified index add is not a lock risk.",
+      "expected_output": "A risk report flagging rename_column as high risk/breaking for undeployed app code, the foreign key column organization_id as missing a supporting index, and the down method as an incomplete reversibility gap since it doesn't reverse the rename or the foreign key/index \u2014 while confirming the CONCURRENTLY-qualified index add is not a lock risk.",
       "files": [],
       "assertions": [
         "Flags `rename_column :projects, :owner, :legacy_owner` as high risk because it breaks any application code not yet deployed to use the new column name",
         "Flags `add_foreign_key :projects, :organizations, column: :organization_id` as adding a foreign key on `organization_id` with no corresponding index on that column, and recommends adding one",
         "Flags the `down` method as an incomplete reversibility gap because it only removes `organization_id` and does not reverse the `rename_column` or `add_foreign_key`/`add_index` calls from `up`",
-        "Does not flag `add_index :projects, :status, algorithm: :concurrently` as a lock risk, correctly treating the CONCURRENTLY-qualified index build as low risk",
-        "Does not flag `add_column :projects, :organization_id, :bigint` itself as a data-loss or high risk operation, since it is nullable with no default",
+        "Does not flag `add_index :projects, :status, algorithm: :concurrently` as a lock risk, correctly treating the CONCURRENTLY-qualified index build as low risk \u2014 restraint / false-positive check",
+        "Reasons explicitly from the stated table size \u2014 that `projects` has millions of rows \u2014 when rating the risk or recommending how to run the migration, rather than giving size-independent generic advice",
         "Gives an overall verdict that the migration needs changes before running (not that it is safe to run), given the rename and reversibility gap"
       ]
     },
     {
       "id": 3,
-      "prompt": "One-off SQL migration, please review. The `users` table has roughly 40 million rows and this is the only file — there's no down/rollback migration defined for it.\n\n```sql\nCREATE TABLE audit_logs (\n  id BIGSERIAL PRIMARY KEY,\n  actor_id BIGINT NOT NULL,\n  action TEXT NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);\n\nDROP TABLE legacy_sessions;\n\n-- amount was previously NUMERIC(10,2) to preserve cents-level precision\nALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;\n\nUPDATE users SET status = 'active' WHERE status IS NULL;\n```",
-      "expected_output": "A risk report flagging DROP TABLE as irreversible/high risk, the NUMERIC-to-INTEGER column narrowing as high risk for truncating precision, and the bulk UPDATE on the 40-million-row users table as a high-risk long-held lock, plus a reversibility gap for the missing down migration — while leaving the new audit_logs table alone as safe.",
+      "prompt": "One-off SQL migration, please review. The `users` table has roughly 40 million rows and this is the only file \u2014 there's no down/rollback migration defined for it.\n\n```sql\nCREATE TABLE audit_logs (\n  id BIGSERIAL PRIMARY KEY,\n  actor_id BIGINT NOT NULL,\n  action TEXT NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);\n\nDROP TABLE legacy_sessions;\n\n-- amount was previously NUMERIC(10,2) to preserve cents-level precision\nALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;\n\nUPDATE users SET status = 'active' WHERE status IS NULL;\n```",
+      "expected_output": "A risk report flagging DROP TABLE as irreversible/high risk, the NUMERIC-to-INTEGER column narrowing as high risk for truncating precision, and the bulk UPDATE on the 40-million-row users table as a high-risk single long transaction that should be batched (row locks and WAL volume, not a table-wide lock), plus a reversibility gap for the missing down migration \u2014 while leaving the new audit_logs table alone as safe.",
       "files": [],
       "assertions": [
         "Flags `DROP TABLE legacy_sessions;` as high risk and irreversible/destructive",
         "Flags `ALTER TABLE payments ALTER COLUMN amount TYPE INTEGER;` as high risk, noting the type narrowing from NUMERIC(10,2) to INTEGER can truncate or lose precision on existing data",
-        "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill given the ~40 million row users table, noting it will hold a table lock for a long duration",
+        "Flags `UPDATE users SET status = 'active' WHERE status IS NULL;` as a high-risk backfill because it rewrites matched rows across a ~40 million row table in a single long transaction, and recommends batching it \u2014 it must NOT describe the UPDATE as taking a table-wide or ACCESS EXCLUSIVE lock that blocks all reads and writes",
         "Flags the absence of a down/rollback migration as a reversibility gap, specifically noting that `DROP TABLE legacy_sessions` cannot be safely reversed without a backup",
-        "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk",
+        "Does not flag the `CREATE TABLE audit_logs (...)` statement as a risk \u2014 restraint / false-positive check",
         "Gives an overall verdict indicating the migration needs changes before running or blocks deployment, not that it is safe to run"
       ]
     }
