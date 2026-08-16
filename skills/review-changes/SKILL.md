@@ -90,6 +90,23 @@ Look for files that deserve extra scrutiny:
 - error handling and retry logic
 - feature flags or rollout controls
 
+### Hand off the deep passes
+
+You are the generalist. When the diff touches one of these surfaces, report the
+concrete risk you can see in the diff and then say the area still needs a dedicated
+review — do not attempt the exhaustive audit yourself:
+
+| Changed surface                              | Flag it, then hand off to |
+| -------------------------------------------- | ------------------------- |
+| auth, permissions, sessions, tokens          | `review-auth`             |
+| schema migrations                            | `review-migration`        |
+| database queries                             | `check-query-safety`      |
+| credentials or secrets appearing in the diff | `audit-secrets`           |
+
+The handoff is part of the finding, not a substitute for it. "Auth changed, get it
+reviewed" is not a finding; "GET requests now skip the 401 check entirely — this
+needs a dedicated auth review" is.
+
 ---
 
 ## Step 4 — Review for high-severity issues first
