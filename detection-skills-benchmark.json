@@ -636,7 +636,8 @@
   },
   "notes": [
     "One eval per skill (eval id 1 only); 12 of 18 detection evals remain unrun.",
-    "without_skill runs executed in sandboxes inside the repo after skills were symlinked into .claude/skills, so some baseline runs attempted a Skill load. Two said the skill did not load; treat baselines as approximate.",
-    "review-migration assertion 2 is defective: it demands ACCESS EXCLUSIVE for CREATE INDEX, which takes a SHARE lock. Both arms are marked failed on it."
+    "without_skill runs executed in sandboxes inside the repo after skills were symlinked into .claude/skills, so some baseline runs attempted a Skill load. Two said the skill did not load; treat baselines as approximate. Fixed after this run: AGENTS.md now requires every arm to run in a mktemp sandbox outside the repo.",
+    "review-migration assertion 2 was defective when this ran: it demanded ACCESS EXCLUSIVE for CREATE INDEX, which takes a SHARE lock, so both arms were marked failed on it. Fixed after this run in both the skill body and the assertion; these scores predate the fix.",
+    "Most assertions in the four flat suites (review-migration, check-query-safety, audit-dependencies, audit-secrets) passed in BOTH arms, so this run measures the model more than the skill. Those suites were rewritten afterwards against structure, severity, fix shape and restraint \u2014 re-run before comparing against these numbers."
   ]
 }
