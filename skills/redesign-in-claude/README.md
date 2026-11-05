@@ -26,6 +26,12 @@ It adds no design rules of its own — the presentation-only contract from
   (Claude Code or claude.ai) has. Other agents should use `draft-ui-redesign`
   and paste the prompt into their design tool by hand.
 - `draft-ui-redesign` installed alongside it.
+- **Optional:** Anthropic's official `frontend-design` plugin (from the
+  `claude-plugins-official` marketplace: `/plugin install frontend-design`).
+  When it's installed, the design step follows its plan → review → build →
+  critique process. The redesign brief still overrides it: no hero sections,
+  no renamed labels, no invented content. Without it, the skill builds the
+  design straight from the prompt.
 
 ## Usage
 
