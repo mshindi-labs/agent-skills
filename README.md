@@ -201,6 +201,7 @@ right place instead of the first match.
 | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `upgrade-dependencies` | Plans and executes version bumps in risk-tiered batches, reading changelogs and verifying checks after each. |
 | `draft-ui-redesign`    | Turns an existing page into a paste-ready prompt for a design tool. Presentation only — never changes logic. |
+| `redesign-in-claude`   | Claude only. Runs `draft-ui-redesign`, then builds the redesign from its prompt as a Claude Design artifact. |
 
 ### Meta
 
