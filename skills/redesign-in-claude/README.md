@@ -43,9 +43,15 @@ It adds no design rules of its own — the presentation-only contract from
 
 ```
 redesign-in-claude/
-├── SKILL.md      ← the four-stage chain: draft → extract → design → hand back
-└── README.md
+├── SKILL.md         ← the four-stage chain: draft → extract → design → hand back
+├── README.md
+└── evals/
+    └── evals.json   ← 3 scenarios: happy path, missing response shape, frontend-design precedence
 ```
+
+The evals need a Claude session with the Artifact tool's Design type. Run each
+arm in a sandbox outside this repo, as `AGENTS.md` describes. Eval 3 tests the
+`frontend-design` path, so install that plugin for its `with_skill` arm.
 
 ## Installation
 
