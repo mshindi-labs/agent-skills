@@ -28,6 +28,14 @@ This gives you the skills below and the public agents. Update with
 remove those copies first (`npx skills list`, `npx skills remove <name>`), or both versions of a
 skill will be offered.
 
+With this many skills, Claude Code's default 8,000-character budget for skill descriptions runs
+out, and skills stop triggering on their own because the model sees names only. Raise the budget
+in your settings:
+
+```json
+{ "env": { "SLASH_COMMAND_TOOL_CHAR_BUDGET": "40000" } }
+```
+
 <!-- /plugin-install -->
 
 ### Install everything
