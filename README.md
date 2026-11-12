@@ -1,15 +1,7 @@
 # playbook
 
-Mshindi Labs Playbook: 43 agent skills for AI coding assistants — code review,
+Mshindi Labs Playbook: 44 agent skills for AI coding assistants — code review,
 debugging, git and release workflow, testing, codebase orientation, and project setup.
-
-> **This repo moved.** It used to be `mshindi-labs/agent-skills`. Every old URL and
-> command (`https://github.com/mshindi-labs/agent-skills`,
-> `npx skills add mshindi-labs/agent-skills`, `npx skills use mshindi-labs/agent-skills@…`)
-> redirects here and keeps working. New installs should use `MshindiLabs/playbook`, as below.
->
-> **Read-only mirror.** Skills are developed in a private Mshindi Labs repo; pull requests
-> here are not merged. Found a problem with a skill? Open an issue.
 
 A skill is a packaged set of instructions your agent loads when the task matches.
 Instead of re-explaining how you want a migration reviewed or a commit written, you
@@ -238,6 +230,7 @@ right place instead of the first match.
 | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `upgrade-dependencies` | Plans and executes version bumps in risk-tiered batches, reading changelogs and verifying checks after each. |
 | `draft-ui-redesign`    | Turns an existing page into a paste-ready prompt for a design tool. Presentation only — never changes logic. |
+| `redesign-in-claude`   | Claude only. Runs `draft-ui-redesign`, then builds its prompt as a live Claude Design artifact in one run.   |
 
 ### Meta
 
@@ -288,9 +281,9 @@ Two rules matter enough to repeat here:
 
 ## Contributing
 
-This repo is a read-only mirror: skills are written, evaluated and released in a private
-Mshindi Labs repo and published here on each release. Pull requests opened here are not
-merged. To report a problem with a skill or ask for a new one, open an issue.
+Skills are written, evaluated and released from Mshindi Labs' source repo and published here
+on each release, so pull requests opened here are not merged. To report a problem with a skill
+or ask for a new one, open an issue.
 
 This repo is MIT licensed (see `LICENSE`). Vendored skills (`skills/skill-creator`) keep their
 original upstream license (`skills/skill-creator/LICENSE.txt`, Apache-2.0).
