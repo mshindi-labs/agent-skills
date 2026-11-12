@@ -6,9 +6,7 @@
     "name": "Mshindi Labs"
   },
   "repository": "https://github.com/MshindiLabs/mle",
-  "skills": [
-    "./skills/"
-  ],
+  "skills": ["./skills/"],
   "agents": [
     "./agents/builder.md",
     "./agents/migration-reviewer.md",
