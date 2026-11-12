@@ -4,9 +4,9 @@
   "metadata": { "description": "Mshindi Labs engineering skills (public)" },
   "plugins": [
     {
-      "name": "mle",
+      "name": "playbook",
       "source": "./",
-      "description": "Mshindi Labs Engineering: agent skills and public agents",
+      "description": "Mshindi Labs Playbook: agent skills and public agents",
       "category": "development"
     }
   ]

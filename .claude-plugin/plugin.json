@@ -1,11 +1,11 @@
 {
-  "name": "mle",
+  "name": "playbook",
   "version": "1.4.0",
-  "description": "Mshindi Labs Engineering: agent skills and public agents",
+  "description": "Mshindi Labs Playbook: agent skills and public agents",
   "author": {
     "name": "Mshindi Labs"
   },
-  "repository": "https://github.com/MshindiLabs/mle",
+  "repository": "https://github.com/MshindiLabs/playbook",
   "skills": ["./skills/"],
   "agents": [
     "./agents/builder.md",

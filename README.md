@@ -1,12 +1,12 @@
-# mle
+# playbook
 
-Mshindi Labs Engineering: 43 agent skills for AI coding assistants — code review,
+Mshindi Labs Playbook: 43 agent skills for AI coding assistants — code review,
 debugging, git and release workflow, testing, codebase orientation, and project setup.
 
 > **This repo moved.** It used to be `mshindi-labs/agent-skills`. Every old URL and
 > command (`https://github.com/mshindi-labs/agent-skills`,
 > `npx skills add mshindi-labs/agent-skills`, `npx skills use mshindi-labs/agent-skills@…`)
-> redirects here and keeps working. New installs should use `MshindiLabs/mle`, as below.
+> redirects here and keeps working. New installs should use `MshindiLabs/playbook`, as below.
 >
 > **Read-only mirror.** Skills are developed in a private Mshindi Labs repo; pull requests
 > here are not merged. Found a problem with a skill? Open an issue.
@@ -27,12 +27,12 @@ Code, Cursor, Windsurf, Copilot, and other agents that read `SKILL.md` files.
 ### Install as a Claude Code plugin
 
 ```text
-/plugin marketplace add MshindiLabs/mle
-/plugin install mle@mshindilabs-public
+/plugin marketplace add MshindiLabs/playbook
+/plugin install playbook@mshindilabs-public
 ```
 
 This gives you the skills below and the public agents. Update with
-`/plugin update mle@mshindilabs-public`. If you already installed the skills with `npx skills`,
+`/plugin update playbook@mshindilabs-public`. If you already installed the skills with `npx skills`,
 remove those copies first (`npx skills list`, `npx skills remove <name>`), or both versions of a
 skill will be offered.
 
@@ -41,7 +41,7 @@ skill will be offered.
 ### Install everything
 
 ```bash
-npx skills add MshindiLabs/mle --all
+npx skills add MshindiLabs/playbook --all
 ```
 
 `--all` is shorthand for `--skill '*' --agent '*' -y`: every skill in this repo,
@@ -50,20 +50,20 @@ wired into every agent directory it detects, no prompts.
 Add `-g` to install for your user account instead of the current project:
 
 ```bash
-npx skills add MshindiLabs/mle --all -g
+npx skills add MshindiLabs/playbook --all -g
 ```
 
 ### Install one skill, or a few
 
 ```bash
-npx skills add MshindiLabs/mle --skill review-changes
-npx skills add MshindiLabs/mle --skill review-auth,review-migration,check-query-safety
+npx skills add MshindiLabs/playbook --skill review-changes
+npx skills add MshindiLabs/playbook --skill review-auth,review-migration,check-query-safety
 ```
 
 List what is available without installing anything:
 
 ```bash
-npx skills add MshindiLabs/mle --list
+npx skills add MshindiLabs/playbook --list
 ```
 
 ### Target specific agents
@@ -72,7 +72,7 @@ By default the installer detects the agents on your machine and wires the skills
 each one. Pass `--agent` to narrow that to specific agents, or `'*'` for all of them:
 
 ```bash
-npx skills add MshindiLabs/mle --all --agent '*'
+npx skills add MshindiLabs/playbook --all --agent '*'
 ```
 
 Installs symlink by default so `npx skills update` keeps them current. Pass `--copy`
@@ -81,7 +81,7 @@ if you would rather have independent copies that never move under you.
 ### Try one without installing
 
 ```bash
-npx skills use MshindiLabs/mle@review-changes
+npx skills use MshindiLabs/playbook@review-changes
 ```
 
 Prints the skill as a prompt you can paste into any agent.
@@ -91,14 +91,14 @@ Prints the skill as a prompt you can paste into any agent.
 Skills are plain directories — copying one in works fine:
 
 ```bash
-git clone https://github.com/MshindiLabs/mle
-cp -r mle/skills/review-changes ~/.claude/skills/
+git clone https://github.com/MshindiLabs/playbook
+cp -r playbook/skills/review-changes ~/.claude/skills/
 ```
 
 For all of them at once, into any agent's skills directory:
 
 ```bash
-cp -r mle/skills/* ~/.claude/skills/
+cp -r playbook/skills/* ~/.claude/skills/
 ```
 
 ### Updating
@@ -292,5 +292,5 @@ This repo is a read-only mirror: skills are written, evaluated and released in a
 Mshindi Labs repo and published here on each release. Pull requests opened here are not
 merged. To report a problem with a skill or ask for a new one, open an issue.
 
-Vendored skills (`skills/skill-creator`) keep their original upstream license
-(`skills/skill-creator/LICENSE.txt`, Apache-2.0).
+This repo is MIT licensed (see `LICENSE`). Vendored skills (`skills/skill-creator`) keep their
+original upstream license (`skills/skill-creator/LICENSE.txt`, Apache-2.0).
