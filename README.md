@@ -22,7 +22,19 @@ Code, Cursor, Windsurf, Copilot, and other agents that read `SKILL.md` files.
 
 ## Installation
 
-<!-- plugin-install: filled by issue 34 -->
+<!-- plugin-install -->
+
+### Install as a Claude Code plugin
+
+```text
+/plugin marketplace add MshindiLabs/mle
+/plugin install mle@mshindilabs-public
+```
+
+This gives you the skills below and the public agents. Update with
+`/plugin update mle@mshindilabs-public`. If you already installed the skills with `npx skills`,
+remove those copies first (`npx skills list`, `npx skills remove <name>`), or both versions of a
+skill will be offered.
 
 <!-- /plugin-install -->
 
@@ -100,7 +112,16 @@ npx skills remove review-auth  # uninstall
 
 ---
 
-<!-- agents: filled by issue 37 -->
+<!-- agents -->
+
+## Agents
+
+| Agent                | Role                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `reviewer`           | Generalist diff review, highest risk first, no praise                                     |
+| `security-reviewer`  | Auth bypasses, missing ownership checks, IDOR, secrets in the diff and history, injection |
+| `migration-reviewer` | Lock types, data loss, reversibility, backfills                                           |
+| `builder`            | Builds one plan task test-first, runs the local gate, commits once, never pushes `main`   |
 
 <!-- /agents -->
 
