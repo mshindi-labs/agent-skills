@@ -52,7 +52,7 @@ draft-ui-redesign/
 ### Via skills.sh
 
 ```bash
-npx skills add https://github.com/mshindi-labs/agent-skills --skill draft-ui-redesign
+npx skills add https://github.com/MshindiLabs/playbook --skill draft-ui-redesign
 ```
 
 ### Manual

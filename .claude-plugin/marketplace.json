@@ -1,0 +1,13 @@
+{
+  "name": "mshindilabs-public",
+  "owner": { "name": "Mshindi Labs" },
+  "metadata": { "description": "Mshindi Labs engineering skills (public)" },
+  "plugins": [
+    {
+      "name": "playbook",
+      "source": "./",
+      "description": "Mshindi Labs Playbook: agent skills and public agents",
+      "category": "development"
+    }
+  ]
+}
