@@ -1,0 +1,10 @@
+{
+  "name": "mle",
+  "version": "1.3.0",
+  "description": "Mshindi Labs Engineering: agent skills and public agents",
+  "author": {
+    "name": "Mshindi Labs"
+  },
+  "repository": "https://github.com/MshindiLabs/mle",
+  "skills": ["./skills/"]
+}
