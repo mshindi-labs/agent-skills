@@ -6,5 +6,11 @@
     "name": "Mshindi Labs"
   },
   "repository": "https://github.com/MshindiLabs/mle",
-  "skills": ["./skills/"]
+  "skills": ["./skills/"],
+  "agents": [
+    "./agents/builder.md",
+    "./agents/migration-reviewer.md",
+    "./agents/reviewer.md",
+    "./agents/security-reviewer.md"
+  ]
 }
