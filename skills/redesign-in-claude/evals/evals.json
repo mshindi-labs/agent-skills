@@ -1,0 +1,51 @@
+{
+  "skill_name": "redesign-in-claude",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Redesign our payouts page in Claude Design. I want to see the actual design, not just a prompt.\n\n```tsx\n// app/(dashboard)/payouts/page.tsx\n'use client'\nexport default function PayoutsPage() {\n  const { data, isLoading, error } = useQuery({\n    queryKey: ['payouts'],\n    queryFn: () => api.get('/api/payouts'),\n  })\n\n  if (isLoading) return <Spinner />\n  if (error) return <Alert>Could not load payouts</Alert>\n\n  return (\n    <div className=\"container\">\n      <h1>Payouts</h1>\n      <p>Available balance: {formatMoney(data.available_balance)}</p>\n      <button onClick={openPayoutDialog}>Request payout</button>\n      <table className=\"table\">\n        <thead>\n          <tr><th>Arrival date</th><th>Amount</th><th>Destination</th><th>Status</th></tr>\n        </thead>\n        <tbody>\n          {data.payouts.map((p) => (\n            <tr key={p.id}>\n              <td>{formatDate(p.arrival_date)}</td>\n              <td>{formatMoney(p)}</td>\n              <td>{p.destination.bank_name} ****{p.destination.last4}</td>\n              <td>{p.status}</td>\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    </div>\n  )\n}\n```\n\n`GET /api/payouts` returns:\n\n```json\n{\n  \"available_balance\": { \"amount\": 1284000, \"currency\": \"KES\" },\n  \"pending_balance\": { \"amount\": 312500, \"currency\": \"KES\" },\n  \"payouts\": [\n    {\n      \"id\": \"po_4Hn2\",\n      \"amount\": 500000,\n      \"currency\": \"KES\",\n      \"status\": \"in_transit\",\n      \"arrival_date\": \"2026-11-07\",\n      \"destination\": { \"bank_name\": \"Equity Bank\", \"last4\": \"8841\" },\n      \"failure_reason\": null,\n      \"created_at\": \"2026-11-04T08:15:00Z\"\n    }\n  ],\n  \"has_more\": true\n}\n```",
+      "expected_output": "The draft-ui-redesign workflow runs first and writes docs/redesign/<page>-redesign.md; its section 3 prompt then becomes a Claude Design artifact created from a freshly quickstarted Design type, with separate artboards for every state and breakpoint, existing labels verbatim, the artifact URL written back into the doc, and the five-part hand-back report.",
+      "files": [],
+      "assertions": [
+        "Runs the draft-ui-redesign workflow first (invoking that skill) and writes a redesign document under docs/redesign/ containing a section 3 generation prompt, before any Claude Design artifact is created",
+        "Creates the design by calling the Artifact tool with action quickstart and intent design, then publishing with the type_url that quickstart returned, rather than a hardcoded or remembered type link",
+        "Does not call DesignSync and does not hand off to, or write a prompt for, Stitch, v0, Lovable, or Figma Make",
+        "The design includes every currently rendered data point and control: available balance, the Request payout button, arrival date, amount, destination bank name with last 4 digits, and status",
+        "Designs loading, empty, error, and dense or overflowing states as separate artboards, plus at least one mobile-width artboard, not only the populated desktop view",
+        "Keeps the existing labels verbatim (Payouts, Request payout, Arrival date, Amount, Destination, Status) and adds no hero or marketing section above the balance and table",
+        "Writes the artifact URL into the top of the redesign document as a line of the form 'Claude Design: <url>'",
+        "Ends with a hand-back report listing the design link, the document path, the proposed API additions or 'none needed', whether frontend-design was used, and anything the user should review"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Take our team members page through Claude Design and give me the redesign.\n\n```tsx\n// app/settings/team/page.tsx\nimport { useMembers } from '@/lib/hooks/use-members'\n\nexport default function TeamPage() {\n  const { members } = useMembers()\n\n  return (\n    <section>\n      <h2>Team</h2>\n      <button onClick={openInviteModal}>Invite member</button>\n      <ul>\n        {members.map((m) => (\n          <li key={m.id}>\n            {m.name} ({m.email}) - {m.role}\n          </li>\n        ))}\n      </ul>\n    </section>\n  )\n}\n```\n\nI don't have the hook or the API handler handy, just go for it.",
+      "expected_output": "The skill locates the page and its useMembers data source, sees there is no response shape to work from, and stops to ask for the hook, the handler, or a sample payload instead of creating a design. It does not create a Claude Design artifact and does not invent fields.",
+      "files": [],
+      "assertions": [
+        "Does not create a Claude Design artifact: no Artifact quickstart with intent design and no publish with a Design type_url",
+        "Asks the user for the response shape, specifically the useMembers hook, the API handler behind it, or a sample payload",
+        "Explains that designing on guessed fields would produce a polished but wrong redesign, rather than complying with 'just go for it'",
+        "Identifies useMembers from @/lib/hooks/use-members as the page's data source",
+        "Does not invent member fields beyond those visible in the component (id, name, email, role), such as avatar, status, last active, or join date",
+        "Keeps any partial audit to what the component shows: the Team heading, the Invite member button, and the name, email, and role of each member"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Redesign our issue list in Claude. Make it look stunning and bold, I'm tired of it looking like every other admin panel.\n\n```tsx\n// app/projects/[projectId]/issues/page.tsx\nexport default function IssuesPage({ params }) {\n  const [assignee, setAssignee] = useState('anyone')\n  const { data } = useSWR(`/api/projects/${params.projectId}/issues?assignee=${assignee}`)\n\n  return (\n    <div>\n      <h1>Issues</h1>\n      <label>\n        Filter by assignee\n        <select value={assignee} onChange={(e) => setAssignee(e.target.value)}>\n          <option value=\"anyone\">Anyone</option>\n          <option value=\"me\">Me</option>\n        </select>\n      </label>\n      <table>\n        <thead>\n          <tr><th>Key</th><th>Title</th><th>Priority</th><th>Assignee</th><th></th></tr>\n        </thead>\n        <tbody>\n          {data?.issues.map((i) => (\n            <tr key={i.key} onClick={() => router.push(`/issues/${i.key}`)}>\n              <td>{i.key}</td>\n              <td>{i.title}</td>\n              <td>{i.priority}</td>\n              <td>{i.assignee?.name ?? 'Unassigned'}</td>\n              <td>\n                {i.state !== 'done' && (\n                  <button onClick={(e) => { e.stopPropagation(); markDone(i.key) }}>Mark as done</button>\n                )}\n              </td>\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    </div>\n  )\n}\n```\n\n`GET /api/projects/:projectId/issues` returns:\n\n```json\n{\n  \"issues\": [\n    {\n      \"key\": \"HR-212\",\n      \"title\": \"Leave balance shows negative after carry-over\",\n      \"state\": \"in_progress\",\n      \"priority\": \"high\",\n      \"assignee\": { \"id\": \"u_14\", \"name\": \"Wanjiru Kamau\" },\n      \"labels\": [\"leave\", \"bug\"],\n      \"updated_at\": \"2026-11-03T14:40:00Z\"\n    }\n  ]\n}\n```",
+      "expected_output": "frontend-design (when installed) shapes the build through a token plan reviewed against the brief, but ranks below the redesign contract: the design opens on the issue table, keeps every existing label and action, adds no new features, and spends the user's 'bold' request on one detail inside a dense layout.",
+      "files": [],
+      "assertions": [
+        "When Anthropic's frontend-design skill is available, invokes it before filling the Claude Design artifact, and does not substitute a community skill such as frontend-design-direction in its place",
+        "Records a compact design plan before building (a palette of 4 to 6 named hex values, typefaces with their roles, and a layout concept) and reviews it against the brief for generic defaults before building",
+        "The first artboard opens on the issue list itself, with no hero headline, marketing copy, or landing-page composition",
+        "Keeps the existing labels verbatim: Issues, Filter by assignee, Anyone, Me, Mark as done, Unassigned, and the Key, Title, Priority, and Assignee column headings",
+        "Adds no features, filters, or actions that the current page lacks, such as kanban drag-and-drop, bulk actions, search, or new filter options",
+        "Confines the bold treatment to one deliberate detail, such as the priority or state treatment or the issue key, while the overall layout stays dense and scannable, consistent with a named work-tracking benchmark mechanic",
+        "Preserves row-click navigation to /issues/:key and shows the Mark as done action only for issues that are not done",
+        "The hand-back report states whether frontend-design was used"
+      ]
+    }
+  ]
+}
